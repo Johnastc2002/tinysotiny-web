@@ -1,6 +1,6 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
-import { getProjectById } from '@/lib/contentful';
+import { getProjectById, getRecommendedProject } from '@/lib/contentful';
 import ProjectPageClient from '@/components/ProjectPageClient';
 
 export default async function ProjectPage({
@@ -15,5 +15,15 @@ export default async function ProjectPage({
     notFound();
   }
 
-  return <ProjectPageClient project={project} />;
+  const recommendedProject = await getRecommendedProject(
+    id,
+    project.projectType
+  );
+
+  return (
+    <ProjectPageClient
+      project={project}
+      recommendedProject={recommendedProject}
+    />
+  );
 }

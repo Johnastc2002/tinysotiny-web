@@ -1,5 +1,5 @@
 export interface Project {
-  id: string | number;
+  id: string;
   title: string;
   clientName: string;
   description: string;
@@ -10,4 +10,5 @@ export interface Project {
   banners: string[];
   cast: string;
   images: string[];
+  projectType: 'work' | 'play';
 }

@@ -1,0 +1,107 @@
+'use client';
+
+import { useState } from 'react';
+import Image from 'next/image';
+import { Founder } from '@/types/about';
+
+interface AboutSlideOverProps {
+  founderImage?: string;
+  founders?: Founder[];
+}
+
+export default function AboutSlideOver({ founderImage, founders }: AboutSlideOverProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      {/* Backdrop - Only visible when open */}
+      <div 
+        className={`fixed inset-0 bg-black/60 z-30 transition-opacity duration-700 ${
+            isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setIsOpen(false)}
+      />
+
+      {/* Card Container - Acts as both the trigger (when closed) and the content (when open) */}
+      <div 
+        onClick={() => !isOpen && setIsOpen(true)}
+        className={`
+            fixed top-1/2 right-0 -translate-y-1/2 z-40
+            w-full max-w-6xl h-[85vh]
+            bg-white rounded-l-3xl md:rounded-3xl shadow-2xl overflow-hidden
+            flex flex-col md:flex-row
+            transition-transform duration-700 ease-in-out
+            ${isOpen 
+                ? 'translate-x-[calc(50%-50vw)] cursor-default' 
+                : 'translate-x-[calc(100%-60px)] hover:translate-x-[calc(100%-70px)] cursor-pointer'
+            }
+        `}
+      >
+        {/* Close Button - Visible when open */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOpen(false);
+          }}
+          className={`absolute top-6 right-6 z-50 text-white/80 hover:text-white transition-opacity duration-300 p-2 ${
+            isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+        >
+           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+             <line x1="18" y1="6" x2="6" y2="18"></line>
+             <line x1="6" y1="6" x2="18" y2="18"></line>
+           </svg>
+        </button>
+
+        {/* Left Side - Image/Grey Area */}
+        <div className="w-full md:w-1/2 h-1/2 md:h-full relative bg-gray-200">
+           {founderImage ? (
+             <Image
+               src={founderImage}
+               alt="Founders"
+               fill
+               className="object-cover"
+             />
+           ) : (
+             <div className="w-full h-full flex items-center justify-center">
+                  <span className={`text-gray-400 font-medium transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+                      Founder Image
+                  </span>
+             </div>
+           )}
+        </div>
+
+        {/* Right Side - Info */}
+        <div className="w-full md:w-1/2 h-1/2 md:h-full bg-[#0F2341] text-white p-8 md:p-16 flex flex-col justify-center relative">
+          <div className={`space-y-16 transition-opacity duration-700 delay-100 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+            <div className="text-xs font-medium tracking-[0.2em] uppercase opacity-70">
+              Founder / About Us
+            </div>
+
+            <div className="space-y-12">
+              {founders?.map((founder, index) => (
+                <div key={index}>
+                  <h3 className="font-serif text-5xl md:text-6xl mb-3 text-white">{founder.name}</h3>
+                  <p className="text-sm md:text-base font-light opacity-80 tracking-wide">{founder.role}</p>
+                </div>
+              ))}
+              
+              {!founders?.length && (
+                <>
+                  <div>
+                    <h3 className="font-serif text-5xl md:text-6xl mb-3 text-white">eddie li</h3>
+                    <p className="text-sm md:text-base font-light opacity-80 tracking-wide">co-founder & photographer</p>
+                  </div>
+                  <div>
+                    <h3 className="font-serif text-5xl md:text-6xl mb-3 text-white">yin ip</h3>
+                    <p className="text-sm md:text-base font-light opacity-80 tracking-wide">co-founder & art director</p>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

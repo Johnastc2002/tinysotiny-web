@@ -2,14 +2,16 @@
 
 import React, { useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Project } from '@/types/project';
 
 interface ProjectPageClientProps {
   project: Project;
+  recommendedProject: Project | null;
 }
 
-export default function ProjectPageClient({ project }: ProjectPageClientProps) {
+export default function ProjectPageClient({ project, recommendedProject }: ProjectPageClientProps) {
   // Ref for the container that holds the horizontal scroll section
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -123,7 +125,7 @@ export default function ProjectPageClient({ project }: ProjectPageClientProps) {
       {/* Content Section - Scrolls OVER the fixed banner */}
       <div className="relative z-10 bg-transparent min-h-screen">
         {/* Background Layer for the lower part */}
-        <div className="absolute top-[10vh] left-0 w-full h-full bg-gray-100 -z-10" />
+        <div className="absolute top-[10vh] left-0 w-full bottom-0 bg-gray-100 -z-10" />
 
         {/* Title and Cast Section Container - Overlap the banner */}
         <div className="w-full relative -mt-32 z-20 pointer-events-none">
@@ -197,6 +199,43 @@ export default function ProjectPageClient({ project }: ProjectPageClientProps) {
             </div>
           </div>
         </div>
+
+        {/* Recommended Project Section */}
+        {recommendedProject && (
+          <div className="w-full px-4 md:px-8 z-10 relative -mt-8">
+            <Link
+              href={`/project/${recommendedProject.id}`}
+              className="block w-full bg-[#D6A360] rounded-t-3xl p-12 md:p-24 hover:bg-[#c59556] transition-colors duration-300 group"
+            >
+              <div className="flex flex-col items-start">
+                <div className="flex items-center space-x-2 mb-6 opacity-80 group-hover:opacity-100 transition-opacity">
+                  <span className="text-xs font-bold tracking-widest text-[#2c2c2c] uppercase">
+                    Next Project
+                  </span>
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="text-[#2c2c2c]"
+                  >
+                    <path
+                      d="M1 1L11 11M11 11V1M11 11H1"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-4xl md:text-6xl font-serif text-[#2c2c2c] leading-tight max-w-4xl">
+                  {recommendedProject.title}
+                </h3>
+              </div>
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

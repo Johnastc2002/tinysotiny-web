@@ -1,39 +1,51 @@
+'use client';
+
 import React from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Project } from '@/types/project';
 import { useRouter } from 'next/navigation';
 
-interface ProjectCardProps {
-  project: Project | null;
-  onClose: () => void;
-  isOpen: boolean;
+export interface DetailCardData {
+  id: string;
+  imageUrl?: string;
+  title: string;
+  description: string;
+  topLabel: React.ReactNode;
+  bottomContent: React.ReactNode;
 }
 
-export default function ProjectCard({
-  project,
+interface DetailCardProps {
+  data: DetailCardData | null;
+  onClose: () => void;
+  isOpen: boolean;
+  basePath: string;
+}
+
+export default function DetailCard({
+  data,
   onClose,
   isOpen,
-}: ProjectCardProps) {
+  basePath,
+}: DetailCardProps) {
   const [isImageLoaded, setIsImageLoaded] = React.useState(false);
   const router = useRouter();
 
-  // Reset loading state when project changes
+  // Reset loading state when data changes
   React.useEffect(() => {
     if (isOpen) {
       setIsImageLoaded(false);
     }
-  }, [project, isOpen]);
+  }, [data, isOpen]);
 
   const handleCardClick = () => {
-    if (project) {
-      router.push(`/project/${project.id}`);
+    if (data) {
+      router.push(`${basePath}/${data.id}`);
     }
   };
 
   return (
     <AnimatePresence>
-      {isOpen && project && (
+      {isOpen && data && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -54,14 +66,14 @@ export default function ProjectCard({
           >
             {/* Left Side - Image */}
             <div className="relative w-1/2 h-full bg-gray-100 group">
-              {project.thumbnails && project.thumbnails.length > 0 ? (
+              {data.imageUrl ? (
                 <>
                   {!isImageLoaded && (
                     <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                   )}
                   <Image
-                    src={project.thumbnails[0]}
-                    alt={project.title}
+                    src={data.imageUrl}
+                    alt={data.title}
                     fill
                     className={`object-cover transition-all duration-700 ${
                       isImageLoaded ? 'opacity-100' : 'opacity-0'
@@ -83,29 +95,20 @@ export default function ProjectCard({
               <div className="flex-1 bg-[#E5E5E5] p-10 flex flex-col justify-center">
                 <div className="mb-4">
                   <span className="text-sm font-semibold uppercase tracking-wider text-gray-500">
-                    CLIENT / {project.clientName}
+                    {data.topLabel}
                   </span>
                 </div>
                 <h2 className="mb-4 text-4xl font-serif text-gray-800 leading-tight">
-                  {project.title}
+                  {data.title}
                 </h2>
                 <p className="text-sm text-gray-600 leading-relaxed max-w-md">
-                  {project.description}
+                  {data.description}
                 </p>
               </div>
 
               {/* Bottom Section - Tags/Points */}
               <div className="bg-white p-10 flex flex-col justify-center min-h-[30%]">
-                <ul className="space-y-3">
-                  {project.tags.map((tag, index) => (
-                    <li
-                      key={index}
-                      className="flex items-center text-xs font-semibold text-gray-400 uppercase tracking-wide"
-                    >
-                      <span className="mr-2 text-[10px]">◉</span> {tag}
-                    </li>
-                  ))}
-                </ul>
+                {data.bottomContent}
               </div>
             </div>
           </motion.div>
@@ -114,3 +117,4 @@ export default function ProjectCard({
     </AnimatePresence>
   );
 }
+

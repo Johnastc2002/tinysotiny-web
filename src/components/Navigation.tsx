@@ -2,9 +2,17 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { ContactData } from '@/types/about';
 
-export default function Navigation() {
+interface NavigationProps {
+  contact?: ContactData | null;
+}
+
+export default function Navigation({ contact }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+  const isDarkPage = false; // All pages currently use black text for menu except potential future dark pages
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -19,9 +27,9 @@ export default function Navigation() {
         aria-label="Open Menu"
       >
         <div className="flex flex-col gap-[6px]">
-          <span className="h-0.5 w-8 bg-black rounded-full" />
-          <span className="h-0.5 w-8 bg-black rounded-full" />
-          <span className="h-0.5 w-8 bg-black rounded-full" />
+          <span className={`h-0.5 w-8 rounded-full transition-colors ${isDarkPage ? 'bg-white' : 'bg-black'}`} />
+          <span className={`h-0.5 w-8 rounded-full transition-colors ${isDarkPage ? 'bg-white' : 'bg-black'}`} />
+          <span className={`h-0.5 w-8 rounded-full transition-colors ${isDarkPage ? 'bg-white' : 'bg-black'}`} />
         </div>
       </button>
 
@@ -81,14 +89,26 @@ export default function Navigation() {
 
         {/* Footer Items */}
         <div className="flex justify-between px-16 pb-16 md:px-24">
-          {['INSTAGRAM', 'EMAIL', 'PHONE'].map((item) => (
-            <button
-              key={item}
-              className="text-sm font-semibold tracking-widest text-gray-400 hover:text-black transition-colors uppercase"
-            >
-              {item}
-            </button>
-          ))}
+          <Link
+            href={contact?.instagram || 'https://instagram.com'}
+            className="text-sm font-semibold tracking-widest text-gray-400 hover:text-black transition-colors uppercase"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            INSTAGRAM
+          </Link>
+          <Link
+            href={`mailto:${contact?.email || 'hello@tinysotiny.com'}`}
+            className="text-sm font-semibold tracking-widest text-gray-400 hover:text-black transition-colors uppercase"
+          >
+            EMAIL
+          </Link>
+          <Link
+            href={`tel:${contact?.phone || '+85212345678'}`}
+            className="text-sm font-semibold tracking-widest text-gray-400 hover:text-black transition-colors uppercase"
+          >
+            PHONE
+          </Link>
         </div>
       </div>
       
@@ -102,4 +122,3 @@ export default function Navigation() {
     </>
   );
 }
-

@@ -12,7 +12,7 @@ import {
   Float,
 } from '@react-three/drei';
 import * as THREE from 'three';
-import ProjectCard from './ProjectCard';
+import DetailCard, { DetailCardData } from './DetailCard';
 import { Project } from '@/types/project';
 
 export const BUBBLE_COLORS = {
@@ -574,11 +574,17 @@ const Bubbles = ({
   );
 };
 
-const CameraAdjuster = () => {
+const CameraAdjuster = ({
+  userInteractionRef,
+}: {
+  userInteractionRef: React.MutableRefObject<boolean>;
+}) => {
   const { camera, size } = useThree();
   const controls = useThree((state) => state.controls);
 
   useEffect(() => {
+    if (userInteractionRef.current) return;
+
     if (!(camera instanceof THREE.PerspectiveCamera)) return;
 
     const aspect = size.width / size.height;
@@ -615,7 +621,7 @@ const CameraAdjuster = () => {
 
     camera.position.copy(newPos);
     camera.updateProjectionMatrix();
-  }, [size, camera, controls]);
+  }, [size, camera, controls, userInteractionRef]);
 
   return null;
 };
@@ -640,12 +646,41 @@ export default function BubbleScene({
     setSelectedProject(null);
   };
 
+  const userInteractionRef = useRef(false);
+
+  // Map Project to DetailCardData
+  const cardData: DetailCardData | null = selectedProject
+    ? {
+        id: selectedProject.id,
+        title: selectedProject.title,
+        description: selectedProject.description,
+        imageUrl:
+          selectedProject.thumbnails && selectedProject.thumbnails.length > 0
+            ? selectedProject.thumbnails[0]
+            : undefined,
+        topLabel: `CLIENT / ${selectedProject.clientName}`,
+        bottomContent: (
+          <ul className="space-y-3">
+            {selectedProject.tags.map((tag, index) => (
+              <li
+                key={index}
+                className="flex items-center text-xs font-semibold text-gray-400 uppercase tracking-wide"
+              >
+                <span className="mr-2 text-[10px]">◉</span> {tag}
+              </li>
+            ))}
+          </ul>
+        ),
+      }
+    : null;
+
   return (
     <div className={`w-full h-screen ${bgClass}`}>
-      <ProjectCard
+      <DetailCard
         isOpen={!!selectedProject}
         onClose={handleCloseCard}
-        project={selectedProject}
+        data={cardData}
+        basePath="/project"
       />
       <Canvas
         camera={{ position: [0, 0, 20], fov: 50 }}
@@ -655,7 +690,7 @@ export default function BubbleScene({
         <pointLight position={[10, 10, 10]} intensity={2} />
         <color attach="background" args={['#F0F2F5']} />
         <Environment preset="studio" />
-        <CameraAdjuster />
+        <CameraAdjuster userInteractionRef={userInteractionRef} />
         <React.Suspense fallback={<Loader />}>
           <RotatingGroup>
             <Bubbles
@@ -673,6 +708,9 @@ export default function BubbleScene({
           maxDistance={60}
           autoRotate={false}
           autoRotateSpeed={0.5}
+          onStart={() => {
+            userInteractionRef.current = true;
+          }}
         />
       </Canvas>
     </div>
