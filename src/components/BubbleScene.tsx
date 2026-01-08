@@ -1,11 +1,25 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Canvas, useThree } from '@react-three/fiber';
-import { OrbitControls, Billboard, useTexture } from '@react-three/drei';
+import { Canvas, useThree, useFrame } from '@react-three/fiber';
+import {
+  OrbitControls,
+  Billboard,
+  useTexture,
+  Text,
+  Environment,
+} from '@react-three/drei';
 import * as THREE from 'three';
 import ProjectCard from './ProjectCard';
+import { projects } from '@/data/projects';
+import { Project } from '@/types/project';
+
+export const BUBBLE_COLORS = {
+  PLAY: '#001EFF',
+  WORK: '#0F2341',
+  GREY: '#d6d6d6',
+};
 
 interface BubbleData {
   id: number;
@@ -15,12 +29,15 @@ interface BubbleData {
   color?: string;
   type: 'image' | 'solid' | 'glass';
   link?: string;
-  title?: string;
-  description?: string;
-  tags?: string[];
+  label?: string;
+  project?: Project;
+  textOffset?: [number, number, number];
+  isGradient?: boolean;
 }
 
-const useSoftCircleTexture = () => {
+const useSoftCircleTexture = (
+  type: 'solid' | 'glass' | 'image' | 'play_gradient' = 'glass'
+) => {
   return useMemo(() => {
     if (typeof document === 'undefined') return null;
     const canvas = document.createElement('canvas');
@@ -28,19 +45,27 @@ const useSoftCircleTexture = () => {
     canvas.height = 512;
     const ctx = canvas.getContext('2d');
     if (ctx) {
-      // Create a radial gradient that creates a soft, blurry edge
       const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
-      gradient.addColorStop(0, 'rgba(255, 255, 255, 1)'); // Solid center
-      gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.95)'); // Keep it solid longer (50% radius)
-      gradient.addColorStop(0.85, 'rgba(255, 255, 255, 0.4)'); // Quick fade near the end
-      gradient.addColorStop(1, 'rgba(255, 255, 255, 0)'); // Transparent edge
+
+      if (type === 'play_gradient') {
+        // Linear gradient from 100% opacity (White) at core to 20% opacity (Dark Grey) at edge
+        // We use grayscale colors because alphaMap reads the green channel/luminance
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        gradient.addColorStop(1, 'rgba(51, 51, 51, 1)'); // ~20% luminance
+      } else {
+        // Standard soft edge for other glass bubbles - use transparency which results in black on clear canvas
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.95)');
+        gradient.addColorStop(0.85, 'rgba(255, 255, 255, 0.4)');
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)'); // Revert to White Transparent to preserve luminance
+      }
 
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, 512, 512);
     }
     const texture = new THREE.CanvasTexture(canvas);
     return texture;
-  }, []);
+  }, [type]);
 };
 
 const checkCollision = (
@@ -67,24 +92,29 @@ const generateBubbles = (count: number, mode: 'home' | 'gallery') => {
   const temp: BubbleData[] = [];
 
   if (mode === 'home') {
-    // 1. Red Bubble (Large, Solid)
+    // 1. Play Bubble (Blue, Gradient, Left side, Behind Work)
     temp.push({
       id: 0,
-      position: [4, 0, 4], // Moved further out to avoid collision
-      scale: 5,
-      color: '#ff0000',
-      type: 'solid',
+      position: [-1.8, 1.2, 0], // Moved slightly closer to center to overlap more
+      scale: 3.5,
+      color: BUBBLE_COLORS.PLAY,
+      type: 'glass',
       link: '/play',
+      label: 'play',
+      textOffset: [-1.8, 0, 0], // Shift text left
+      isGradient: true,
     });
 
-    // 2. Blue Bubble (Large, Solid)
+    // 2. Work Bubble (Dark, Solid, Right side, In Front)
     temp.push({
       id: 1,
-      position: [-4, 0, -4], // Moved further out to avoid collision
-      scale: 5,
-      color: '#0000ff',
+      position: [1.8, -0.8, 0.1], // Moved slightly closer to center
+      scale: 3.5,
+      color: BUBBLE_COLORS.WORK, // Restored to user-defined Navy color
       type: 'solid',
       link: '/work',
+      label: 'work',
+      textOffset: [-1.8, 0, 0], // Shift text right
     });
 
     // 3. Grey Bubbles (Transparent, Glass/Blur)
@@ -103,8 +133,9 @@ const generateBubbles = (count: number, mode: 'home' | 'gallery') => {
           id: i,
           position,
           scale,
-          color: '#ffffff', // White
+          color: BUBBLE_COLORS.GREY, // Corrected Grey
           type: 'glass',
+          isGradient: true,
         });
         i++;
       }
@@ -114,8 +145,10 @@ const generateBubbles = (count: number, mode: 'home' | 'gallery') => {
     // Gallery Mode
     let attempts = 0;
     let i = 0;
-    while (i < count && attempts < 500) {
-      const x = (Math.random() - 0.5) * 20; // Increased range
+    const totalBubbles = Math.max(count, projects.length); // Ensure at least enough bubbles for projects
+
+    while (i < totalBubbles && attempts < 1000) {
+      const x = (Math.random() - 0.5) * 20;
       const y = (Math.random() - 0.5) * 20;
       const z = (Math.random() - 0.5) * 20;
       const scale = 0.5 + Math.random() * 1.5;
@@ -123,17 +156,28 @@ const generateBubbles = (count: number, mode: 'home' | 'gallery') => {
       const position: [number, number, number] = [x, y, z];
 
       if (!checkCollision(position, scale, temp, 0.2)) {
-        temp.push({
-          id: i,
-          position,
-          scale,
-          imageUrl: `https://picsum.photos/seed/${i + 123}/400`,
-          type: 'image',
-          title: `Project ${i}`,
-          description:
-            'This is a sample project description. It highlights the key aspects of the work done for the client, including the creative direction and execution details.',
-          tags: ['PHOTOGRAPHY', 'ART DIRECTION', 'BRANDING'],
-        });
+        if (i < projects.length) {
+          // Create bubble for project
+          const project = projects[i];
+          temp.push({
+            id: i,
+            position,
+            scale: Math.max(scale, 1.5), // Make project bubbles slightly larger
+            imageUrl: project.bubble_thumbnail,
+            type: 'image',
+            project: project,
+          });
+        } else {
+          // Create filler bubble
+          temp.push({
+            id: i,
+            position,
+            scale,
+            color: BUBBLE_COLORS.GREY,
+            type: 'glass',
+            isGradient: true,
+          });
+        }
         i++;
       }
       attempts++;
@@ -150,6 +194,10 @@ const Bubble = ({
   type,
   link,
   onOpenCard,
+  project,
+  label,
+  textOffset,
+  isGradient,
 }: {
   position: [number, number, number];
   scale: number;
@@ -157,10 +205,15 @@ const Bubble = ({
   color?: string;
   type: 'image' | 'solid' | 'glass';
   link?: string;
-  onOpenCard?: (data: BubbleData) => void;
+  onOpenCard?: (project: Project) => void;
+  project?: Project;
+  label?: string;
+  textOffset?: [number, number, number];
+  isGradient?: boolean;
 }) => {
   const router = useRouter();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleClick = (e: any) => {
     // Check if the event has 'delta' (distance moved) and it's small enough to be a click, not a drag
     if (e.delta !== undefined && e.delta > 5) return;
@@ -168,21 +221,9 @@ const Bubble = ({
     if (link) {
       e.stopPropagation();
       router.push(link);
-    } else if (type === 'image' && onOpenCard) {
+    } else if (type === 'image' && onOpenCard && project) {
       e.stopPropagation();
-      // Pass self data
-      onOpenCard({
-        id: -1, // Placeholder
-        position,
-        scale,
-        imageUrl,
-        color,
-        type,
-        link,
-        title: 'Project Title', // Default for now, in real app would come from props
-        description: 'Project Description',
-        tags: ['TAG1', 'TAG2'],
-      } as BubbleData);
+      onOpenCard(project);
     }
   };
 
@@ -198,7 +239,9 @@ const Bubble = ({
     }
   };
 
-  const softTexture = useSoftCircleTexture();
+  const softTexture = useSoftCircleTexture(
+    isGradient ? 'play_gradient' : type === 'glass' ? 'glass' : 'solid'
+  );
 
   // Conditionally call useTexture only if type is 'image' and imageUrl is present
   // ... (comments retained)
@@ -230,6 +273,9 @@ const Bubble = ({
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
       alphaMap={softTexture}
+      label={label}
+      textOffset={textOffset}
+      isGradient={isGradient}
     />
   );
 };
@@ -250,6 +296,20 @@ const ImageBubble = ({
   onPointerOut: () => void;
 }) => {
   const texture = useTexture(imageUrl);
+  const materialRef = useRef<THREE.MeshBasicMaterial>(null);
+
+  // Fade in animation
+  useFrame((state, delta) => {
+    if (materialRef.current) {
+      // Lerp opacity from 0 to 1
+      materialRef.current.opacity = THREE.MathUtils.lerp(
+        materialRef.current.opacity,
+        1,
+        delta * 2 // Speed of fade in
+      );
+    }
+  });
+
   return (
     <Billboard
       position={position}
@@ -264,7 +324,13 @@ const ImageBubble = ({
         onPointerOut={onPointerOut}
       >
         <circleGeometry args={[scale, 128]} />
-        <meshBasicMaterial map={texture} side={THREE.DoubleSide} transparent />
+        <meshBasicMaterial
+          ref={materialRef}
+          map={texture}
+          side={THREE.DoubleSide}
+          transparent
+          opacity={0} // Start invisible
+        />
       </mesh>
     </Billboard>
   );
@@ -279,6 +345,9 @@ const ColorBubble = ({
   onPointerOver,
   onPointerOut,
   alphaMap,
+  label,
+  textOffset,
+  isGradient,
 }: {
   position: [number, number, number];
   scale: number;
@@ -288,6 +357,9 @@ const ColorBubble = ({
   onPointerOver: () => void;
   onPointerOut: () => void;
   alphaMap?: THREE.Texture | null;
+  label?: string;
+  textOffset?: [number, number, number];
+  isGradient?: boolean;
 }) => {
   return (
     <Billboard
@@ -304,30 +376,50 @@ const ColorBubble = ({
       >
         <circleGeometry args={[scale, 128]} />
         {type === 'solid' ? (
+          <meshBasicMaterial color={color} side={THREE.DoubleSide} />
+        ) : isGradient ? (
+          // Special case for Play bubble & Grey bubbles: Basic material with alpha map for 100% -> 20% gradient
           <meshBasicMaterial
             color={color}
             side={THREE.DoubleSide}
-            // Removed transparent/alphaMap/depthWrite to fix transmission issue
+            transparent
+            alphaMap={alphaMap || undefined}
+            depthWrite={false} // Ensure it doesn't occlude things behind it weirdly
           />
         ) : (
-          // For glass effect ...
-          // ...
+          // Revert to MeshPhysicalMaterial for stability and performance.
+          // Using transparent={false} to enable the native transmission blur effect in Three.js
           <meshPhysicalMaterial
             color={color}
             side={THREE.DoubleSide}
-            transparent
-            opacity={1}
-            roughness={0.4} // Back to 0.4 for distinct blur
-            transmission={0.95} // High transmission to see the blur clearly
-            thickness={3} // High thickness for strong blur volume
-            ior={1.4} // Higher IOR to ensure refraction happens
-            clearcoat={1}
-            clearcoatRoughness={0.1}
+            transparent={false} // Transmission requires transparent=false to blur background correctly
+            opacity={1} // Ignored when transparent=false
+            roughness={0.6} // Blur strength
+            transmission={0.5} // Controls how "see-through" it is (simulating opacity)
+            thickness={3} // Volume for light scattering
+            ior={1.2}
+            clearcoat={0}
             alphaMap={alphaMap || undefined}
-            depthWrite={false} // Disable depth write to avoid hard z-buffer edges on the transparency
+            depthWrite={false} // Should be false for transparency, but true can help sorting issues. Keep false for now.
           />
         )}
       </mesh>
+      {label && (
+        <Text
+          position={[
+            textOffset?.[0] || 0,
+            textOffset?.[1] || 0,
+            0.2 + (textOffset?.[2] || 0),
+          ]} // Apply offset
+          fontSize={scale * 0.2}
+          color="white"
+          anchorX="center"
+          anchorY="middle"
+          fontWeight="bold"
+        >
+          {label}
+        </Text>
+      )}
     </Billboard>
   );
 };
@@ -337,7 +429,7 @@ const Bubbles = ({
   onOpenCard,
 }: {
   mode: 'home' | 'gallery';
-  onOpenCard?: (data: BubbleData) => void;
+  onOpenCard?: (project: Project) => void;
 }) => {
   const [bubbles] = useState(() => generateBubbles(20, mode));
 
@@ -353,6 +445,10 @@ const Bubbles = ({
           type={bubble.type}
           link={bubble.link}
           onOpenCard={onOpenCard}
+          project={bubble.project}
+          label={bubble.label}
+          textOffset={bubble.textOffset}
+          isGradient={bubble.isGradient}
         />
       ))}
     </>
@@ -411,12 +507,10 @@ export default function BubbleScene({
   mode?: 'home' | 'gallery';
 }) {
   const bgClass = 'bg-[#F0F2F5]';
-  const [selectedProject, setSelectedProject] = useState<BubbleData | null>(
-    null
-  );
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
-  const handleOpenCard = (data: BubbleData) => {
-    setSelectedProject(data);
+  const handleOpenCard = (project: Project) => {
+    setSelectedProject(project);
   };
 
   const handleCloseCard = () => {
@@ -428,14 +522,16 @@ export default function BubbleScene({
       <ProjectCard
         isOpen={!!selectedProject}
         onClose={handleCloseCard}
-        data={selectedProject}
+        project={selectedProject}
       />
       <Canvas
         camera={{ position: [0, 0, 20], fov: 50 }}
-        gl={{ antialias: true }}
+        gl={{ antialias: true, toneMapping: THREE.NoToneMapping }}
       >
-        <ambientLight intensity={2} />
-        <pointLight position={[10, 10, 10]} intensity={1} />
+        <ambientLight intensity={3} />
+        <pointLight position={[10, 10, 10]} intensity={2} />
+        <color attach="background" args={['#F0F2F5']} />
+        <Environment preset="studio" />
         <CameraAdjuster />
         <React.Suspense fallback={null}>
           <Bubbles mode={mode} onOpenCard={handleOpenCard} />
@@ -446,7 +542,7 @@ export default function BubbleScene({
           enableZoom={true}
           minDistance={5}
           maxDistance={60}
-          autoRotate={true}
+          autoRotate={false}
           autoRotateSpeed={0.5}
         />
       </Canvas>
