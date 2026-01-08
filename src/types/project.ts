@@ -11,4 +11,3 @@ export interface Project {
   cast: string;
   images: string[];
 }
-

@@ -1,0 +1,165 @@
+{
+	"info": {
+		"_postman_id": "tinysotiny-contentful",
+		"name": "Tinysotiny Contentful API",
+		"description": "Collection to test Contentful Content Delivery API for Tinysotiny web project.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Featured Projects",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://cdn.contentful.com/spaces/{{space_id}}/environments/master/entries?content_type=project&metadata.tags.sys.id[in]=featured&order=-fields.projectDate",
+					"protocol": "https",
+					"host": [
+						"cdn",
+						"contentful",
+						"com"
+					],
+					"path": [
+						"spaces",
+						"{{space_id}}",
+						"environments",
+						"master",
+						"entries"
+					],
+					"query": [
+						{
+							"key": "content_type",
+							"value": "project"
+						},
+						{
+							"key": "metadata.tags.sys.id[in]",
+							"value": "featured"
+						},
+						{
+							"key": "order",
+							"value": "-fields.projectDate"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Non-Featured Projects",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://cdn.contentful.com/spaces/{{space_id}}/environments/master/entries?content_type=project&metadata.tags.sys.id[nin]=featured&order=-fields.projectDate&limit=9&skip=0",
+					"protocol": "https",
+					"host": [
+						"cdn",
+						"contentful",
+						"com"
+					],
+					"path": [
+						"spaces",
+						"{{space_id}}",
+						"environments",
+						"master",
+						"entries"
+					],
+					"query": [
+						{
+							"key": "content_type",
+							"value": "project"
+						},
+						{
+							"key": "metadata.tags.sys.id[nin]",
+							"value": "featured"
+						},
+						{
+							"key": "order",
+							"value": "-fields.projectDate"
+						},
+						{
+							"key": "limit",
+							"value": "9"
+						},
+						{
+							"key": "skip",
+							"value": "0"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+        {
+			"name": "Get Featured Projects (Type: Work)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://cdn.contentful.com/spaces/{{space_id}}/environments/master/entries?content_type=project&metadata.tags.sys.id[in]=featured&order=-fields.projectDate&fields.project_type=work",
+					"protocol": "https",
+					"host": [
+						"cdn",
+						"contentful",
+						"com"
+					],
+					"path": [
+						"spaces",
+						"{{space_id}}",
+						"environments",
+						"master",
+						"entries"
+					],
+					"query": [
+						{
+							"key": "content_type",
+							"value": "project"
+						},
+						{
+							"key": "metadata.tags.sys.id[in]",
+							"value": "featured"
+						},
+						{
+							"key": "order",
+							"value": "-fields.projectDate"
+						},
+                        {
+                            "key": "fields.project_type",
+                            "value": "work"
+                        }
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "space_id",
+			"value": "YOUR_SPACE_ID_HERE"
+		},
+		{
+			"key": "access_token",
+			"value": "YOUR_ACCESS_TOKEN_HERE"
+		}
+	]
+}
+

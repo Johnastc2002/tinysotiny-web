@@ -9,10 +9,10 @@ import {
   useTexture,
   Text,
   Environment,
+  Float,
 } from '@react-three/drei';
 import * as THREE from 'three';
 import ProjectCard from './ProjectCard';
-import { projects } from '@/data/projects';
 import { Project } from '@/types/project';
 
 export const BUBBLE_COLORS = {
@@ -26,6 +26,7 @@ interface BubbleData {
   position: [number, number, number];
   scale: number;
   imageUrl?: string;
+  imageHoverUrl?: string; // Add hover image URL support
   color?: string;
   type: 'image' | 'solid' | 'glass';
   link?: string;
@@ -88,7 +89,11 @@ const checkCollision = (
   return false;
 };
 
-const generateBubbles = (count: number, mode: 'home' | 'gallery') => {
+const generateBubbles = (
+  count: number,
+  mode: 'home' | 'gallery',
+  projects: Project[] = []
+) => {
   const temp: BubbleData[] = [];
 
   if (mode === 'home') {
@@ -120,7 +125,10 @@ const generateBubbles = (count: number, mode: 'home' | 'gallery') => {
     // 3. Grey Bubbles (Transparent, Glass/Blur)
     let attempts = 0;
     let i = 2;
-    while (i < count && attempts < 500) {
+    // Fix: count is used for total bubbles. If count is smaller than current 'i' (2), loop won't run.
+    const targetCount = Math.max(count, 3);
+
+    while (i < targetCount && attempts < 500) {
       const x = (Math.random() - 0.5) * 25; // Increased range
       const y = (Math.random() - 0.5) * 25;
       const z = (Math.random() - 0.5) * 25;
@@ -147,6 +155,9 @@ const generateBubbles = (count: number, mode: 'home' | 'gallery') => {
     let i = 0;
     const totalBubbles = Math.max(count, projects.length); // Ensure at least enough bubbles for projects
 
+    // If totalBubbles is 0, we should not loop. But generateBubbles logic is fine.
+    // However, collision check with empty 'temp' always passes.
+
     while (i < totalBubbles && attempts < 1000) {
       const x = (Math.random() - 0.5) * 20;
       const y = (Math.random() - 0.5) * 20;
@@ -164,6 +175,7 @@ const generateBubbles = (count: number, mode: 'home' | 'gallery') => {
             position,
             scale: Math.max(scale, 1.5), // Make project bubbles slightly larger
             imageUrl: project.bubble_thumbnail,
+            imageHoverUrl: project.bubble_thumbnail_hover,
             type: 'image',
             project: project,
           });
@@ -190,6 +202,7 @@ const Bubble = ({
   position,
   scale,
   imageUrl,
+  imageHoverUrl,
   color,
   type,
   link,
@@ -202,6 +215,7 @@ const Bubble = ({
   position: [number, number, number];
   scale: number;
   imageUrl?: string;
+  imageHoverUrl?: string;
   color?: string;
   type: 'image' | 'solid' | 'glass';
   link?: string;
@@ -253,6 +267,7 @@ const Bubble = ({
         position={position}
         scale={scale}
         imageUrl={imageUrl}
+        imageHoverUrl={imageHoverUrl}
         onClick={handleClick}
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
@@ -284,6 +299,7 @@ const ImageBubble = ({
   position,
   scale,
   imageUrl,
+  imageHoverUrl,
   onClick,
   onPointerOver,
   onPointerOut,
@@ -291,48 +307,106 @@ const ImageBubble = ({
   position: [number, number, number];
   scale: number;
   imageUrl: string;
+  imageHoverUrl?: string;
   onClick: (e: THREE.Event) => void;
   onPointerOver: () => void;
   onPointerOut: () => void;
 }) => {
-  const texture = useTexture(imageUrl);
+  const textures = useTexture([imageUrl, imageHoverUrl || imageUrl]);
+  const defaultTexture = textures[0];
+  const hoverTexture = textures[1];
+
+  const [hovered, setHovered] = useState(false);
+  // Removed unused materialRef
+  // const materialRef = useRef<THREE.MeshBasicMaterial>(null);
+
+  // Configure textures to fill the circle without stretching
+  // We need to calculate aspect ratio and adjust repeat/offset
+  // This mimics object-fit: cover
+  useMemo(() => {
+    [defaultTexture, hoverTexture].forEach((tex) => {
+      if (!tex || !tex.image) return;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const imageAspect = (tex.image as any).width / (tex.image as any).height;
+      // Since our geometry is a circle (aspect 1:1), we just need to compare imageAspect to 1
+      if (imageAspect > 1) {
+        // Image is wider than it is tall
+        tex.repeat.set(1 / imageAspect, 1);
+        tex.offset.set((1 - 1 / imageAspect) / 2, 0);
+      } else {
+        // Image is taller than it is wide
+        tex.repeat.set(1, imageAspect);
+        tex.offset.set(0, (1 - imageAspect) / 2);
+      }
+      // Improve texture quality
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = 16;
+      tex.generateMipmaps = true;
+      tex.minFilter = THREE.LinearMipmapLinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.needsUpdate = true;
+    });
+  }, [defaultTexture, hoverTexture]);
+
+  const [floatSpeed] = useState(() => 1.5 + Math.random());
+  const [floatIntensity] = useState(() => 1 + Math.random());
+
   const materialRef = useRef<THREE.MeshBasicMaterial>(null);
 
-  // Fade in animation
   useFrame((state, delta) => {
     if (materialRef.current) {
-      // Lerp opacity from 0 to 1
-      materialRef.current.opacity = THREE.MathUtils.lerp(
-        materialRef.current.opacity,
-        1,
-        delta * 2 // Speed of fade in
-      );
+      if (materialRef.current.opacity < 1) {
+        materialRef.current.opacity = THREE.MathUtils.lerp(
+          materialRef.current.opacity,
+          1,
+          delta * 2
+        );
+        if (materialRef.current.opacity > 0.99) {
+          materialRef.current.opacity = 1;
+          materialRef.current.transparent = false;
+          materialRef.current.needsUpdate = true;
+        }
+      }
     }
   });
 
   return (
-    <Billboard
-      position={position}
-      follow={true}
-      lockX={false}
-      lockY={false}
-      lockZ={false}
+    <Float
+      speed={floatSpeed}
+      rotationIntensity={0}
+      floatIntensity={floatIntensity}
+      floatingRange={[-0.2, 0.2]}
     >
-      <mesh
-        onClick={onClick}
-        onPointerOver={onPointerOver}
-        onPointerOut={onPointerOut}
+      <Billboard
+        position={position}
+        follow={true}
+        lockX={false}
+        lockY={false}
+        lockZ={false}
       >
-        <circleGeometry args={[scale, 128]} />
-        <meshBasicMaterial
-          ref={materialRef}
-          map={texture}
-          side={THREE.DoubleSide}
-          transparent
-          opacity={0} // Start invisible
-        />
-      </mesh>
-    </Billboard>
+        <mesh
+          onClick={onClick}
+          onPointerOver={() => {
+            setHovered(true);
+            onPointerOver();
+          }}
+          onPointerOut={() => {
+            setHovered(false);
+            onPointerOut();
+          }}
+        >
+          <circleGeometry args={[scale, 128]} />
+          <meshBasicMaterial
+            ref={materialRef}
+            map={hovered && imageHoverUrl ? hoverTexture : defaultTexture}
+            side={THREE.DoubleSide}
+            transparent={true}
+            opacity={0}
+            color="white"
+          />
+        </mesh>
+      </Billboard>
+    </Float>
   );
 };
 
@@ -361,77 +435,121 @@ const ColorBubble = ({
   textOffset?: [number, number, number];
   isGradient?: boolean;
 }) => {
+  const [floatSpeed] = useState(() => 1.5 + Math.random());
+  const [floatIntensity] = useState(() => 1 + Math.random());
+
   return (
-    <Billboard
-      position={position}
-      follow={true}
-      lockX={false}
-      lockY={false}
-      lockZ={false}
+    <Float
+      speed={floatSpeed}
+      rotationIntensity={0}
+      floatIntensity={floatIntensity}
+      floatingRange={[-0.2, 0.2]}
     >
-      <mesh
-        onClick={onClick}
-        onPointerOver={onPointerOver}
-        onPointerOut={onPointerOut}
+      <Billboard
+        position={position}
+        follow={true}
+        lockX={false}
+        lockY={false}
+        lockZ={false}
       >
-        <circleGeometry args={[scale, 128]} />
-        {type === 'solid' ? (
-          <meshBasicMaterial color={color} side={THREE.DoubleSide} />
-        ) : isGradient ? (
-          // Special case for Play bubble & Grey bubbles: Basic material with alpha map for 100% -> 20% gradient
-          <meshBasicMaterial
-            color={color}
-            side={THREE.DoubleSide}
-            transparent
-            alphaMap={alphaMap || undefined}
-            depthWrite={false} // Ensure it doesn't occlude things behind it weirdly
-          />
-        ) : (
-          // Revert to MeshPhysicalMaterial for stability and performance.
-          // Using transparent={false} to enable the native transmission blur effect in Three.js
-          <meshPhysicalMaterial
-            color={color}
-            side={THREE.DoubleSide}
-            transparent={false} // Transmission requires transparent=false to blur background correctly
-            opacity={1} // Ignored when transparent=false
-            roughness={0.6} // Blur strength
-            transmission={0.5} // Controls how "see-through" it is (simulating opacity)
-            thickness={3} // Volume for light scattering
-            ior={1.2}
-            clearcoat={0}
-            alphaMap={alphaMap || undefined}
-            depthWrite={false} // Should be false for transparency, but true can help sorting issues. Keep false for now.
-          />
-        )}
-      </mesh>
-      {label && (
-        <Text
-          position={[
-            textOffset?.[0] || 0,
-            textOffset?.[1] || 0,
-            0.2 + (textOffset?.[2] || 0),
-          ]} // Apply offset
-          fontSize={scale * 0.2}
-          color="white"
-          anchorX="center"
-          anchorY="middle"
-          fontWeight="bold"
+        <mesh
+          onClick={onClick}
+          onPointerOver={onPointerOver}
+          onPointerOut={onPointerOut}
         >
-          {label}
-        </Text>
-      )}
-    </Billboard>
+          <circleGeometry args={[scale, 128]} />
+          {type === 'solid' ? (
+            <meshBasicMaterial color={color} side={THREE.DoubleSide} />
+          ) : isGradient ? (
+            // Special case for Play bubble & Grey bubbles: Basic material with alpha map for 100% -> 20% gradient
+            <meshBasicMaterial
+              color={color}
+              side={THREE.DoubleSide}
+              transparent
+              alphaMap={alphaMap || undefined}
+              depthWrite={false} // Ensure it doesn't occlude things behind it weirdly
+            />
+          ) : (
+            // Revert to MeshPhysicalMaterial for stability and performance.
+            // Using transparent={false} to enable the native transmission blur effect in Three.js
+            <meshPhysicalMaterial
+              color={color}
+              side={THREE.DoubleSide}
+              transparent={false} // Transmission requires transparent=false to blur background correctly
+              opacity={1} // Ignored when transparent=false
+              roughness={0.6} // Blur strength
+              transmission={0.5} // Controls how "see-through" it is (simulating opacity)
+              thickness={3} // Volume for light scattering
+              ior={1.2}
+              clearcoat={0}
+              alphaMap={alphaMap || undefined}
+              depthWrite={false} // Should be false for transparency, but true can help sorting issues. Keep false for now.
+            />
+          )}
+        </mesh>
+        {label && (
+          <Text
+            position={[
+              textOffset?.[0] || 0,
+              textOffset?.[1] || 0,
+              0.2 + (textOffset?.[2] || 0),
+            ]} // Apply offset
+            fontSize={scale * 0.2}
+            color="white"
+            anchorX="center"
+            anchorY="middle"
+            fontWeight="bold"
+          >
+            {label}
+          </Text>
+        )}
+      </Billboard>
+    </Float>
+  );
+};
+
+const RotatingGroup = ({ children }: { children: React.ReactNode }) => {
+  const ref = useRef<THREE.Group>(null);
+  useFrame((state, delta) => {
+    if (ref.current) {
+      ref.current.rotation.y += delta * 0.05;
+    }
+  });
+  return <group ref={ref}>{children}</group>;
+};
+
+const Loader = () => {
+  const ref = useRef<THREE.Mesh>(null);
+  useFrame((state, delta) => {
+    if (ref.current) {
+      ref.current.rotation.z -= delta * 5;
+    }
+  });
+  return (
+    <mesh ref={ref}>
+      <torusGeometry args={[1, 0.05, 16, 64]} />
+      <meshBasicMaterial color={BUBBLE_COLORS.GREY} />
+    </mesh>
   );
 };
 
 const Bubbles = ({
   mode,
+  projects,
   onOpenCard,
 }: {
   mode: 'home' | 'gallery';
+  projects?: Project[];
   onOpenCard?: (project: Project) => void;
 }) => {
-  const [bubbles] = useState(() => generateBubbles(20, mode));
+  // Pass projects to generateBubbles
+  const [bubbles] = useState(() => {
+    let count = 20;
+    if (mode === 'gallery' && projects) {
+      count = projects.length;
+    }
+    return generateBubbles(count, mode, projects || []);
+  });
 
   return (
     <>
@@ -441,6 +559,7 @@ const Bubbles = ({
           position={bubble.position}
           scale={bubble.scale}
           imageUrl={bubble.imageUrl}
+          imageHoverUrl={bubble.imageHoverUrl}
           color={bubble.color}
           type={bubble.type}
           link={bubble.link}
@@ -503,9 +622,13 @@ const CameraAdjuster = () => {
 
 export default function BubbleScene({
   mode = 'gallery',
+  projects,
 }: {
   mode?: 'home' | 'gallery';
+  projects?: Project[];
 }) {
+  console.log('BubbleScene render. Mode:', mode, 'Projects:', projects?.length);
+
   const bgClass = 'bg-[#F0F2F5]';
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
@@ -533,8 +656,14 @@ export default function BubbleScene({
         <color attach="background" args={['#F0F2F5']} />
         <Environment preset="studio" />
         <CameraAdjuster />
-        <React.Suspense fallback={null}>
-          <Bubbles mode={mode} onOpenCard={handleOpenCard} />
+        <React.Suspense fallback={<Loader />}>
+          <RotatingGroup>
+            <Bubbles
+              mode={mode}
+              projects={projects}
+              onOpenCard={handleOpenCard}
+            />
+          </RotatingGroup>
         </React.Suspense>
         <OrbitControls
           makeDefault
