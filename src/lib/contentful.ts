@@ -1,5 +1,5 @@
 import { createClient } from 'contentful';
-import { Project } from '@/types/project';
+import { Project, MediaRow } from '@/types/project';
 import { AboutUsData, ContactData } from '@/types/about';
 import { ClientData } from '@/types/client';
 import { DailyData } from '@/types/daily';
@@ -20,7 +20,7 @@ export const client = createClient({
   space: SPACE_ID || '',
   accessToken: ACCESS_TOKEN || '',
   environment: ENVIRONMENT,
-});
+}).withoutUnresolvableLinks; // Automatically remove links that cannot be resolved (e.g. archived/deleted)
 
 export const getEntries = async (
   content_type?: string,
@@ -110,7 +110,26 @@ const mapProject = (entry: any): Project => {
       .map(getAssetUrl)
       .filter((url: string) => url),
     cast: parseRichText(fields.cast),
-    images: (fields.images || []).map(getAssetUrl).filter((url: string) => url),
+    // Prioritize camelCase 'mediaRows' as seen in the API response, fallback to snake_case
+    media_rows: (fields.mediaRows || fields.media_rows || [])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((row: any) => {
+        // If row is a Link (not resolved), row.fields will be undefined.
+        // The SDK should resolve it if include > 0 and it's published.
+        if (!row || !row.fields) return null;
+
+        return {
+          row_layout: (row.fields.rowLayout ||
+            row.fields.row_layout ||
+            'V-1') as MediaRow['row_layout'],
+          medias: (row.fields.medias || [])
+            .map(getAssetUrl)
+            .filter((url: string) => url),
+        };
+      })
+      // Filter out any nulls from unresolved links
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .filter((row: any) => row !== null),
     projectType: (fields.projectType as ProjectType) || 'work',
   };
 };
@@ -216,6 +235,7 @@ export async function getFeaturedProjects(type?: ProjectType) {
   const query: Record<string, any> = {
     'metadata.tags.sys.id[in]': 'featured',
     order: '-fields.projectDate',
+    include: 3,
   };
 
   if (type) {
@@ -238,6 +258,7 @@ export async function getNonFeaturedProjects(
     order: '-fields.projectDate',
     limit,
     skip,
+    include: 3,
   };
 
   if (type) {
@@ -250,8 +271,11 @@ export async function getNonFeaturedProjects(
 
 export async function getProjectById(id: string): Promise<Project | null> {
   try {
-    const entry = await client.getEntry(id);
-    return mapProject(entry);
+    const entries = await getEntries('project', { 'sys.id': id, include: 3 });
+    if (entries.items.length > 0) {
+      return mapProject(entries.items[0]);
+    }
+    return null;
   } catch (error) {
     console.error(`Error fetching project with id ${id}:`, error);
     return null;
@@ -268,6 +292,7 @@ export async function getRecommendedProject(
       'sys.id[ne]': currentId,
       'fields.projectType': projectType,
       limit: 10,
+      include: 3,
     };
     const entries = await getEntries('project', query);
 
@@ -287,6 +312,7 @@ export async function getAllProjects(type?: ProjectType) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const query: Record<string, any> = {
     order: '-fields.projectDate',
+    include: 3,
   };
 
   if (type) {

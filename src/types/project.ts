@@ -1,3 +1,8 @@
+export interface MediaRow {
+  row_layout: 'V-1' | 'V-2' | 'V-3' | 'H-1' | 'H-2';
+  medias: string[];
+}
+
 export interface Project {
   id: string;
   title: string;
@@ -9,6 +14,6 @@ export interface Project {
   thumbnails: string[];
   banners: string[];
   cast: string;
-  images: string[];
+  media_rows: MediaRow[];
   projectType: 'work' | 'play';
 }

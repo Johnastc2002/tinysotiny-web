@@ -171,31 +171,66 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
         <div className="w-full pt-40 pb-24 px-12 md:px-24 -mt-24 z-10 relative">
           <div className="">
             {/* Image Gallery */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {project.images.map((img, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 50 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true, margin: '-10%' }}
-                  className={`relative w-full ${
-                    index % 3 === 0
-                      ? 'md:col-span-2 aspect-video'
-                      : 'aspect-3/4'
-                  }`}
-                >
-                  <div className="relative w-full h-full overflow-hidden rounded-lg bg-gray-100 shadow-sm">
-                    <Image
-                      src={img}
-                      alt={`Gallery image ${index + 1}`}
-                      fill
-                      className="object-cover hover:scale-105 transition-transform duration-700"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
-                  </div>
-                </motion.div>
-              ))}
+            <div className="flex flex-col gap-8">
+              {project.media_rows?.map((row, rowIndex) => {
+                const parts = row.row_layout.split('-');
+                const orientation = parts[0];
+                const count = parseInt(parts[1], 10) || 1;
+
+                // Aspect ratio: V = 2:3, H = 3:2
+                const aspectRatioClass =
+                  orientation === 'V' ? 'aspect-[2/3]' : 'aspect-[3/2]';
+
+                // Grid columns class
+                const gridColsClass =
+                  count === 1
+                    ? 'grid-cols-1'
+                    : count === 2
+                    ? 'grid-cols-2'
+                    : 'grid-cols-3';
+
+                const mediasToShow = row.medias.slice(0, count);
+                const placeHoldersCount = Math.max(
+                  0,
+                  count - mediasToShow.length
+                );
+
+                return (
+                  <motion.div
+                    key={rowIndex}
+                    initial={{ opacity: 0, y: 50 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: rowIndex * 0.1 }}
+                    viewport={{ once: true, margin: '-10%' }}
+                    className={`grid ${gridColsClass} gap-4 w-full`}
+                  >
+                    {mediasToShow.map((mediaUrl, mediaIndex) => (
+                      <div
+                        key={mediaIndex}
+                        className={`relative w-full ${aspectRatioClass} overflow-hidden rounded-lg bg-gray-100 shadow-sm`}
+                      >
+                        <Image
+                          src={mediaUrl}
+                          alt={`Gallery image ${rowIndex}-${mediaIndex}`}
+                          fill
+                          className="object-cover hover:scale-105 transition-transform duration-700"
+                          sizes={`(max-width: 768px) 100vw, ${Math.floor(
+                            100 / count
+                          )}vw`}
+                        />
+                      </div>
+                    ))}
+                    {Array.from({ length: placeHoldersCount }).map(
+                      (_, pIndex) => (
+                        <div
+                          key={`placeholder-${pIndex}`}
+                          className={`relative w-full ${aspectRatioClass} overflow-hidden rounded-lg bg-gray-50`}
+                        />
+                      )
+                    )}
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </div>
