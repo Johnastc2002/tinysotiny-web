@@ -113,8 +113,35 @@ const mapProject = (entry: any): Project => {
             row.fields.row_layout ||
             'V-1') as MediaRow['row_layout'],
           medias: (row.fields.medias || [])
-            .map(getAssetUrl)
-            .filter((url: string) => url),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .map((entry: any) => {
+              // Check if entry fields exists (it should be resolved)
+              if (!entry.fields) return null;
+
+              const type = entry.fields.type || 'contentful';
+
+              if (type === 'vimeo') {
+                return {
+                  type: 'vimeo',
+                  url: String(
+                    entry.fields.vimeo_url || entry.fields.vimeoUrl || ''
+                  ),
+                };
+              }
+
+              // Default to contentful asset
+              const asset =
+                entry.fields.contentful_media || entry.fields.contentfulMedia;
+              const metadata = getAssetMetadata(asset);
+              return {
+                url: metadata.url,
+                width: metadata.width,
+                height: metadata.height,
+                type: metadata.type, // 'image' or 'video'
+              };
+            })
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .filter((media: any) => media && media.url),
         };
       })
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

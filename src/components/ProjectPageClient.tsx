@@ -6,31 +6,14 @@ import Link from 'next/link';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Project } from '@/types/project';
 
+import SmartMedia from '@/components/SmartMedia';
+
 interface ProjectPageClientProps {
   project: Project;
   recommendedProject: Project | null;
 }
 
-// Helper component for Images with Fade-in effect
-function FadeInImage({ src, alt, className, priority = false, ...props }: any) {
-  const [isLoaded, setIsLoaded] = React.useState(false);
-
-  return (
-    <>
-      <Image
-        src={src}
-        alt={alt}
-        className={`${className} transition-opacity duration-700 ease-in-out ${
-          isLoaded ? 'opacity-100' : 'opacity-0'
-        }`}
-        onLoad={() => setIsLoaded(true)}
-        priority={priority}
-        {...props}
-      />
-      {!isLoaded && <div className={`bg-gray-200 animate-pulse ${className}`} style={{ position: props.fill ? 'absolute' : 'relative', inset: 0 }} />}
-    </>
-  );
-}
+// Removed local FadeInImage as it is superseded by SmartMedia
 
 export default function ProjectPageClient({ project, recommendedProject }: ProjectPageClientProps) {
   // Ref for the container that holds the horizontal scroll section
@@ -70,8 +53,9 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
       {/* Mobile Fixed Banner 1 */}
       <div className="fixed top-0 left-0 w-full h-screen z-0 md:hidden">
         {project.banners.length > 0 && (
-          <FadeInImage
-            src={project.banners[0]}
+          <SmartMedia
+            url={project.banners[0]}
+            type="image"
             alt={`${project.title} Banner`}
             fill
             className="object-cover"
@@ -94,8 +78,9 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
                 className="relative h-full min-w-full w-screen shrink-0"
               >
                 {slide.type === 'banner' ? (
-                  <FadeInImage
-                    src={slide.content as string}
+                  <SmartMedia
+                    url={slide.content as string}
+                    type="image"
                     alt={`${project.title} Banner`}
                     fill
                     className="object-cover"
@@ -107,8 +92,9 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
                     {/* Left Side - First Banner Image */}
                     <div className="relative w-3/5 h-full bg-gray-100">
                       {project.banners.length > 0 && (
-                        <FadeInImage
-                          src={project.banners[0]}
+                        <SmartMedia
+                          url={project.banners[0]}
+                          type="image"
                           alt={project.title}
                           fill
                           className="object-cover"
@@ -194,8 +180,9 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
             {/* 2. Banner 2 (Full Width) */}
             {project.banners.length > 1 && (
               <div className="w-full relative bg-gray-100">
-                 <FadeInImage
-                    src={project.banners[1]}
+                 <SmartMedia
+                    url={project.banners[1]}
+                    type="image"
                     alt={`${project.title} banner 2`}
                     width={1200}
                     height={800}
@@ -209,8 +196,9 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
                <div className="flex flex-col">
                   {project.banners.slice(2).map((banner, index) => (
                     <div key={index} className="w-full relative bg-gray-100">
-                      <FadeInImage
-                        src={banner}
+                      <SmartMedia
+                        url={banner}
+                        type="image"
                         alt={`${project.title} banner ${index + 3}`}
                         width={1200}
                         height={800}
@@ -321,13 +309,14 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
                       viewport={{ once: true, margin: '-10%' }}
                       className={`grid ${gridColsClass} gap-4 w-full`}
                     >
-                      {mediasToShow.map((mediaUrl, mediaIndex) => (
+                      {mediasToShow.map((media, mediaIndex) => (
                         <div
                           key={mediaIndex}
                           className={`relative w-full ${aspectRatioClass} overflow-hidden rounded-lg bg-gray-100 shadow-sm group`}
                         >
-                          <FadeInImage
-                            src={mediaUrl}
+                          <SmartMedia
+                            url={media.url}
+                            type={media.type}
                             alt={`Gallery image ${rowIndex}-${mediaIndex}`}
                             fill
                             className="object-cover hover:scale-105 transition-transform duration-700"

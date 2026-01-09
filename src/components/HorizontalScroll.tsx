@@ -3,30 +3,12 @@
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { DailyData } from '@/types/daily';
-import Image from 'next/image';
 import Link from 'next/link';
+import SmartMedia from '@/components/SmartMedia';
 
 interface HorizontalScrollProps {
   daily: DailyData;
 }
-
-const BackgroundVideo = ({ src }: { src: string }) => {
-  const [loaded, setLoaded] = React.useState(false);
-
-  return (
-    <video
-      src={src}
-      className={`w-full h-full object-cover transition-opacity duration-1000 ${
-        loaded ? 'opacity-100' : 'opacity-0'
-      }`}
-      onLoadedData={() => setLoaded(true)}
-      autoPlay
-      loop
-      muted
-      playsInline
-    />
-  );
-};
 
 export default function HorizontalScroll({ daily }: HorizontalScrollProps) {
   const targetRef = useRef<HTMLDivElement>(null);
@@ -122,8 +104,9 @@ export default function HorizontalScroll({ daily }: HorizontalScrollProps) {
                         minWidth: '50vw', // Fallback minimum width
                       }}
                     >
-                      <Image
-                        src={daily.thumbnail.url}
+                      <SmartMedia
+                        url={daily.thumbnail.url}
+                        type={daily.thumbnail.type}
                         alt={daily.title}
                         fill
                         className="object-cover"
@@ -162,8 +145,9 @@ export default function HorizontalScroll({ daily }: HorizontalScrollProps) {
                             : 'auto',
                       }}
                     >
-                      <Image
-                        src={media.url}
+                      <SmartMedia
+                        url={media.url}
+                        type={media.type}
                         alt={`Gallery ${idx}`}
                         fill
                         className="object-cover"
@@ -201,17 +185,14 @@ export default function HorizontalScroll({ daily }: HorizontalScrollProps) {
             {daily.bgMedia && (
               <section className="relative flex h-screen aspect-9/16 shrink-0 items-center justify-center bg-[#F0F2F5] overflow-hidden z-10">
                 <div className="relative w-full h-full">
-                  {daily.bgMedia.type === 'video' ? (
-                    <BackgroundVideo src={daily.bgMedia.url} />
-                  ) : (
-                    <Image
-                      src={daily.bgMedia.url}
-                      alt="Background Media"
-                      fill
-                      className="object-cover"
-                      sizes="(max-height: 100vh) auto"
-                    />
-                  )}
+                  <SmartMedia
+                    url={daily.bgMedia.url}
+                    type={daily.bgMedia.type}
+                    alt="Background Media"
+                    fill
+                    className="object-cover"
+                    sizes="(max-height: 100vh) auto"
+                  />
                 </div>
               </section>
             )}
@@ -236,8 +217,9 @@ export default function HorizontalScroll({ daily }: HorizontalScrollProps) {
                             : 'auto',
                       }}
                     >
-                      <Image
-                        src={media.url}
+                      <SmartMedia
+                        url={media.url}
+                        type={media.type}
                         alt={`Gallery ${idx + 3}`}
                         fill
                         className="object-cover"
