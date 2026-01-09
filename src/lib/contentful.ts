@@ -130,6 +130,7 @@ const mapProject = (entry: any): Project => {
       // Filter out any nulls from unresolved links
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .filter((row: any) => row !== null),
+    description_2: String(fields.description_2 || fields.description2 || ''),
     projectType: (fields.projectType as ProjectType) || 'work',
   };
 };

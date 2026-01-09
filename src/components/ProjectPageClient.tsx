@@ -11,6 +11,27 @@ interface ProjectPageClientProps {
   recommendedProject: Project | null;
 }
 
+// Helper component for Images with Fade-in effect
+function FadeInImage({ src, alt, className, priority = false, ...props }: any) {
+  const [isLoaded, setIsLoaded] = React.useState(false);
+
+  return (
+    <>
+      <Image
+        src={src}
+        alt={alt}
+        className={`${className} transition-opacity duration-700 ease-in-out ${
+          isLoaded ? 'opacity-100' : 'opacity-0'
+        }`}
+        onLoad={() => setIsLoaded(true)}
+        priority={priority}
+        {...props}
+      />
+      {!isLoaded && <div className={`bg-gray-200 animate-pulse ${className}`} style={{ position: props.fill ? 'absolute' : 'relative', inset: 0 }} />}
+    </>
+  );
+}
+
 export default function ProjectPageClient({ project, recommendedProject }: ProjectPageClientProps) {
   // Ref for the container that holds the horizontal scroll section
   const containerRef = useRef<HTMLDivElement>(null);
@@ -49,7 +70,7 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
       {/* Mobile Fixed Banner 1 */}
       <div className="fixed top-0 left-0 w-full h-screen z-0 md:hidden">
         {project.banners.length > 0 && (
-          <Image
+          <FadeInImage
             src={project.banners[0]}
             alt={`${project.title} Banner`}
             fill
@@ -73,7 +94,7 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
                 className="relative h-full min-w-full w-screen shrink-0"
               >
                 {slide.type === 'banner' ? (
-                  <Image
+                  <FadeInImage
                     src={slide.content as string}
                     alt={`${project.title} Banner`}
                     fill
@@ -86,7 +107,7 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
                     {/* Left Side - First Banner Image */}
                     <div className="relative w-3/5 h-full bg-gray-100">
                       {project.banners.length > 0 && (
-                        <Image
+                        <FadeInImage
                           src={project.banners[0]}
                           alt={project.title}
                           fill
@@ -173,7 +194,7 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
             {/* 2. Banner 2 (Full Width) */}
             {project.banners.length > 1 && (
               <div className="w-full relative bg-gray-100">
-                 <Image
+                 <FadeInImage
                     src={project.banners[1]}
                     alt={`${project.title} banner 2`}
                     width={1200}
@@ -188,7 +209,7 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
                <div className="flex flex-col">
                   {project.banners.slice(2).map((banner, index) => (
                     <div key={index} className="w-full relative bg-gray-100">
-                      <Image
+                      <FadeInImage
                         src={banner}
                         alt={`${project.title} banner ${index + 3}`}
                         width={1200}
@@ -284,40 +305,63 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
                   count - mediasToShow.length
                 );
 
+                const isLastRow = rowIndex === project.media_rows.length - 1;
+                const showDescription2 =
+                  (rowIndex === 2 && project.description_2) ||
+                  (isLastRow &&
+                    project.description_2 &&
+                    project.media_rows.length < 3);
+
                 return (
-                  <motion.div
-                    key={rowIndex}
-                    initial={{ opacity: 0, y: 50 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: rowIndex * 0.1 }}
-                    viewport={{ once: true, margin: '-10%' }}
-                    className={`grid ${gridColsClass} gap-4 w-full`}
-                  >
-                    {mediasToShow.map((mediaUrl, mediaIndex) => (
-                      <div
-                        key={mediaIndex}
-                        className={`relative w-full ${aspectRatioClass} overflow-hidden rounded-lg bg-gray-100 shadow-sm`}
-                      >
-                        <Image
-                          src={mediaUrl}
-                          alt={`Gallery image ${rowIndex}-${mediaIndex}`}
-                          fill
-                          className="object-cover hover:scale-105 transition-transform duration-700"
-                          sizes={`(max-width: 768px) 100vw, ${Math.floor(
-                            100 / count
-                          )}vw`}
-                        />
-                      </div>
-                    ))}
-                    {Array.from({ length: placeHoldersCount }).map(
-                      (_, pIndex) => (
+                  <React.Fragment key={rowIndex}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: rowIndex * 0.1 }}
+                      viewport={{ once: true, margin: '-10%' }}
+                      className={`grid ${gridColsClass} gap-4 w-full`}
+                    >
+                      {mediasToShow.map((mediaUrl, mediaIndex) => (
                         <div
-                          key={`placeholder-${pIndex}`}
-                          className={`relative w-full ${aspectRatioClass} overflow-hidden rounded-lg bg-gray-50`}
-                        />
-                      )
+                          key={mediaIndex}
+                          className={`relative w-full ${aspectRatioClass} overflow-hidden rounded-lg bg-gray-100 shadow-sm group`}
+                        >
+                          <FadeInImage
+                            src={mediaUrl}
+                            alt={`Gallery image ${rowIndex}-${mediaIndex}`}
+                            fill
+                            className="object-cover hover:scale-105 transition-transform duration-700"
+                            sizes={`(max-width: 768px) 100vw, ${Math.floor(
+                              100 / count
+                            )}vw`}
+                          />
+                        </div>
+                      ))}
+                      {Array.from({ length: placeHoldersCount }).map(
+                        (_, pIndex) => (
+                          <div
+                            key={`placeholder-${pIndex}`}
+                            className={`relative w-full ${aspectRatioClass} overflow-hidden rounded-lg bg-gray-50`}
+                          />
+                        )
+                      )}
+                    </motion.div>
+
+                    {/* Description 2 Section */}
+                    {showDescription2 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                        viewport={{ once: true }}
+                        className="w-full py-16 flex justify-center"
+                      >
+                        <p className="text-xl md:text-2xl text-gray-700 leading-relaxed max-w-3xl text-center font-light">
+                          {project.description_2}
+                        </p>
+                      </motion.div>
                     )}
-                  </motion.div>
+                  </React.Fragment>
                 );
               })}
             </div>
@@ -326,7 +370,7 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
 
         {/* Recommended Project Section */}
         {recommendedProject && (
-          <div className="w-full px-4 md:px-8 z-10 relative -mt-8 bg-gray-100 md:bg-transparent pb-12 md:pb-0">
+          <div className="w-full px-4 md:px-8 z-10 relative -mt-8 bg-gray-100 md:bg-transparent pb-0">
             <Link
               href={`/project/${recommendedProject.id}`}
               className="block w-full bg-[#D6A360] rounded-t-3xl p-12 md:p-24 hover:bg-[#c59556] transition-colors duration-300 group"

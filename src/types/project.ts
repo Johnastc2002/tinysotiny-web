@@ -15,5 +15,6 @@ export interface Project {
   banners: string[];
   cast: string;
   media_rows: MediaRow[];
+  description_2?: string;
   projectType: 'work' | 'play';
 }
