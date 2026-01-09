@@ -15,7 +15,10 @@ interface ProjectPageClientProps {
 
 // Removed local FadeInImage as it is superseded by SmartMedia
 
-export default function ProjectPageClient({ project, recommendedProject }: ProjectPageClientProps) {
+export default function ProjectPageClient({
+  project,
+  recommendedProject,
+}: ProjectPageClientProps) {
   // Ref for the container that holds the horizontal scroll section
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -163,7 +166,7 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
               <p className="text-base text-gray-700 leading-relaxed mb-8">
                 {project.description}
               </p>
-              
+
               {/* Tags */}
               <ul className="space-y-2">
                 {project.tags.map((tag, tagIndex) => (
@@ -180,33 +183,33 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
             {/* 2. Banner 2 (Full Width) */}
             {project.banners.length > 1 && (
               <div className="w-full relative bg-gray-100">
-                 <SmartMedia
-                    url={project.banners[1]}
-                    type="image"
-                    alt={`${project.title} banner 2`}
-                    width={1200}
-                    height={800}
-                    className="w-full h-auto object-contain"
-                  />
+                <SmartMedia
+                  url={project.banners[1]}
+                  type="image"
+                  alt={`${project.title} banner 2`}
+                  width={1200}
+                  height={800}
+                  className="w-full h-auto object-contain"
+                />
               </div>
             )}
 
             {/* 3. Remaining Banners */}
             {project.banners.length > 2 && (
-               <div className="flex flex-col">
-                  {project.banners.slice(2).map((banner, index) => (
-                    <div key={index} className="w-full relative bg-gray-100">
-                      <SmartMedia
-                        url={banner}
-                        type="image"
-                        alt={`${project.title} banner ${index + 3}`}
-                        width={1200}
-                        height={800}
-                        className="w-full h-auto object-contain"
-                      />
-                    </div>
-                  ))}
-               </div>
+              <div className="flex flex-col">
+                {project.banners.slice(2).map((banner, index) => (
+                  <div key={index} className="w-full relative bg-gray-100">
+                    <SmartMedia
+                      url={banner}
+                      type="image"
+                      alt={`${project.title} banner ${index + 3}`}
+                      width={1200}
+                      height={800}
+                      className="w-full h-auto object-contain"
+                    />
+                  </div>
+                ))}
+              </div>
             )}
 
             {/* 4. Title Description Div (Cast & Extra Content) */}
@@ -214,13 +217,13 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
                 Since Description is already shown, we focus on Cast here, 
                 reusing the style of the desktop vertical section. */}
             <div className="px-8 py-12 bg-white">
-               {/* Optional: Repeat Title or just show Cast */}
-               {project.cast && (
-                 <div
-                    className="text-base text-gray-600 leading-relaxed whitespace-pre-line font-light"
-                    dangerouslySetInnerHTML={{ __html: project.cast }}
-                 />
-               )}
+              {/* Optional: Repeat Title or just show Cast */}
+              {project.cast && (
+                <div
+                  className="text-base text-gray-600 leading-relaxed whitespace-pre-line font-light"
+                  dangerouslySetInnerHTML={{ __html: project.cast }}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -247,8 +250,8 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
 
                 {/* Casts */}
                 <div
-                    className="text-lg text-gray-600 leading-relaxed whitespace-pre-line font-light mb-12"
-                    dangerouslySetInnerHTML={{ __html: project.cast }}
+                  className="text-lg text-gray-600 leading-relaxed whitespace-pre-line font-light mb-12"
+                  dangerouslySetInnerHTML={{ __html: project.cast }}
                 />
 
                 {/* Description */}
@@ -397,4 +400,3 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
     </div>
   );
 }
-
