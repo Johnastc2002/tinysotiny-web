@@ -11,17 +11,23 @@ import {
 } from '@/app/actions';
 import { motion, AnimatePresence } from 'framer-motion';
 
-interface WorkPageClientProps {
+interface GalleryPageClientProps {
   initialFeaturedProjects: Project[];
   initialNonFeaturedProjects: Project[];
   gridFilter: GridFilter | null;
+  projectType: 'work' | 'play';
+  enableExplosion?: boolean;
+  explosionDelay?: number;
 }
 
-export default function WorkPageClient({
+export default function GalleryPageClient({
   initialFeaturedProjects,
   initialNonFeaturedProjects,
   gridFilter,
-}: WorkPageClientProps) {
+  projectType = 'work',
+  enableExplosion = false,
+  explosionDelay = 0,
+}: GalleryPageClientProps) {
   const [viewMode, setViewMode] = useState<'dot' | 'grid'>('dot');
 
   // Projects state
@@ -80,7 +86,7 @@ export default function WorkPageClient({
           const newProjects = await getFilteredProjectsAction(
             appliedTags,
             page,
-            'work'
+            projectType
           );
 
           if (newProjects.length === 0) {
@@ -141,7 +147,7 @@ export default function WorkPageClient({
           const newProjects = await getFilteredProjectsAction(
             appliedTags,
             1,
-            'work'
+            projectType
           );
           setFilteredProjects(newProjects);
           setHasMore(newProjects.length >= 12);
@@ -177,7 +183,7 @@ export default function WorkPageClient({
               const newProjects = await getFilteredProjectsAction(
                 appliedTags,
                 page,
-                'work'
+                projectType
               );
               if (newProjects.length === 0) {
                 setHasMore(false);
@@ -192,7 +198,7 @@ export default function WorkPageClient({
               // Load more non-featured (default)
               const newProjects = await getMoreNonFeaturedProjects(
                 page,
-                'work'
+                projectType
               );
               if (newProjects.length === 0) {
                 setHasMore(false);
@@ -331,7 +337,12 @@ export default function WorkPageClient({
               : 'opacity-0 z-0 pointer-events-none'
           }`}
         >
-          <BubbleScene mode="gallery" projects={initialFeaturedProjects} />
+          <BubbleScene
+            mode="gallery"
+            projects={initialFeaturedProjects}
+            enableExplosion={enableExplosion}
+            explosionDelay={explosionDelay}
+          />
         </div>
 
         {/* Grid View (Always Mounted, Hidden via CSS) */}

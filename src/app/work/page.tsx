@@ -3,7 +3,7 @@ import {
   getNonFeaturedProjects,
   getGridFilter,
 } from '@/lib/contentful';
-import WorkPageClient from '@/components/WorkPageClient';
+import GalleryPageClient from '@/components/GalleryPageClient';
 
 export const revalidate = 60; // Revalidate every 60 seconds
 
@@ -14,10 +14,13 @@ export default async function Work() {
 
   return (
     <main className="w-full min-h-screen">
-      <WorkPageClient
+      <GalleryPageClient
         initialFeaturedProjects={featuredProjects}
         initialNonFeaturedProjects={nonFeaturedProjects}
         gridFilter={gridFilter}
+        projectType="work"
+        enableExplosion={false}
+        explosionDelay={0}
       />
     </main>
   );

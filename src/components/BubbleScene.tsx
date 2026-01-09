@@ -211,6 +211,8 @@ const Bubble = ({
   label,
   textOffset,
   isGradient,
+  enableExplosion,
+  explosionDelay = 0,
 }: {
   position: [number, number, number];
   scale: number;
@@ -224,8 +226,47 @@ const Bubble = ({
   label?: string;
   textOffset?: [number, number, number];
   isGradient?: boolean;
+  enableExplosion?: boolean;
+  explosionDelay?: number;
 }) => {
   const router = useRouter();
+  const groupRef = useRef<THREE.Group>(null);
+  
+  // Animation state
+  // Start near center (atom-like) if explosion enabled, otherwise at final position
+  const [currentPosition] = useState(() => {
+    if (enableExplosion) {
+      // Small random jitter around center
+      return new THREE.Vector3(
+        (Math.random() - 0.5) * 0.5,
+        (Math.random() - 0.5) * 0.5,
+        (Math.random() - 0.5) * 0.5
+      );
+    }
+    return new THREE.Vector3(...position);
+  });
+
+  const targetPosition = useMemo(() => new THREE.Vector3(...position), [position]);
+  const [startExplosion, setStartExplosion] = useState(!enableExplosion);
+
+  useEffect(() => {
+    if (enableExplosion) {
+      const timer = setTimeout(() => {
+        setStartExplosion(true);
+      }, explosionDelay);
+      return () => clearTimeout(timer);
+    }
+  }, [enableExplosion, explosionDelay]);
+
+  useFrame((state, delta) => {
+    if (enableExplosion && groupRef.current && startExplosion) {
+      // Lerp towards target
+      // Adjust speed for "explosion" feel - start fast, slow down
+      const speed = 3; 
+      currentPosition.lerp(targetPosition, delta * speed);
+      groupRef.current.position.copy(currentPosition);
+    }
+  });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleClick = (e: any) => {
@@ -263,15 +304,17 @@ const Bubble = ({
   // Actually, standard practice for conditional hooks: split components.
   if (type === 'image' && imageUrl) {
     return (
-      <ImageBubble
-        position={position}
-        scale={scale}
-        imageUrl={imageUrl}
-        imageHoverUrl={imageHoverUrl}
-        onClick={handleClick}
-        onPointerOver={handlePointerOver}
-        onPointerOut={handlePointerOut}
-      />
+      <group ref={groupRef} position={enableExplosion ? undefined : position}>
+        <ImageBubble
+          position={[0, 0, 0]} // Relative to group
+          scale={scale}
+          imageUrl={imageUrl}
+          imageHoverUrl={imageHoverUrl}
+          onClick={handleClick}
+          onPointerOver={handlePointerOver}
+          onPointerOut={handlePointerOut}
+        />
+      </group>
     );
   }
 
@@ -279,19 +322,21 @@ const Bubble = ({
   const colorType = type === 'image' ? 'solid' : type;
 
   return (
-    <ColorBubble
-      position={position}
-      scale={scale}
-      color={color}
-      type={colorType}
-      onClick={handleClick}
-      onPointerOver={handlePointerOver}
-      onPointerOut={handlePointerOut}
-      alphaMap={softTexture}
-      label={label}
-      textOffset={textOffset}
-      isGradient={isGradient}
-    />
+    <group ref={groupRef} position={enableExplosion ? undefined : position}>
+      <ColorBubble
+        position={[0, 0, 0]} // Relative to group
+        scale={scale}
+        color={color}
+        type={colorType}
+        onClick={handleClick}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
+        alphaMap={softTexture}
+        label={label}
+        textOffset={textOffset}
+        isGradient={isGradient}
+      />
+    </group>
   );
 };
 
@@ -537,10 +582,14 @@ const Bubbles = ({
   mode,
   projects,
   onOpenCard,
+  enableExplosion,
+  explosionDelay,
 }: {
   mode: 'home' | 'gallery';
   projects?: Project[];
   onOpenCard?: (project: Project) => void;
+  enableExplosion?: boolean;
+  explosionDelay?: number;
 }) => {
   // Pass projects to generateBubbles
   const [bubbles] = useState(() => {
@@ -568,6 +617,8 @@ const Bubbles = ({
           label={bubble.label}
           textOffset={bubble.textOffset}
           isGradient={bubble.isGradient}
+          enableExplosion={enableExplosion}
+          explosionDelay={explosionDelay}
         />
       ))}
     </>
@@ -629,9 +680,13 @@ const CameraAdjuster = ({
 export default function BubbleScene({
   mode = 'gallery',
   projects,
+  enableExplosion = false,
+  explosionDelay = 0,
 }: {
   mode?: 'home' | 'gallery';
   projects?: Project[];
+  enableExplosion?: boolean;
+  explosionDelay?: number;
 }) {
   console.log('BubbleScene render. Mode:', mode, 'Projects:', projects?.length);
 
@@ -697,6 +752,8 @@ export default function BubbleScene({
               mode={mode}
               projects={projects}
               onOpenCard={handleOpenCard}
+              enableExplosion={enableExplosion}
+              explosionDelay={explosionDelay}
             />
           </RotatingGroup>
         </React.Suspense>
