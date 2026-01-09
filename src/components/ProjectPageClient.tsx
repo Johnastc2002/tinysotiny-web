@@ -46,11 +46,24 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
 
   return (
     <div className="bg-white">
-      {/* Horizontal Scroll Section - Fixed Banner */}
+      {/* Mobile Fixed Banner 1 */}
+      <div className="fixed top-0 left-0 w-full h-screen z-0 md:hidden">
+        {project.banners.length > 0 && (
+          <Image
+            src={project.banners[0]}
+            alt={`${project.title} Banner`}
+            fill
+            className="object-cover"
+            priority
+          />
+        )}
+      </div>
+
+      {/* Horizontal Scroll Section - Fixed Banner (Desktop Only) */}
       <div
         ref={containerRef}
         style={{ height: scrollHeight }}
-        className="relative z-0"
+        className="relative z-0 hidden md:block"
       >
         <div className="fixed top-0 left-0 w-full h-screen overflow-hidden bg-black z-0">
           <motion.div style={{ x }} className="flex h-full">
@@ -125,10 +138,86 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
       {/* Content Section - Scrolls OVER the fixed banner */}
       <div className="relative z-10 bg-transparent min-h-screen">
         {/* Background Layer for the lower part */}
-        <div className="absolute top-[10vh] left-0 w-full bottom-0 bg-gray-100 -z-10" />
+        <div className="hidden md:block absolute top-[10vh] left-0 w-full bottom-0 bg-gray-100 -z-10" />
 
-        {/* Title and Cast Section Container - Overlap the banner */}
-        <div className="w-full relative -mt-32 z-20 pointer-events-none">
+        {/* Mobile Layout */}
+        <div className="md:hidden w-full pt-[70vh]">
+          <div className="bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] overflow-hidden">
+            {/* 1. Info Block (Title, Description, Tags) */}
+            <div className="px-8 pt-10 pb-10">
+              <div className="mb-4">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  CLIENT / {project.clientName}
+                </span>
+              </div>
+              <h1 className="text-4xl font-serif text-gray-900 leading-tight mb-6">
+                {project.title}
+              </h1>
+              <p className="text-base text-gray-700 leading-relaxed mb-8">
+                {project.description}
+              </p>
+              
+              {/* Tags */}
+              <ul className="space-y-2">
+                {project.tags.map((tag, tagIndex) => (
+                  <li
+                    key={tagIndex}
+                    className="flex items-center text-xs font-semibold text-gray-400 uppercase tracking-wide"
+                  >
+                    <span className="mr-2 text-[10px]">◉</span> {tag}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* 2. Banner 2 (Full Width) */}
+            {project.banners.length > 1 && (
+              <div className="w-full relative bg-gray-100">
+                 <Image
+                    src={project.banners[1]}
+                    alt={`${project.title} banner 2`}
+                    width={1200}
+                    height={800}
+                    className="w-full h-auto object-contain"
+                  />
+              </div>
+            )}
+
+            {/* 3. Remaining Banners */}
+            {project.banners.length > 2 && (
+               <div className="flex flex-col">
+                  {project.banners.slice(2).map((banner, index) => (
+                    <div key={index} className="w-full relative bg-gray-100">
+                      <Image
+                        src={banner}
+                        alt={`${project.title} banner ${index + 3}`}
+                        width={1200}
+                        height={800}
+                        className="w-full h-auto object-contain"
+                      />
+                    </div>
+                  ))}
+               </div>
+            )}
+
+            {/* 4. Title Description Div (Cast & Extra Content) */}
+            {/* The user requested "the title description div". 
+                Since Description is already shown, we focus on Cast here, 
+                reusing the style of the desktop vertical section. */}
+            <div className="px-8 py-12 bg-white">
+               {/* Optional: Repeat Title or just show Cast */}
+               {project.cast && (
+                 <div
+                    className="text-base text-gray-600 leading-relaxed whitespace-pre-line font-light"
+                    dangerouslySetInnerHTML={{ __html: project.cast }}
+                 />
+               )}
+            </div>
+          </div>
+        </div>
+
+        {/* Title and Cast Section Container - Overlap the banner (Desktop Only) */}
+        <div className="hidden md:block w-full relative -mt-32 z-20 pointer-events-none">
           <div className="flex flex-col md:flex-row gap-0">
             {/* Left Column: White Box for Title & Cast */}
             <div className="w-full md:w-1/2 bg-white pt-8 pb-8 pr-8 md:pt-16 md:pb-16 md:pr-16 pl-12 md:pl-24 shadow-lg pointer-events-auto rounded-r-3xl">
@@ -168,7 +257,7 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
         </div>
 
         {/* Gray Background Section for Gallery */}
-        <div className="w-full pt-40 pb-24 px-12 md:px-24 -mt-24 z-10 relative">
+        <div className="w-full pt-12 pb-24 px-4 md:pt-40 md:px-24 mt-0 md:-mt-24 z-10 relative bg-gray-100 md:bg-transparent">
           <div className="">
             {/* Image Gallery */}
             <div className="flex flex-col gap-8">
@@ -237,7 +326,7 @@ export default function ProjectPageClient({ project, recommendedProject }: Proje
 
         {/* Recommended Project Section */}
         {recommendedProject && (
-          <div className="w-full px-4 md:px-8 z-10 relative -mt-8">
+          <div className="w-full px-4 md:px-8 z-10 relative -mt-8 bg-gray-100 md:bg-transparent pb-12 md:pb-0">
             <Link
               href={`/project/${recommendedProject.id}`}
               className="block w-full bg-[#D6A360] rounded-t-3xl p-12 md:p-24 hover:bg-[#c59556] transition-colors duration-300 group"
