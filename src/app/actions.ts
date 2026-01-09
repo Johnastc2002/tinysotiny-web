@@ -3,6 +3,7 @@
 import {
   getDailyEntries,
   getNonFeaturedProjects,
+  getProjectsByTags,
   ProjectType,
 } from '@/lib/contentful';
 
@@ -15,4 +16,12 @@ export async function getMoreNonFeaturedProjects(
   type: ProjectType
 ) {
   return await getNonFeaturedProjects(page, 12, type);
+}
+
+export async function getFilteredProjectsAction(
+  tags: string[],
+  page: number,
+  type: ProjectType
+) {
+  return await getProjectsByTags(tags, page, 12, type);
 }

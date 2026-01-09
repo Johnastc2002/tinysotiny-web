@@ -18,3 +18,15 @@ export interface Project {
   description_2?: string;
   projectType: 'work' | 'play';
 }
+
+export interface SearchTag {
+  id: string;
+  display_name: string;
+  tag_id: string;
+}
+
+export interface GridFilter {
+  id: string;
+  name: string;
+  filters: SearchTag[];
+}

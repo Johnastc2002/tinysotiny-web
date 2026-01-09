@@ -1,5 +1,6 @@
+// ... existing imports
 import { createClient } from 'contentful';
-import { Project, MediaRow } from '@/types/project';
+import { Project, MediaRow, GridFilter, SearchTag } from '@/types/project';
 import { AboutUsData, ContactData } from '@/types/about';
 import { ClientData } from '@/types/client';
 import { DailyData } from '@/types/daily';
@@ -20,7 +21,7 @@ export const client = createClient({
   space: SPACE_ID || '',
   accessToken: ACCESS_TOKEN || '',
   environment: ENVIRONMENT,
-}).withoutUnresolvableLinks; // Automatically remove links that cannot be resolved (e.g. archived/deleted)
+}).withoutUnresolvableLinks;
 
 export const getEntries = async (
   content_type?: string,
@@ -45,12 +46,10 @@ export const getEntries = async (
   }
 };
 
-// Helper to determine media type
 const getMediaType = (contentType: string): 'image' | 'video' => {
   return contentType.startsWith('video/') ? 'video' : 'image';
 };
 
-// Helper to safely get image URL
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getAssetUrl = (asset: any): string => {
   if (!asset || !asset.fields || !asset.fields.file || !asset.fields.file.url) {
@@ -59,7 +58,6 @@ const getAssetUrl = (asset: any): string => {
   return `https:${asset.fields.file.url}`;
 };
 
-// Helper to safely get asset metadata
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getAssetMetadata = (asset: any) => {
   if (!asset || !asset.fields || !asset.fields.file) {
@@ -74,19 +72,15 @@ const getAssetMetadata = (asset: any) => {
   };
 };
 
-// Helper to parse Rich Text to simple string (or HTML if preferred)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const parseRichText = (document: any): string => {
   if (!document) return '';
   return documentToHtmlString(document as Document);
 };
 
-// Mapper function
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapProject = (entry: any): Project => {
   const fields = entry.fields;
-
-  // Map metadata tags to string array
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const tags = entry.metadata?.tags?.map((tag: any) => tag.sys.id) || [];
 
@@ -110,14 +104,10 @@ const mapProject = (entry: any): Project => {
       .map(getAssetUrl)
       .filter((url: string) => url),
     cast: parseRichText(fields.cast),
-    // Prioritize camelCase 'mediaRows' as seen in the API response, fallback to snake_case
     media_rows: (fields.mediaRows || fields.media_rows || [])
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .map((row: any) => {
-        // If row is a Link (not resolved), row.fields will be undefined.
-        // The SDK should resolve it if include > 0 and it's published.
         if (!row || !row.fields) return null;
-
         return {
           row_layout: (row.fields.rowLayout ||
             row.fields.row_layout ||
@@ -127,7 +117,6 @@ const mapProject = (entry: any): Project => {
             .filter((url: string) => url),
         };
       })
-      // Filter out any nulls from unresolved links
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .filter((row: any) => row !== null),
     description_2: String(fields.description_2 || fields.description2 || ''),
@@ -180,8 +169,6 @@ const mapClient = (entry: any): ClientData => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapDaily = (entry: any): DailyData => {
   const fields = entry.fields;
-
-  // Safely map medias, ensuring each item has width and height if available in the asset
   const mappedMedias = (fields.medias || [])
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((asset: any) => {
@@ -195,7 +182,6 @@ const mapDaily = (entry: any): DailyData => {
     })
     .filter((media: { url: string }) => media.url);
 
-  // Map thumbnail with dimensions
   const thumbAsset = fields.thumbnail;
   const thumbMeta = getAssetMetadata(thumbAsset);
   const thumbnail = {
@@ -205,7 +191,6 @@ const mapDaily = (entry: any): DailyData => {
     type: thumbMeta.type,
   };
 
-  // Map bgMedia with metadata to support video
   const bgAsset = fields.bg_media || fields.bgMedia;
   const bgMeta = getAssetMetadata(bgAsset);
   const bgMedia = bgMeta.url
@@ -256,6 +241,30 @@ export async function getNonFeaturedProjects(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const query: Record<string, any> = {
     'metadata.tags.sys.id[nin]': 'featured',
+    order: '-fields.projectDate',
+    limit,
+    skip,
+    include: 3,
+  };
+
+  if (type) {
+    query['fields.projectType'] = type;
+  }
+
+  const entries = await getEntries('project', query);
+  return entries.items.map(mapProject);
+}
+
+export async function getProjectsByTags(
+  tags: string[],
+  page: number = 1,
+  limit: number = 9,
+  type?: ProjectType
+) {
+  const skip = (page - 1) * limit;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const query: Record<string, any> = {
+    'metadata.tags.sys.id[in]': tags.join(','),
     order: '-fields.projectDate',
     limit,
     skip,
@@ -377,6 +386,7 @@ export async function getDailyEntries(
     order: '-sys.createdAt',
     limit,
     skip,
+    include: 3,
   };
 
   try {
@@ -394,6 +404,53 @@ export async function getDailyEntryById(id: string): Promise<DailyData | null> {
     return mapDaily(entry);
   } catch (error) {
     console.error(`Error fetching daily entry with id ${id}:`, error);
+    return null;
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mapSearchTag = (entry: any): SearchTag => {
+  const fields = entry.fields;
+  return {
+    id: entry.sys.id,
+    display_name: String(fields.display_name || fields.displayName || ''),
+    tag_id: String(fields.tag_id || fields.tagId || ''),
+  };
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mapGridFilter = (entry: any): GridFilter => {
+  const fields = entry.fields;
+  return {
+    id: entry.sys.id,
+    name: String(fields.name || ''),
+    filters: (fields.filters || [])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((ref: any) => {
+        if (!ref.fields) return null;
+        return mapSearchTag(ref);
+      })
+      .filter((tag: SearchTag | null) => tag !== null) as SearchTag[],
+  };
+};
+
+export async function getGridFilter(
+  type?: ProjectType
+): Promise<GridFilter | null> {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const query: Record<string, any> = { limit: 1, include: 2 };
+    if (type) {
+      query['fields.type'] = type;
+    }
+
+    const entries = await getEntries('gridFilter', query);
+    if (entries.items.length > 0) {
+      return mapGridFilter(entries.items[0]);
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching grid filter:', error);
     return null;
   }
 }
