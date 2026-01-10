@@ -57,8 +57,8 @@ export default async function About() {
             <div className="mb-20 grid grid-cols-2 gap-y-4 gap-x-12">
               {aboutUs?.categories?.map((category, index) => (
                 <div key={index} className="flex items-center gap-3">
-                  <span className="h-3 w-3 rounded-full bg-[#0F2341]"></span>
-                  <span className="text-sm font-semibold tracking-widest text-[#0F2341] uppercase">
+                  <span className="h-2 w-2 min-w-[0.5rem] md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
+                  <span className="text-xs md:text-sm font-semibold tracking-widest text-[#0F2341] uppercase">
                     {category}
                   </span>
                 </div>
@@ -66,26 +66,26 @@ export default async function About() {
               {!aboutUs?.categories?.length && (
                 <>
                   <div className="flex items-center gap-3">
-                    <span className="h-3 w-3 rounded-full bg-[#0F2341]"></span>
-                    <span className="text-sm font-semibold tracking-widest text-[#0F2341] uppercase">
+                    <span className="h-2 w-2 min-w-[0.5rem] md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
+                    <span className="text-xs md:text-sm font-semibold tracking-widest text-[#0F2341] uppercase">
                       Photography
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="h-3 w-3 rounded-full bg-[#0F2341]"></span>
-                    <span className="text-sm font-semibold tracking-widest text-[#0F2341] uppercase">
+                    <span className="h-2 w-2 min-w-[0.5rem] md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
+                    <span className="text-xs md:text-sm font-semibold tracking-widest text-[#0F2341] uppercase">
                       Motion Graphics
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="h-3 w-3 rounded-full bg-[#0F2341]"></span>
-                    <span className="text-sm font-semibold tracking-widest text-[#0F2341] uppercase">
+                    <span className="h-2 w-2 min-w-[0.5rem] md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
+                    <span className="text-xs md:text-sm font-semibold tracking-widest text-[#0F2341] uppercase">
                       Videography
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="h-3 w-3 rounded-full bg-[#0F2341]"></span>
-                    <span className="text-sm font-semibold tracking-widest text-[#0F2341] uppercase">
+                    <span className="h-2 w-2 min-w-[0.5rem] md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
+                    <span className="text-xs md:text-sm font-semibold tracking-widest text-[#0F2341] uppercase">
                       Branding
                     </span>
                   </div>

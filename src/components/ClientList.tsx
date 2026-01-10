@@ -49,7 +49,7 @@ export default function ClientList({ clients }: ClientListProps) {
   return (
     <div
       ref={containerRef}
-      className="relative flex flex-wrap justify-center items-center text-3xl md:text-4xl lg:text-5xl font-bold leading-normal tracking-wider text-gray-400"
+      className="relative flex flex-wrap justify-start items-center text-2xl md:text-4xl lg:text-5xl font-bold leading-normal tracking-wider text-gray-400"
       onMouseMove={handleMouseMove}
     >
       {/* Thumbnails Overlay - Increased z-index to be on top */}
@@ -119,20 +119,20 @@ export default function ClientList({ clients }: ClientListProps) {
 
             {/* Visible text positioned absolutely over the placeholder */}
             <div
-              className={`absolute inset-0 flex items-center justify-center transition-transform duration-200 cursor-default whitespace-nowrap px-1 ${
+              className={`absolute inset-0 flex items-center justify-center transition-transform duration-200 cursor-default whitespace-nowrap px-1 text-[#B6B6B6] hover:text-[#B6B6B6] ${
                 hoveredClientId === client.id
                   ? 'font-serif italic scale-105'
-                  : 'text-gray-400 hover:text-gray-300'
+                  : ''
               }`}
             >
               {client.clientName}
             </div>
           </div>
-          <div className="mx-1 md:mx-2 text-gray-400 font-bold">.</div>
+          <div className="mx-1 md:mx-2 text-[#B6B6B6] font-bold">.</div>
         </div>
       ))}
       <div className="flex items-center z-20">
-        <div>ETC...</div>
+        <div className="text-[#B6B6B6]">ETC...</div>
       </div>
     </div>
   );
