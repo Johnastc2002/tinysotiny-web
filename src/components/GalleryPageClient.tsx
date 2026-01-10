@@ -11,6 +11,7 @@ import {
 } from '@/app/actions';
 import { motion, AnimatePresence } from 'framer-motion';
 import LoadingSpinner from './LoadingSpinner';
+import DetailCard, { DetailCardData } from './DetailCard';
 
 interface GalleryPageClientProps {
   initialFeaturedProjects: Project[];
@@ -50,12 +51,55 @@ export default function GalleryPageClient({
   const [appliedTags, setAppliedTags] = useState<string[]>([]);
 
   const [isIOS, setIsIOS] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
   useEffect(() => {
     // Simple check for iOS devices
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isMobile = /iphone|ipad|ipod/.test(userAgent);
     setIsIOS(isMobile);
   }, []);
+
+  // Map Project to DetailCardData
+  const cardData: DetailCardData | null = selectedProject
+    ? {
+        id: selectedProject.id,
+        title: selectedProject.title,
+        description: selectedProject.description,
+        imageUrl:
+          selectedProject.thumbnails && selectedProject.thumbnails.length > 0
+            ? selectedProject.thumbnails[0]
+            : undefined,
+        topLabel: selectedProject.clientName
+          ? `CLIENT / ${selectedProject.clientName}`
+          : null,
+        bottomContent: (
+          <ul className="space-y-3">
+            {selectedProject.tags.map((tag, index) => (
+              <li
+                key={index}
+                className={`flex items-center text-xs font-semibold uppercase tracking-wide transition-colors ${
+                  selectedProject.card_font_color ? '' : 'text-gray-400'
+                }`}
+                style={
+                  selectedProject.card_font_color
+                    ? { color: selectedProject.card_font_color, opacity: 0.8 }
+                    : {}
+                }
+              >
+                <span className="mr-2 text-[10px]">◉</span> {tag}
+              </li>
+            ))}
+          </ul>
+        ),
+        cardBgColor: selectedProject.card_bg_color,
+        cardFontColor: selectedProject.card_font_color,
+      }
+    : null;
+
+  const handleCloseCard = () => {
+    setSelectedProject(null);
+  };
 
   const observerTarget = useRef<HTMLDivElement>(null);
 
@@ -254,9 +298,16 @@ export default function GalleryPageClient({
 
   return (
     <div className={`relative w-full min-h-screen ${bgClass}`}>
+      <DetailCard
+        isOpen={!!selectedProject}
+        onClose={handleCloseCard}
+        data={cardData}
+        basePath="/project"
+      />
+
       {/* Toggle Button */}
       <div
-        className="fixed top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-2"
+        className="fixed top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-2"
         style={{ right: '1.75rem' }}
       >
         <span className="text-[10px] font-medium tracking-widest text-[#B6B6B6] uppercase">
@@ -449,6 +500,7 @@ export default function GalleryPageClient({
             enableExplosion={enableExplosion}
             explosionDelay={explosionDelay}
             transparent={isPlay}
+            onOpenCard={setSelectedProject}
           />
         </div>
 

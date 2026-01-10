@@ -47,7 +47,7 @@ function NavigationItem({
         {isHome ? (
           <button
             onClick={handleClick}
-            className={`text-4xl font-bold tracking-wider text-black transition-colors hover:text-gray-500 md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl! ${
+            className={`text-4xl font-bold tracking-wider text-[#0F2341] transition-colors hover:text-gray-500 md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl! ${
               isActive ? 'font-serif italic' : ''
             }`}
           >
@@ -56,7 +56,7 @@ function NavigationItem({
         ) : (
           <Link
             href={href}
-            className={`text-4xl font-bold tracking-wider text-black transition-colors hover:text-gray-500 md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl! ${
+            className={`text-4xl font-bold tracking-wider text-[#0F2341] transition-colors hover:text-gray-500 md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl! ${
               isActive ? 'font-serif italic' : ''
             }`}
             onClick={toggleMenu}
@@ -66,7 +66,7 @@ function NavigationItem({
         )}
 
         {isActive && (
-          <span className="absolute -top-2 -right-3 h-1.5 w-1.5 rounded-full bg-black lg:[@media(min-height:720px)]:-top-2 lg:[@media(min-height:720px)]:-right-4" />
+          <span className="absolute -top-2 -right-3 h-1.5 w-1.5 rounded-full bg-[#0F2341] lg:[@media(min-height:720px)]:-top-2 lg:[@media(min-height:720px)]:-right-4" />
         )}
       </div>
 
@@ -83,7 +83,7 @@ function NavigationItem({
               key={subItem}
               href={`/${subItem}`}
               onClick={toggleMenu}
-              className="text-2xl font-bold tracking-wider text-black transition-colors hover:text-gray-500 md:text-3xl landscape:text-xl lg:[@media(min-height:720px)]:text-3xl!"
+              className="text-2xl font-bold tracking-wider text-[#0F2341] transition-colors hover:text-gray-500 md:text-3xl landscape:text-xl lg:[@media(min-height:720px)]:text-3xl!"
             >
               {subItem}
             </Link>
@@ -206,7 +206,7 @@ export default function Navigation({ contact }: NavigationProps) {
           <div className="absolute bottom-0 left-0 w-full flex justify-between px-12 pb-12 md:px-24 landscape:px-16 landscape:pb-8 lg:[@media(min-height:720px)]:px-24! lg:[@media(min-height:720px)]:pb-16!">
             <Link
               href={contact?.instagram || 'https://instagram.com'}
-              className="text-xs font-semibold tracking-widest text-gray-400 hover:text-black transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!"
+              className="text-xs font-semibold tracking-widest text-[#B6B6B6] hover:text-[#0F2341] transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -215,13 +215,13 @@ export default function Navigation({ contact }: NavigationProps) {
             <div className="flex gap-6 lg:gap-8">
               <Link
                 href={`mailto:${contact?.email || 'hello@tinysotiny.com'}`}
-                className="text-xs font-semibold tracking-widest text-gray-400 hover:text-black transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!"
+                className="text-xs font-semibold tracking-widest text-[#B6B6B6] hover:text-[#0F2341] transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!"
               >
                 EMAIL
               </Link>
               <Link
                 href={`tel:${contact?.phone || '+85212345678'}`}
-                className="text-xs font-semibold tracking-widest text-gray-400 hover:text-black transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!"
+                className="text-xs font-semibold tracking-widest text-[#B6B6B6] hover:text-[#0F2341] transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!"
               >
                 PHONE
               </Link>

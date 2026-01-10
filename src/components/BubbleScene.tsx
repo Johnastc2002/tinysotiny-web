@@ -12,7 +12,6 @@ import {
   Float,
 } from '@react-three/drei';
 import * as THREE from 'three';
-import DetailCard, { DetailCardData } from './DetailCard';
 import { Project } from '@/types/project';
 
 export const BUBBLE_COLORS = {
@@ -686,67 +685,22 @@ export default function BubbleScene({
   enableExplosion = false,
   explosionDelay = 0,
   transparent = false,
+  onOpenCard,
 }: {
   mode?: 'home' | 'gallery';
   projects?: Project[];
   enableExplosion?: boolean;
   explosionDelay?: number;
   transparent?: boolean;
+  onOpenCard?: (project: Project) => void;
 }) {
   console.log('BubbleScene render. Mode:', mode, 'Projects:', projects?.length);
 
   const bgClass = transparent ? 'bg-transparent' : 'bg-[#F0F2F5]';
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-
-  const handleOpenCard = (project: Project) => {
-    setSelectedProject(project);
-  };
-
-  const handleCloseCard = () => {
-    setSelectedProject(null);
-  };
-
   const userInteractionRef = useRef(false);
-
-  // Map Project to DetailCardData
-  const cardData: DetailCardData | null = selectedProject
-    ? {
-        id: selectedProject.id,
-        title: selectedProject.title,
-        description: selectedProject.description,
-        imageUrl:
-          selectedProject.thumbnails && selectedProject.thumbnails.length > 0
-            ? selectedProject.thumbnails[0]
-            : undefined,
-        topLabel: selectedProject.clientName
-          ? `CLIENT / ${selectedProject.clientName}`
-          : null,
-        bottomContent: (
-          <ul className="space-y-3">
-            {selectedProject.tags.map((tag, index) => (
-              <li
-                key={index}
-                className="flex items-center text-xs font-semibold text-gray-400 uppercase tracking-wide"
-              >
-                <span className="mr-2 text-[10px]">◉</span> {tag}
-              </li>
-            ))}
-          </ul>
-        ),
-        // Pass color data
-        cardBgColor: selectedProject.card_bg_color,
-        cardFontColor: selectedProject.card_font_color,
-      }
-    : null;
 
   return (
     <div className={`w-full h-screen ${bgClass}`}>
-      <DetailCard
-        isOpen={!!selectedProject}
-        onClose={handleCloseCard}
-        data={cardData}
-        basePath="/project"
-      />
       <Canvas
         camera={{ position: [0, 0, 20], fov: 50 }}
         gl={{
@@ -765,7 +719,7 @@ export default function BubbleScene({
             <Bubbles
               mode={mode}
               projects={projects}
-              onOpenCard={handleOpenCard}
+              onOpenCard={onOpenCard}
               enableExplosion={enableExplosion}
               explosionDelay={explosionDelay}
             />

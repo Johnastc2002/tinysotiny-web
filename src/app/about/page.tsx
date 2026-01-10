@@ -22,7 +22,7 @@ export default async function About() {
 
       <main className="mx-auto max-w-7xl">
         {/* Header Label */}
-        <div className="mb-12 text-sm font-medium tracking-widest text-gray-400 uppercase">
+        <div className="mb-12 text-sm font-medium tracking-widest text-[#B6B6B6] uppercase">
           Who We Are / About Us
         </div>
 
@@ -44,7 +44,7 @@ export default async function About() {
           <div className="hidden md:col-span-5 md:block"></div>
 
           {/* Secondary Content Section */}
-          <div className="md:col-span-7 md:pr-32 pl-12 md:pl-0">
+          <div className="md:col-span-7 md:pr-16 pl-12 md:pl-0">
             <h2 className="mb-6 font-serif text-3xl italic text-[#0F2341] md:text-4xl">
               {aboutUs?.header || 'From statics to dynamics.'}
             </h2>
@@ -54,11 +54,11 @@ export default async function About() {
             </p>
 
             {/* Services List */}
-            <div className="mb-20 grid grid-cols-2 gap-y-4 gap-x-12">
+            <div className="mb-20 grid grid-cols-2 gap-y-4 gap-x-8 md:gap-x-12">
               {aboutUs?.categories?.map((category, index) => (
                 <div key={index} className="flex items-center gap-3">
-                  <span className="h-2 w-2 min-w-[0.5rem] md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
-                  <span className="text-xs md:text-sm font-semibold tracking-widest text-[#0F2341] uppercase">
+                  <span className="h-2 w-2 min-w-2 md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
+                  <span className="text-xs md:text-sm font-semibold tracking-widest text-[#0F2341] uppercase whitespace-nowrap">
                     {category}
                   </span>
                 </div>
@@ -66,26 +66,26 @@ export default async function About() {
               {!aboutUs?.categories?.length && (
                 <>
                   <div className="flex items-center gap-3">
-                    <span className="h-2 w-2 min-w-[0.5rem] md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
-                    <span className="text-xs md:text-sm font-semibold tracking-widest text-[#0F2341] uppercase">
+                    <span className="h-2 w-2 min-w-2 md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
+                    <span className="text-xs md:text-sm font-semibold tracking-widest text-[#0F2341] uppercase whitespace-nowrap">
                       Photography
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="h-2 w-2 min-w-[0.5rem] md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
-                    <span className="text-xs md:text-sm font-semibold tracking-widest text-[#0F2341] uppercase">
+                    <span className="h-2 w-2 min-w-2 md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
+                    <span className="text-xs md:text-sm font-semibold tracking-widest text-[#0F2341] uppercase whitespace-nowrap">
                       Motion Graphics
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="h-2 w-2 min-w-[0.5rem] md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
-                    <span className="text-xs md:text-sm font-semibold tracking-widest text-[#0F2341] uppercase">
+                    <span className="h-2 w-2 min-w-2 md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
+                    <span className="text-xs md:text-sm font-semibold tracking-widest text-[#0F2341] uppercase whitespace-nowrap">
                       Videography
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="h-2 w-2 min-w-[0.5rem] md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
-                    <span className="text-xs md:text-sm font-semibold tracking-widest text-[#0F2341] uppercase">
+                    <span className="h-2 w-2 min-w-2 md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
+                    <span className="text-xs md:text-sm font-semibold tracking-widest text-[#0F2341] uppercase whitespace-nowrap">
                       Branding
                     </span>
                   </div>
@@ -94,25 +94,27 @@ export default async function About() {
             </div>
 
             {/* Footer Links */}
-            <div className="flex flex-row gap-8 md:gap-24">
+            <div className="flex flex-row justify-between items-center w-full max-w-lg">
               <Link
                 href={contact?.instagram || 'https://instagram.com'}
                 className="text-sm font-bold tracking-widest text-[#0F2341] uppercase hover:opacity-70"
               >
                 Instagram
               </Link>
-              <Link
-                href={`mailto:${contact?.email || 'hello@tinysotiny.com'}`}
-                className="text-sm font-bold tracking-widest text-[#0F2341] uppercase hover:opacity-70"
-              >
-                Email
-              </Link>
-              <Link
-                href={`tel:${contact?.phone || '+85212345678'}`}
-                className="text-sm font-bold tracking-widest text-[#0F2341] uppercase hover:opacity-70"
-              >
-                Phone
-              </Link>
+              <div className="flex gap-8">
+                <Link
+                  href={`mailto:${contact?.email || 'hello@tinysotiny.com'}`}
+                  className="text-sm font-bold tracking-widest text-[#0F2341] uppercase hover:opacity-70"
+                >
+                  Email
+                </Link>
+                <Link
+                  href={`tel:${contact?.phone || '+85212345678'}`}
+                  className="text-sm font-bold tracking-widest text-[#0F2341] uppercase hover:opacity-70"
+                >
+                  Phone
+                </Link>
+              </div>
             </div>
           </div>
         </div>

@@ -10,7 +10,7 @@ import React, {
 import { DailyData } from '@/types/daily';
 import { getDailyEntriesAction } from '@/app/actions';
 import Image from 'next/image';
-import DetailCard, { DetailCardData } from './DetailCard';
+import Link from 'next/link';
 import LoadingSpinner from './LoadingSpinner';
 
 interface DailyListProps {
@@ -23,7 +23,6 @@ export default function DailyList({ initialItems }: DailyListProps) {
   const [hasMore, setHasMore] = useState(true);
   const [isPending, startTransition] = useTransition();
   const loaderRef = useRef<HTMLDivElement>(null);
-  const [selectedDaily, setSelectedDaily] = useState<DailyData | null>(null);
 
   const loadMore = useCallback(() => {
     startTransition(async () => {
@@ -65,41 +64,14 @@ export default function DailyList({ initialItems }: DailyListProps) {
     };
   }, [hasMore, isPending, loadMore]);
 
-  const handleCardClose = () => {
-    setSelectedDaily(null);
-  };
-
-  // Map DailyData to DetailCardData
-  const cardData: DetailCardData | null = selectedDaily
-    ? {
-        id: selectedDaily.id,
-        title: selectedDaily.title,
-        description: selectedDaily.description,
-        imageUrl: selectedDaily.thumbnail.url,
-        topLabel: 'DAILY',
-        bottomContent: (
-          <div className="flex items-center text-xs font-semibold text-gray-400 uppercase tracking-wide">
-            <span className="mr-2 text-[10px]">◉</span>{' '}
-            {new Date(selectedDaily.createdAt).toLocaleDateString()}
-          </div>
-        ),
-      }
-    : null;
-
   return (
     <>
-      <DetailCard
-        isOpen={!!selectedDaily}
-        onClose={handleCardClose}
-        data={cardData}
-        basePath="/daily"
-      />
-      <div className="w-full max-w-2xl flex flex-col gap-32 pb-20">
+      <div className="w-full max-w-2xl flex flex-col gap-16 md:gap-24 pb-20">
         {items.map((item) => (
-          <div
+          <Link
+            href={`/daily/${item.id}`}
             key={item.id}
-            className="flex flex-col items-center gap-6 cursor-pointer group"
-            onClick={() => setSelectedDaily(item)}
+            className="flex flex-col items-center gap-3 cursor-pointer group"
           >
             {/* Image Container */}
             {/* Use thumbnail as the main image in the list view */}
@@ -124,15 +96,12 @@ export default function DailyList({ initialItems }: DailyListProps) {
             )}
 
             {/* Caption */}
-            <div className="text-center max-w-md px-4">
-              <h2 className="text-2xl md:text-3xl font-serif text-[#0F2341] mb-2 tracking-wide uppercase group-hover:text-gray-600 transition-colors">
+            <div className="w-full text-left px-4">
+              <h2 className="text-lg md:text-xl font-serif text-[#0F2341] mb-2 tracking-wide uppercase group-hover:text-gray-600 transition-colors">
                 {item.title}
               </h2>
-              <p className="text-sm md:text-base text-gray-500 font-light leading-relaxed">
-                {item.description}
-              </p>
             </div>
-          </div>
+          </Link>
         ))}
 
         {/* Loading Indicator */}
