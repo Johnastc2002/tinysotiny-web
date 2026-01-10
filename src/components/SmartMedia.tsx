@@ -285,7 +285,18 @@ export default function SmartMedia({
   const toggleVimeo = async () => {
     if (!videoActivated) {
       setVideoActivated(true);
-      setIsLoaded(false); // Reset loaded state for video player
+
+      // Try to play immediately if player is ready (critical for iOS sound)
+      if (vimeoPlayerRef.current) {
+        try {
+          await vimeoPlayerRef.current.setMuted(false);
+          await vimeoPlayerRef.current.setVolume(1);
+          await vimeoPlayerRef.current.play();
+          playVideo(id);
+        } catch (e) {
+          console.warn('Vimeo manual play failed:', e);
+        }
+      }
       return;
     }
 
@@ -293,8 +304,14 @@ export default function SmartMedia({
 
     const paused = await vimeoPlayerRef.current.getPaused();
     if (paused) {
-      vimeoPlayerRef.current.play();
-      playVideo(id); // Register this video as playing
+      try {
+        await vimeoPlayerRef.current.setMuted(false);
+        await vimeoPlayerRef.current.setVolume(1);
+        await vimeoPlayerRef.current.play();
+        playVideo(id);
+      } catch (e) {
+        console.warn('Vimeo play failed:', e);
+      }
     } else {
       vimeoPlayerRef.current.pause();
       if (activeVideoId === id) {
@@ -508,7 +525,25 @@ export default function SmartMedia({
         player.destroy();
       };
     }
-  }, [type, url, updateIframeDimensions, vimeoIframe]);
+  }, [type, url, updateIframeDimensions, vimeoIframe, setLoaded]);
+
+  // Effect to trigger play when video is activated (user click)
+  useEffect(() => {
+    if (type === 'vimeo' && vimeoPlayerRef.current && videoActivated) {
+      // Ensure volume is on (fallback if toggleVimeo didn't catch it)
+      vimeoPlayerRef.current.setMuted(false).catch(() => {});
+      vimeoPlayerRef.current.setVolume(1).catch(() => {});
+
+      vimeoPlayerRef.current
+        .play()
+        .then(() => {
+          playVideo(id);
+        })
+        .catch((e) => {
+          console.warn('Auto-play failed:', e);
+        });
+    }
+  }, [videoActivated, type, playVideo, id]);
 
   // Resize observer to update dimensions on window resize
   useEffect(() => {
@@ -584,18 +619,18 @@ export default function SmartMedia({
           <div className="absolute inset-0 bg-gray-200" />
         ) : (
           <>
-            {videoActivated && (
+            {(videoActivated || (shouldLoad && type === 'vimeo')) && (
               <div
                 className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${activeClassName.replace(
                   'hover:',
                   'group-hover:'
                 )} ${
-                  isLoaded ? 'opacity-100' : 'opacity-0'
+                  isLoaded && videoActivated ? 'opacity-100' : 'opacity-0'
                 } pointer-events-none`}
               >
                 <iframe
                   ref={setVimeoIframe}
-                  src={`https://player.vimeo.com/video/${vimeoId}?autoplay=1&loop=1&controls=0&muted=0&title=0&byline=0&portrait=0`}
+                  src={`https://player.vimeo.com/video/${vimeoId}?autoplay=0&loop=1&controls=0&muted=0&title=0&byline=0&portrait=0&playsinline=1`}
                   style={{
                     ...iframeStyle,
                     minWidth: '100%',
