@@ -22,7 +22,7 @@ export default function Navigation({ contact }: NavigationProps) {
       <button
         onClick={toggleMenu}
         style={{ top: '3rem', right: '1.5rem', height: '3rem', width: '3rem' }}
-        className={`fixed z-50 flex items-center justify-center rounded-full border border-white/40 bg-white/10 backdrop-blur-xl transition-all hover:bg-white/20 shadow-lg ${
+        className={`fixed z-50 flex items-center justify-center rounded-full border border-white/40 bg-white/10 backdrop-blur-sm transition-all hover:bg-white/20 shadow-lg ${
           isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
         aria-label="Open Menu"
@@ -30,12 +30,12 @@ export default function Navigation({ contact }: NavigationProps) {
         <div className="flex flex-col" style={{ gap: '4px' }}>
           <span
             className={`h-0.5 w-5 rounded-full transition-colors ${
-              isDarkPage ? 'bg-white' : 'bg-black'
+              isDarkPage ? 'bg-white' : 'bg-[#B6B6B6]'
             }`}
           />
           <span
             className={`h-0.5 w-5 rounded-full transition-colors ${
-              isDarkPage ? 'bg-white' : 'bg-black'
+              isDarkPage ? 'bg-white' : 'bg-[#B6B6B6]'
             }`}
           />
         </div>

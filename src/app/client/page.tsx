@@ -27,7 +27,7 @@ export default async function Client() {
         </div>
 
         {/* Vertical Spacer (~1/3 screen height) */}
-        <div className="h-[33vh] min-h-[200px] w-full" aria-hidden="true" />
+        <div className="min-h-[200px] w-full h-[33vh]" aria-hidden="true" />
 
         {/* Client List */}
         <div className="flex-1 w-full flex items-start justify-start">

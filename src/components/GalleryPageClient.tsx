@@ -135,17 +135,6 @@ export default function GalleryPageClient({
     }
   }, [appliedTags, page, projectType]); // Only fetch when appliedTags change (reset) or page changes (scroll)
 
-  // Note: The above useEffect has a flaw: `setPage` inside it might cause loop if not careful.
-  // Actually, for "load more", we increment page in the observer, which triggers this effect.
-  // For "filter change", we setPage(1) in handleCloseFilter, which triggers this effect.
-  // But inside fetchProjects, we setPage(2) if page=1. This would trigger effect again?
-  // Yes. So we should NOT setPage inside useEffect if it triggers itself.
-  // Better strategy:
-  // 1. Filter change -> setAppliedTags -> triggers Effect 1 (reset filteredProjects, setPage(1), fetch page 1).
-  // 2. Scroll -> Observer -> setPage(prev+1) -> triggers Effect 1 (fetch next page).
-
-  // Let's separate the "Load More" logic from "Initial Filter Fetch".
-
   // Refined Effect for Filter Change
   useEffect(() => {
     if (appliedTags.length > 0) {
@@ -169,9 +158,26 @@ export default function GalleryPageClient({
       };
       loadFirstPage();
     } else {
-      setFilteredProjects(null);
-      setHasMore(true);
-      setPage(2); // Reset for non-featured pagination
+      // Reset logic: Clear filters and reload initial non-featured projects
+      const resetProjects = async () => {
+        setLoading(true);
+        try {
+          // Clear filtered state first
+          setFilteredProjects(null);
+
+          // Fetch fresh non-featured projects (page 1)
+          const projects = await getMoreNonFeaturedProjects(1, projectType);
+          setNonFeaturedProjects(projects);
+
+          setHasMore(true);
+          setPage(2);
+        } catch (error) {
+          console.error('Error resetting projects:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      resetProjects();
     }
   }, [appliedTags, projectType]);
 
@@ -245,7 +251,6 @@ export default function GalleryPageClient({
 
   const isPlay = projectType === 'play';
   const bgClass = isPlay ? 'bg-play-gradient' : 'bg-[#F0F2F5]';
-  const textClass = isPlay ? 'text-white' : 'text-[#0F2341]';
 
   return (
     <div className={`relative w-full min-h-screen ${bgClass}`}>
@@ -254,7 +259,7 @@ export default function GalleryPageClient({
         className="fixed top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-2"
         style={{ right: '1.75rem' }}
       >
-        <span className="text-[10px] font-medium tracking-widest text-gray-500 uppercase">
+        <span className="text-[10px] font-medium tracking-widest text-[#B6B6B6] uppercase">
           DOT
         </span>
 
@@ -263,15 +268,21 @@ export default function GalleryPageClient({
           onClick={() =>
             setViewMode((prev) => (prev === 'dot' ? 'grid' : 'dot'))
           }
-          className="w-10 h-24 rounded-full border border-white/40 bg-white/10 backdrop-blur-xl transition-all hover:bg-white/20 shadow-lg relative overflow-hidden active:scale-95 flex flex-col justify-between p-1"
+          className="w-8 h-20 rounded-full border border-white/40 bg-white/10 backdrop-blur-sm shadow-[inset_2px_3px_8px_rgba(150,150,150,0.2),inset_-1px_-2px_4px_rgba(255,255,255,0.8)] relative overflow-hidden active:scale-95 flex flex-col justify-between p-1"
           aria-label="Toggle View"
         >
+          {/* Distorted Reflection Overlay */}
+          <div
+            className="absolute inset-0 bg-linear-to-br from-white/20 via-white/5 to-transparent opacity-70 pointer-events-none"
+            style={{ filter: 'blur(1px)' }}
+          />
+
           {/* Active White Indicator */}
           <motion.div
-            className="absolute w-8 h-8 rounded-full bg-white shadow-md z-10 left-1"
+            className="absolute w-5 h-5 rounded-full bg-white z-10 left-[5px]"
             initial={false}
             animate={{
-              top: viewMode === 'dot' ? '4px' : 'calc(100% - 36px)',
+              top: viewMode === 'dot' ? '7px' : 'calc(100% - 27px)',
             }}
             transition={{
               type: 'spring',
@@ -281,21 +292,50 @@ export default function GalleryPageClient({
           />
         </button>
 
-        <span className="text-[10px] font-medium tracking-widest text-gray-400 uppercase">
+        <span className="text-[10px] font-medium tracking-widest text-[#B6B6B6] uppercase">
           GRID
         </span>
       </div>
 
       {/* Filter Button */}
       {viewMode === 'grid' && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40">
           <button
             onClick={() => setIsFilterOpen(true)}
-            className="px-6 py-3 rounded-full bg-white/30 backdrop-blur-xl border border-white/40 shadow-lg text-[#0F2341] font-medium text-xs hover:bg-white/50 transition-all uppercase tracking-widest hover:scale-105"
+            className="group flex items-center justify-center w-12 h-12 rounded-full border border-white/40 bg-white/10 backdrop-blur-sm transition-all hover:bg-white/20 shadow-lg relative"
+            aria-label="Filters"
           >
-            Filters
+            {/* Icon */}
+            <div className="flex flex-col gap-1.5">
+              {/* Line 1 */}
+              <div
+                className={`relative w-5 h-0.5 rounded-full ${
+                  isPlay ? 'bg-white' : 'bg-[#B6B6B6]'
+                }`}
+              >
+                <div
+                  className={`absolute right-0.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full ${
+                    isPlay ? 'bg-white' : 'bg-[#B6B6B6]'
+                  }`}
+                />
+              </div>
+              {/* Line 2 */}
+              <div
+                className={`relative w-5 h-0.5 rounded-full ${
+                  isPlay ? 'bg-white' : 'bg-[#B6B6B6]'
+                }`}
+              >
+                <div
+                  className={`absolute left-0.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full ${
+                    isPlay ? 'bg-white' : 'bg-[#B6B6B6]'
+                  }`}
+                />
+              </div>
+            </div>
+
+            {/* Badge */}
             {appliedTags.length > 0 && (
-              <span className="ml-2 px-1.5 py-0.5 rounded-full bg-[#E32619] text-white text-[10px]">
+              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#0F2341]/80 text-[10px] text-white">
                 {appliedTags.length}
               </span>
             )}
@@ -317,7 +357,7 @@ export default function GalleryPageClient({
               initial={isIOS ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={isIOS ? { duration: 0 } : { delay: 0.1 }}
-              className="max-w-5xl w-full flex flex-wrap justify-center gap-3 md:gap-4 max-h-[60vh] overflow-y-auto pt-8 md:pt-0"
+              className="max-w-5xl w-full flex flex-wrap justify-center gap-3 md:gap-4 max-h-[60vh] overflow-y-auto pt-8 pb-24 md:pt-0"
             >
               {gridFilter.filters.map((tag, index) => {
                 const isSelected = selectedTags.includes(tag.tag_id);
@@ -337,10 +377,10 @@ export default function GalleryPageClient({
                       e.stopPropagation();
                       toggleTag(tag.tag_id);
                     }}
-                    className={`px-6 py-2.5 rounded-full border transition-all text-xs md:text-sm uppercase tracking-wide font-medium shadow-sm ${
+                    className={`px-6 py-2.5 rounded-full transition-all text-xs md:text-sm uppercase tracking-wide font-medium shadow-sm ${
                       isSelected
-                        ? 'border-[#E32619] bg-[#E32619] text-white'
-                        : 'border-gray-300 bg-white/80 backdrop-blur-sm text-gray-600 hover:border-[#E32619] hover:text-[#E32619] hover:bg-white'
+                        ? 'bg-[#0F2341]/80 text-white'
+                        : 'bg-white/80 backdrop-blur-sm text-gray-600 hover:text-[#0F2341] hover:bg-white'
                     }`}
                   >
                     {tag.display_name}
@@ -348,6 +388,48 @@ export default function GalleryPageClient({
                 );
               })}
             </motion.div>
+
+            {/* Bottom Actions Container */}
+            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
+              <div className="relative">
+                {/* Close Button */}
+                <button
+                  onClick={handleCloseFilter}
+                  className="group flex items-center justify-center w-12 h-12 rounded-full border border-white/40 bg-white/10 backdrop-blur-sm transition-all hover:bg-white/20 shadow-lg relative"
+                  aria-label="Close Filters"
+                >
+                  {/* Cross Icon */}
+                  <div className="relative w-5 h-5 flex items-center justify-center">
+                    <div className="absolute w-5 h-0.5 bg-white rounded-full rotate-45" />
+                    <div className="absolute w-5 h-0.5 bg-white rounded-full -rotate-45" />
+                  </div>
+                </button>
+
+                {/* Reset Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedTags([]);
+                  }}
+                  className="absolute left-full top-0 ml-4 h-12 px-6 rounded-full bg-[#3b3b3b]/80 text-white backdrop-blur-sm shadow-sm flex items-center gap-2 text-xs md:text-sm uppercase tracking-wide font-medium hover:bg-[#3b3b3b] transition-all border border-transparent whitespace-nowrap"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                    <path d="M3 3v5h5" />
+                  </svg>
+                  RESET
+                </button>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -381,13 +463,9 @@ export default function GalleryPageClient({
           }`}
         >
           <div className="w-full min-h-full pt-24 px-4 md:px-12 pb-32">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-12 md:gap-x-8 md:gap-y-16 max-w-7xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
               {displayedProjects.map((project) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  textClass={textClass}
-                />
+                <ProjectCard key={project.id} project={project} />
               ))}
             </div>
 
@@ -405,13 +483,7 @@ export default function GalleryPageClient({
   );
 }
 
-function ProjectCard({
-  project,
-  textClass = 'text-[#0F2341]',
-}: {
-  project: Project;
-  textClass?: string;
-}) {
+function ProjectCard({ project }: { project: Project }) {
   // Use bubble_thumbnail or first thumbnail
   const imageUrl = project.thumbnails?.[0] || project.bubble_thumbnail;
 
@@ -420,7 +492,7 @@ function ProjectCard({
       href={`/project/${project.id}`}
       className="block group transition-all duration-300"
     >
-      <div className="relative w-full aspect-square overflow-hidden bg-gray-200 mb-4 rounded-3xl">
+      <div className="relative w-full aspect-square overflow-hidden bg-gray-200 rounded-3xl">
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -434,18 +506,27 @@ function ProjectCard({
             No Image
           </div>
         )}
-      </div>
-      <div className="flex flex-col items-center text-center transition-all duration-300">
-        <h3
-          className={`text-lg md:text-xl font-medium ${textClass} group-hover:text-gray-400 transition-colors font-serif`}
-        >
-          {project.title}
-        </h3>
+
+        {/* Client Overlay */}
         {project.clientName && (
-          <p className="text-xs text-gray-500 mt-1 uppercase tracking-wider">
-            {project.clientName}
-          </p>
+          <div className="absolute top-4 left-4 z-10">
+            <span className="text-xs font-semibold uppercase tracking-wider text-white drop-shadow-md">
+              CLIENT / {project.clientName}
+            </span>
+          </div>
         )}
+
+        {/* Tags Overlay */}
+        <div className="absolute bottom-4 left-4 z-10 flex flex-col gap-2 items-start">
+          {project.tags.slice(0, 2).map((tag, i) => (
+            <span
+              key={i}
+              className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-[10px] uppercase tracking-wide font-medium text-white shadow-sm"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
       </div>
     </Link>
   );
