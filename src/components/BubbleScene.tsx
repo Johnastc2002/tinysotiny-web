@@ -131,7 +131,7 @@ const generateBubbles = (
       const x = (Math.random() - 0.5) * 25; // Increased range
       const y = (Math.random() - 0.5) * 25;
       const z = (Math.random() - 0.5) * 25;
-      const scale = 1 + Math.random() * 2; // Varying sizes
+      const scale = 0.8 + Math.random() * 3.5; // Wider range of sizes
 
       const position: [number, number, number] = [x, y, z];
 
@@ -161,7 +161,7 @@ const generateBubbles = (
       const x = (Math.random() - 0.5) * 20;
       const y = (Math.random() - 0.5) * 20;
       const z = (Math.random() - 0.5) * 20;
-      const scale = 0.5 + Math.random() * 1.5;
+      const scale = 0.8 + Math.random() * 2.0; // Wider random range
 
       const position: [number, number, number] = [x, y, z];
 
@@ -172,7 +172,7 @@ const generateBubbles = (
           temp.push({
             id: i,
             position,
-            scale: Math.max(scale, 1.5), // Make project bubbles slightly larger
+            scale: Math.max(scale, 1.0), // Allow slightly smaller but ensure visibility
             imageUrl: project.bubble_thumbnail,
             imageHoverUrl: project.bubble_thumbnail_hover,
             type: 'image',
@@ -212,6 +212,7 @@ const Bubble = ({
   isGradient,
   enableExplosion,
   explosionDelay = 0,
+  enableBlur,
 }: {
   position: [number, number, number];
   scale: number;
@@ -227,6 +228,7 @@ const Bubble = ({
   isGradient?: boolean;
   enableExplosion?: boolean;
   explosionDelay?: number;
+  enableBlur?: boolean;
 }) => {
   const router = useRouter();
   const groupRef = useRef<THREE.Group>(null);
@@ -315,6 +317,7 @@ const Bubble = ({
           onClick={handleClick}
           onPointerOver={handlePointerOver}
           onPointerOut={handlePointerOut}
+          enableBlur={enableBlur}
         />
       </group>
     );
@@ -337,6 +340,7 @@ const Bubble = ({
         label={label}
         textOffset={textOffset}
         isGradient={isGradient}
+        enableBlur={enableBlur}
       />
     </group>
   );
@@ -350,6 +354,7 @@ const ImageBubble = ({
   onClick,
   onPointerOver,
   onPointerOut,
+  enableBlur,
 }: {
   position: [number, number, number];
   scale: number;
@@ -358,10 +363,51 @@ const ImageBubble = ({
   onClick: (e: THREE.Event) => void;
   onPointerOver: () => void;
   onPointerOut: () => void;
+  enableBlur?: boolean;
 }) => {
   const textures = useTexture([imageUrl, imageHoverUrl || imageUrl]);
   const defaultTexture = textures[0];
   const hoverTexture = textures[1];
+
+  const { camera } = useThree();
+  const meshRef = useRef<THREE.Mesh>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const shaderRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const overlayShaderRef = useRef<any>(null);
+  const worldPos = useMemo(() => new THREE.Vector3(), []);
+  const camDir = useMemo(() => new THREE.Vector3(), []);
+
+  // Padding for feathering (70% extra space to allow full feathering range without clipping)
+  const PADDING_SCALE = 2.0;
+
+  useFrame(() => {
+    if (enableBlur && meshRef.current) {
+      meshRef.current.getWorldPosition(worldPos);
+      worldPos.normalize();
+
+      camDir.copy(camera.position).normalize();
+
+      const dot = camDir.dot(worldPos);
+      const blurFactor = THREE.MathUtils.clamp(-dot, 0, 1);
+
+      // Update feather and blur uniforms
+      if (shaderRef.current) {
+        // Feather width scaled by bubble size (larger bubbles get softer edges)
+        shaderRef.current.uniforms.uFeather.value = blurFactor * 0.1;
+        // Mipmap Bias for Blur (0 to 5)
+        shaderRef.current.uniforms.uBlur.value = blurFactor * 4.0;
+
+        // Zoom Effect:
+        // When blurFactor is high (side/back view), zoom in slightly (scale < 1.0)
+        // blurFactor ranges from 0 (front) to 1 (back/side strongest)
+        // Let's say max zoom is 1.2x -> scale = 1/1.2 = 0.83
+        const maxZoom = 1.2;
+        const targetScale = 1.0 - blurFactor * (1.0 - 1.0 / maxZoom);
+        shaderRef.current.uniforms.uZoom.value = targetScale;
+      }
+    }
+  });
 
   const [hovered, setHovered] = useState(false);
   // Removed unused materialRef
@@ -391,6 +437,8 @@ const ImageBubble = ({
       tex.generateMipmaps = true;
       tex.minFilter = THREE.LinearMipmapLinearFilter;
       tex.magFilter = THREE.LinearFilter;
+      tex.wrapS = THREE.ClampToEdgeWrapping;
+      tex.wrapT = THREE.ClampToEdgeWrapping;
       tex.needsUpdate = true;
     });
   }, [defaultTexture, hoverTexture]);
@@ -410,7 +458,8 @@ const ImageBubble = ({
         );
         if (materialRef.current.opacity > 0.99) {
           materialRef.current.opacity = 1;
-          materialRef.current.transparent = false;
+          // Keep transparent=true to allow for feathering alpha
+          // materialRef.current.transparent = false;
           materialRef.current.needsUpdate = true;
         }
       }
@@ -432,6 +481,7 @@ const ImageBubble = ({
         lockZ={false}
       >
         <mesh
+          ref={meshRef}
           onClick={onClick}
           onPointerOver={() => {
             setHovered(true);
@@ -442,7 +492,8 @@ const ImageBubble = ({
             onPointerOut();
           }}
         >
-          <circleGeometry args={[scale, 128]} />
+          {/* Scale geometry to allow for outside feathering */}
+          <circleGeometry args={[scale * PADDING_SCALE, 128]} />
           <meshBasicMaterial
             ref={materialRef}
             map={hovered && imageHoverUrl ? hoverTexture : defaultTexture}
@@ -450,8 +501,140 @@ const ImageBubble = ({
             transparent={true}
             opacity={0}
             color="white"
+            onBeforeCompile={(shader) => {
+              shader.uniforms.uFeather = { value: 0.0 };
+              shader.uniforms.uScaleFactor = { value: PADDING_SCALE };
+              shader.uniforms.uBlur = { value: 0.0 };
+              shader.uniforms.uZoom = { value: 1.0 }; // Initialize zoom uniform
+
+              // Inject varying for geometry UVs
+              shader.vertexShader =
+                `
+                varying vec2 vPosUv;
+              ` + shader.vertexShader;
+
+              shader.vertexShader = shader.vertexShader.replace(
+                '#include <uv_vertex>',
+                `
+                #include <uv_vertex>
+                vPosUv = uv;
+                `
+              );
+
+              shader.fragmentShader =
+                `uniform float uFeather;
+                 uniform float uScaleFactor;
+                 uniform float uBlur;
+                 uniform float uZoom;
+                 varying vec2 vPosUv;
+                ` + shader.fragmentShader;
+
+              shader.fragmentShader = shader.fragmentShader.replace(
+                '#include <map_fragment>',
+                `
+                // Scale UVs from center to keep image original size
+                vec2 centeredUv = vMapUv - 0.5;
+                // Apply Zoom (uZoom < 1.0 means zoom in / enlarge image)
+                vec2 scaledUv = centeredUv * uScaleFactor * uZoom + 0.5;
+                
+                #ifdef USE_MAP
+                  // Sample texture with scaled UVs and Mipmap Bias for Blur
+                  vec4 sampledDiffuseColor = texture2D( map, scaledUv, uBlur );
+                  
+                  // Optional: Mix with white to simulate frosted glass look as it gets blurry
+                  // sampledDiffuseColor.rgb = mix(sampledDiffuseColor.rgb, vec3(1.0), min(uBlur * 0.1, 0.5));
+                  
+                  diffuseColor *= sampledDiffuseColor;
+                #endif
+                
+                // Calculate distance from center using GEOMETRY UVs (vPosUv)
+                float dist = length(vPosUv - 0.5);
+                
+                // The original radius (0.5) is now at 0.5 / uScaleFactor in UV space
+                float originalRadius = 0.5 / uScaleFactor;
+                
+                float alpha = 1.0;
+                
+                // Feather OUTSIDE the original radius
+                if (dist > originalRadius) {
+                   // Map dist from [originalRadius, originalRadius + uFeather] to [1, 0]
+                   float featherWidth = max(uFeather, 0.0001);
+                   alpha = 1.0 - smoothstep(originalRadius, originalRadius + featherWidth, dist);
+                }
+                
+                // Hard clip at geometry edge
+                if (dist > 0.495) alpha = 0.0;
+                
+                diffuseColor.a *= alpha;
+                `
+              );
+              shaderRef.current = shader;
+            }}
           />
         </mesh>
+        {enableBlur && (
+          <mesh position={[0, 0, 0.05]} raycast={() => null}>
+            <circleGeometry args={[scale * PADDING_SCALE, 64]} />
+            <meshBasicMaterial
+              transparent={true}
+              opacity={0}
+              color="white"
+              side={THREE.FrontSide}
+              depthWrite={false}
+              onBeforeCompile={(shader) => {
+                shader.uniforms.uOpacity = { value: 0.0 };
+                shader.uniforms.uFeather = { value: 0.0 };
+                shader.uniforms.uScaleFactor = { value: PADDING_SCALE };
+
+                // Inject varying for geometry UVs
+                shader.vertexShader =
+                  `
+                   varying vec2 vPosUv;
+                 ` + shader.vertexShader;
+
+                shader.vertexShader = shader.vertexShader.replace(
+                  '#include <uv_vertex>',
+                  `
+                   #include <uv_vertex>
+                   vPosUv = uv;
+                   `
+                );
+
+                shader.fragmentShader =
+                  `
+                   uniform float uOpacity;
+                   uniform float uFeather;
+                   uniform float uScaleFactor;
+                   varying vec2 vPosUv;
+                 ` + shader.fragmentShader;
+
+                shader.fragmentShader = shader.fragmentShader.replace(
+                  '#include <dithering_fragment>',
+                  `
+                   #include <dithering_fragment>
+                   
+                   // Calculate distance from center using GEOMETRY UVs
+                   float dist = length(vPosUv - 0.5);
+                   float originalRadius = 0.5 / uScaleFactor;
+                   
+                   float alpha = uOpacity;
+                   
+                   // Feather logic for overlay
+                   if (dist > originalRadius) {
+                      float featherWidth = max(uFeather, 0.0001);
+                      float featherFactor = 1.0 - smoothstep(originalRadius, originalRadius + featherWidth, dist);
+                      alpha *= featherFactor;
+                   }
+                   if (dist > 0.495) alpha = 0.0;
+                   
+                   gl_FragColor.a = alpha;
+                   `
+                );
+                overlayShaderRef.current = shader;
+              }}
+            />
+          </mesh>
+        )}
       </Billboard>
     </Float>
   );
@@ -469,6 +652,7 @@ const ColorBubble = ({
   label,
   textOffset,
   isGradient,
+  enableBlur,
 }: {
   position: [number, number, number];
   scale: number;
@@ -481,9 +665,101 @@ const ColorBubble = ({
   label?: string;
   textOffset?: [number, number, number];
   isGradient?: boolean;
+  enableBlur?: boolean;
 }) => {
   const [floatSpeed] = useState(() => 1.5 + Math.random());
   const [floatIntensity] = useState(() => 1 + Math.random());
+
+  const { camera } = useThree();
+  const meshRef = useRef<THREE.Mesh>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const shaderRef = useRef<any>(null);
+  const worldPos = useMemo(() => new THREE.Vector3(), []);
+  const camDir = useMemo(() => new THREE.Vector3(), []);
+
+  // Padding for feathering (2.0x extra space)
+  const PADDING_SCALE = 2.0;
+
+  useFrame(() => {
+    if (enableBlur && meshRef.current) {
+      meshRef.current.getWorldPosition(worldPos);
+      worldPos.normalize();
+
+      camDir.copy(camera.position).normalize();
+
+      const dot = camDir.dot(worldPos);
+      const blurFactor = THREE.MathUtils.clamp(-dot, 0, 1);
+
+      // Update feather uniform
+      if (shaderRef.current) {
+        // Feather width scaled by bubble size
+        shaderRef.current.uniforms.uFeather.value = blurFactor * 0.1;
+      }
+    }
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onBeforeCompile = (shader: any) => {
+    shader.uniforms.uFeather = { value: 0.0 };
+    shader.uniforms.uScaleFactor = { value: PADDING_SCALE };
+
+    shader.vertexShader =
+      `
+      varying vec2 vPosUv;
+    ` + shader.vertexShader;
+
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <uv_vertex>',
+      `
+      #include <uv_vertex>
+      vPosUv = uv;
+      `
+    );
+
+    shader.fragmentShader =
+      `uniform float uFeather;
+       uniform float uScaleFactor;
+       varying vec2 vPosUv;
+      ` + shader.fragmentShader;
+
+    // Different injection point depending on whether map is used (isGradient)
+    const replaceString = isGradient
+      ? '#include <alphamap_fragment>'
+      : '#include <color_fragment>';
+
+    // Logic: calculate distance, feather alpha
+    const featherLogic = `
+      // Calculate distance from center using GEOMETRY UVs (vPosUv)
+      float dist = length(vPosUv - 0.5);
+      
+      // The original radius (0.5) is now at 0.5 / uScaleFactor in UV space
+      float originalRadius = 0.5 / uScaleFactor;
+      
+      float alphaFeather = 1.0;
+      
+      // Feather OUTSIDE the original radius
+      if (dist > originalRadius) {
+         // Map dist from [originalRadius, originalRadius + uFeather] to [1, 0]
+         float featherWidth = max(uFeather, 0.0001);
+         alphaFeather = 1.0 - smoothstep(originalRadius, originalRadius + featherWidth, dist);
+      }
+      
+      // Hard clip at geometry edge
+      if (dist > 0.495) alphaFeather = 0.0;
+      
+      diffuseColor.a *= alphaFeather;
+    `;
+
+    shader.fragmentShader = shader.fragmentShader.replace(
+      replaceString,
+      `
+      ${replaceString}
+      ${featherLogic}
+      `
+    );
+
+    shaderRef.current = shader;
+  };
 
   return (
     <Float
@@ -500,13 +776,22 @@ const ColorBubble = ({
         lockZ={false}
       >
         <mesh
+          ref={meshRef}
           onClick={onClick}
           onPointerOver={onPointerOver}
           onPointerOut={onPointerOut}
         >
-          <circleGeometry args={[scale, 128]} />
+          {/* Use padded geometry if blur is enabled to allow feathering space */}
+          <circleGeometry
+            args={[scale * (enableBlur ? PADDING_SCALE : 1.0), 128]}
+          />
           {type === 'solid' ? (
-            <meshBasicMaterial color={color} side={THREE.DoubleSide} />
+            <meshBasicMaterial
+              color={color}
+              side={THREE.DoubleSide}
+              transparent={true} // Must be true for feathering
+              onBeforeCompile={enableBlur ? onBeforeCompile : undefined}
+            />
           ) : isGradient ? (
             // Special case for Play bubble & Grey bubbles: Basic material with alpha map for 100% -> 20% gradient
             <meshBasicMaterial
@@ -515,6 +800,7 @@ const ColorBubble = ({
               transparent
               alphaMap={alphaMap || undefined}
               depthWrite={false} // Ensure it doesn't occlude things behind it weirdly
+              onBeforeCompile={enableBlur ? onBeforeCompile : undefined}
             />
           ) : (
             // Revert to MeshPhysicalMaterial for stability and performance.
@@ -586,12 +872,14 @@ const Bubbles = ({
   onOpenCard,
   enableExplosion,
   explosionDelay,
+  enableBlur,
 }: {
   mode: 'home' | 'gallery';
   projects?: Project[];
   onOpenCard?: (project: Project) => void;
   enableExplosion?: boolean;
   explosionDelay?: number;
+  enableBlur?: boolean;
 }) => {
   // Pass projects to generateBubbles
   const [bubbles] = useState(() => {
@@ -621,6 +909,7 @@ const Bubbles = ({
           isGradient={bubble.isGradient}
           enableExplosion={enableExplosion}
           explosionDelay={explosionDelay}
+          enableBlur={enableBlur}
         />
       ))}
     </>
@@ -686,6 +975,7 @@ export default function BubbleScene({
   explosionDelay = 0,
   transparent = false,
   onOpenCard,
+  enableBlur = false,
 }: {
   mode?: 'home' | 'gallery';
   projects?: Project[];
@@ -693,6 +983,7 @@ export default function BubbleScene({
   explosionDelay?: number;
   transparent?: boolean;
   onOpenCard?: (project: Project) => void;
+  enableBlur?: boolean;
 }) {
   console.log('BubbleScene render. Mode:', mode, 'Projects:', projects?.length);
 
@@ -722,6 +1013,7 @@ export default function BubbleScene({
               onOpenCard={onOpenCard}
               enableExplosion={enableExplosion}
               explosionDelay={explosionDelay}
+              enableBlur={enableBlur}
             />
           </RotatingGroup>
         </React.Suspense>

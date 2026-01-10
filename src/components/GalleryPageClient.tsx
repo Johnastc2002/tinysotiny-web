@@ -501,6 +501,7 @@ export default function GalleryPageClient({
             explosionDelay={explosionDelay}
             transparent={isPlay}
             onOpenCard={setSelectedProject}
+            enableBlur={true}
           />
         </div>
 
