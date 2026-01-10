@@ -10,6 +10,7 @@ import {
   getFilteredProjectsAction,
 } from '@/app/actions';
 import { motion, AnimatePresence } from 'framer-motion';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface WorkPageClientProps {
   initialFeaturedProjects: Project[];

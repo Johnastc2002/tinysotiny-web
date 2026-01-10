@@ -9,8 +9,8 @@ interface LoadingSpinnerProps {
 
 export default function LoadingSpinner({
   size = 24,
-  color = '#ffffff',
-  trackColor = 'rgba(255, 255, 255, 0.1)',
+  color = '#0F2341',
+  trackColor = 'rgba(15, 35, 65, 0.1)',
   className = '',
 }: LoadingSpinnerProps) {
   return (
@@ -25,4 +25,3 @@ export default function LoadingSpinner({
     />
   );
 }
-
