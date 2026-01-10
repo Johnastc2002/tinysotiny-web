@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Project, GridFilter } from '@/types/project';
 import BubbleScene from '@/components/BubbleScene';
 import Link from 'next/link';
@@ -30,6 +31,10 @@ export default function GalleryPageClient({
   enableExplosion = false,
   explosionDelay = 0,
 }: GalleryPageClientProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [viewMode, setViewMode] = useState<'dot' | 'grid'>('dot');
 
   // Projects state
@@ -58,7 +63,57 @@ export default function GalleryPageClient({
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isMobile = /iphone|ipad|ipod/.test(userAgent);
     setIsIOS(isMobile);
-  }, []);
+
+    // Restore state from URL
+    const view = searchParams.get('view');
+    const tags = searchParams.get('tags');
+
+    if (view === 'grid') {
+      setViewMode('grid');
+    }
+
+    if (tags) {
+      const t = tags.split(',');
+      setAppliedTags(t);
+      setSelectedTags(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount to restore state
+
+  // Sync state to URL
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    let changed = false;
+
+    if (viewMode === 'grid') {
+      if (params.get('view') !== 'grid') {
+        params.set('view', 'grid');
+        changed = true;
+      }
+    } else {
+      if (params.has('view')) {
+        params.delete('view');
+        changed = true;
+      }
+    }
+
+    if (appliedTags.length > 0) {
+      const tagsStr = appliedTags.join(',');
+      if (params.get('tags') !== tagsStr) {
+        params.set('tags', tagsStr);
+        changed = true;
+      }
+    } else {
+      if (params.has('tags')) {
+        params.delete('tags');
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    }
+  }, [viewMode, appliedTags, pathname, router, searchParams]);
 
   // Map Project to DetailCardData
   const cardData: DetailCardData | null = selectedProject
@@ -401,14 +456,14 @@ export default function GalleryPageClient({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-60 bg-black/20 backdrop-blur-md flex flex-col items-center justify-end pb-8 px-4"
+            className="fixed inset-0 z-60 bg-black/20 backdrop-blur-md flex flex-col items-center justify-end pb-32 md:pb-8 px-4"
             onClick={handleCloseFilter}
           >
             <motion.div
               initial={isIOS ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={isIOS ? { duration: 0 } : { delay: 0.1 }}
-              className="max-w-5xl w-full flex flex-wrap justify-center gap-3 md:gap-4 max-h-[60vh] overflow-y-auto pt-8 pb-24 md:pt-0"
+              className="max-w-5xl w-full flex flex-wrap justify-center gap-3 md:gap-4 max-h-[60vh] overflow-y-auto pt-0 pb-4 md:pt-0"
             >
               {gridFilter.filters.map((tag, index) => {
                 const isSelected = selectedTags.includes(tag.tag_id);
@@ -563,7 +618,7 @@ function ProjectCard({ project }: { project: Project }) {
         {/* Client Overlay */}
         {project.clientName && (
           <div className="absolute top-2 left-3 right-3 md:top-4 md:left-4 md:right-4 z-10 pointer-events-none">
-            <span className="inline-block text-[10px] md:text-xs font-semibold uppercase tracking-wider text-white drop-shadow-md whitespace-normal break-words">
+            <span className="inline-block text-[10px] md:text-xs font-semibold uppercase tracking-wider text-white drop-shadow-md whitespace-normal wrap-break-word">
               CLIENT / {project.clientName}
             </span>
           </div>
