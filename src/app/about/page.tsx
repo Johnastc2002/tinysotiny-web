@@ -44,7 +44,7 @@ export default async function About() {
           <div className="hidden md:col-span-5 md:block"></div>
 
           {/* Secondary Content Section */}
-          <div className="md:col-span-7 md:pr-32">
+          <div className="md:col-span-7 md:pr-32 pl-12 md:pl-0">
             <h2 className="mb-6 font-serif text-3xl italic text-[#0F2341] md:text-4xl">
               {aboutUs?.header || 'From statics to dynamics.'}
             </h2>
@@ -54,7 +54,7 @@ export default async function About() {
             </p>
 
             {/* Services List */}
-            <div className="mb-20 grid grid-cols-1 gap-y-4 md:grid-cols-2 md:gap-x-12">
+            <div className="mb-20 grid grid-cols-2 gap-y-4 gap-x-12">
               {aboutUs?.categories?.map((category, index) => (
                 <div key={index} className="flex items-center gap-3">
                   <span className="h-3 w-3 rounded-full bg-[#0F2341]"></span>
@@ -94,7 +94,7 @@ export default async function About() {
             </div>
 
             {/* Footer Links */}
-            <div className="flex flex-col gap-8 md:flex-row md:gap-24">
+            <div className="flex flex-row gap-8 md:gap-24">
               <Link
                 href={contact?.instagram || 'https://instagram.com'}
                 className="text-sm font-bold tracking-widest text-[#0F2341] uppercase hover:opacity-70"

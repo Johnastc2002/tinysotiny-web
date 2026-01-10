@@ -51,6 +51,17 @@ export default function HorizontalScroll({ daily }: HorizontalScrollProps) {
   // Use dynamic scroll range instead of hardcoded value
   const x = useTransform(scrollYProgress, [0, 1], ['0px', `${scrollRange}px`]);
 
+  // Helper to ensure color has # if it's a hex code
+  const formatColor = (c?: string) => {
+    if (!c) return undefined;
+    const clean = c.trim();
+    if (/^[0-9A-Fa-f]{6}$/.test(clean)) return `#${clean}`;
+    return clean;
+  };
+
+  const cardBgColor = formatColor(daily.card_bg_color);
+  const cardFontColor = formatColor(daily.card_font_color);
+
   return (
     <>
       {/* Fixed Logo */}
@@ -67,26 +78,148 @@ export default function HorizontalScroll({ daily }: HorizontalScrollProps) {
       {/* Dynamic height based on content width to ensure enough scroll track */}
       {/* 1px horizontal scroll = 1px vertical scroll approximately */}
       {/* Fallback height of 500vh until calculation completes to allow initial scroll */}
+      <div className="flex flex-col w-full bg-[#fcfcfc] md:hidden pb-0">
+        {/* Mobile Layout Components */}
+        {/* Thumbnail */}
+        <div className="relative w-full">
+          {daily.thumbnail?.url && (
+            <div
+              className="relative w-full"
+              style={{
+                aspectRatio:
+                  daily.thumbnail.width && daily.thumbnail.height
+                    ? `${daily.thumbnail.width}/${daily.thumbnail.height}`
+                    : 'auto',
+              }}
+            >
+              <SmartMedia
+                url={daily.thumbnail.url}
+                type={daily.thumbnail.type}
+                alt={daily.title}
+                fill
+                className="object-cover"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Title Card */}
+        <div
+          className="relative z-20 mx-0 -mt-20 bg-white p-8 shadow-2xl rounded-tr-3xl rounded-br-3xl mr-8"
+          style={{ backgroundColor: cardBgColor || 'white' }}
+        >
+          <h1
+            className="text-4xl font-serif font-bold leading-tight mb-4 text-[#0F2341]"
+            style={{ color: cardFontColor }}
+          >
+            {daily.title}
+          </h1>
+          <p
+            className="text-base text-gray-600 font-light leading-relaxed"
+            style={{ color: cardFontColor }}
+          >
+            {daily.description}
+          </p>
+        </div>
+
+        {/* First 3 Images */}
+        <div className="flex flex-col gap-4 px-8 pt-8 bg-white pb-0">
+          {daily.medias?.slice(0, 3).map((media, idx) => (
+            <div
+              key={`m-media-1-${idx}`}
+              className="relative w-full aspect-4/5 rounded-2xl overflow-hidden shadow-lg"
+            >
+              <SmartMedia
+                url={media.url}
+                type={media.type}
+                alt={`Gallery image ${idx + 1}`}
+                fill
+                className="object-cover"
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Description 2 */}
+        <div className="px-8 py-8 bg-white break-words pb-32">
+          <p className="text-gray-600 leading-loose break-words whitespace-pre-wrap">
+            {daily.description2 ||
+              daily.description ||
+              'More details coming soon...'}
+          </p>
+        </div>
+
+        {/* Spacer or BgMedia */}
+        {daily.bgMedia ? (
+          <div className="relative w-full h-[80vh] z-0">
+            <SmartMedia
+              url={daily.bgMedia.url}
+              type={daily.bgMedia.type}
+              alt="Background media"
+              fill
+              className="object-cover"
+            />
+          </div>
+        ) : (
+          <div className="w-full h-32 bg-[#F0F2F5]" />
+        )}
+
+        {/* Rest of Medias */}
+        <div className="flex flex-col gap-4 px-8 relative z-20 -mt-24 pointer-events-none">
+          <div className="pointer-events-auto flex flex-col gap-4">
+            {daily.medias?.slice(3).map((media, idx) => (
+              <div
+                key={`m-media-2-${idx}`}
+                className="relative w-full aspect-4/5 rounded-2xl overflow-hidden shadow-xl bg-white"
+              >
+                <SmartMedia
+                  url={media.url}
+                  type={media.type}
+                  alt={`Gallery image ${idx + 4}`}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Last Section */}
+        <div
+          className="relative w-full h-[20vh] bg-[#0F2341] z-0 -mt-24"
+          style={{ backgroundColor: cardBgColor || '#0F2341' }}
+        />
+      </div>
+
       <div
         ref={targetRef}
         style={{
           height:
             scrollRange !== 0 ? Math.abs(scrollRange) + viewportWidth : '500vh',
         }}
-        className="relative"
+        className="relative hidden md:block"
       >
         {/* Sticky Container - Stays fixed while parent scrolls */}
         <div className="sticky top-0 flex h-screen items-center overflow-hidden">
           <motion.div ref={containerRef} style={{ x }} className="flex h-full">
             {/* Section 1: Hero (Navy) */}
-            <section className="relative flex h-screen w-auto shrink-0 items-center bg-[#0F2341] text-white overflow-hidden z-10">
+            <section
+              className="relative flex h-screen w-auto shrink-0 items-center bg-[#0F2341] text-white overflow-hidden z-10"
+              style={{ backgroundColor: cardBgColor || '#0F2341' }}
+            >
               <div className="flex items-stretch h-full relative z-10 gap-1 md:gap-2">
                 {/* Text Container */}
                 <div className="flex flex-col justify-center space-y-6 w-[40vw] min-w-[300px] pl-8 md:pl-16 shrink-0 z-20">
-                  <h1 className="text-5xl md:text-7xl font-serif font-bold leading-tight">
+                  <h1
+                    className="text-5xl md:text-7xl font-serif font-bold leading-tight"
+                    style={{ color: cardFontColor }}
+                  >
                     {daily.title}
                   </h1>
-                  <p className="text-lg text-gray-300 max-w-md font-light leading-relaxed">
+                  <p
+                    className="text-lg text-gray-300 max-w-md font-light leading-relaxed"
+                    style={{ color: cardFontColor }}
+                  >
                     {daily.description}
                   </p>
                 </div>
@@ -118,7 +251,10 @@ export default function HorizontalScroll({ daily }: HorizontalScrollProps) {
                 </div>
 
                 {/* Padding for overlap transition */}
-                <div className="w-32 md:w-64 bg-[#0F2341] shrink-0" />
+                <div
+                  className="w-32 md:w-64 bg-[#0F2341] shrink-0"
+                  style={{ backgroundColor: cardBgColor || '#0F2341' }}
+                />
               </div>
 
               {/* Background Media/Effect if any */}
@@ -166,13 +302,10 @@ export default function HorizontalScroll({ daily }: HorizontalScrollProps) {
             {/* Section 3: Text & Elements (Light Grey) */}
             {/* Reduced width to 60vw to bring next section closer */}
             {/* Added z-10 to allow Section 4 to overlap it if needed */}
-            <section className="relative flex h-screen w-[60vw] shrink-0 items-center justify-center bg-[#F0F2F5] z-10">
-              <div className="flex flex-col md:flex-row items-center gap-20 px-8">
+            <section className="relative flex h-screen w-[60vw] shrink-0 items-center justify-center bg-white z-10">
+              <div className="flex flex-col md:flex-row items-center gap-20 px-12 break-words">
                 <div className="flex flex-col space-y-6 max-w-xl">
-                  <h2 className="text-3xl md:text-5xl font-serif text-[#0F2341]">
-                    Details & Concept
-                  </h2>
-                  <p className="text-gray-600 leading-loose">
+                  <p className="text-gray-600 leading-loose break-words whitespace-pre-wrap">
                     {daily.description2 ||
                       daily.description ||
                       'More details coming soon...'}
@@ -232,15 +365,21 @@ export default function HorizontalScroll({ daily }: HorizontalScrollProps) {
 
             {/* Section 5: Fin (Navy) */}
             {/* Added z-10 to stay under Section 4's last image */}
-            <section className="relative flex h-screen w-[30vw] shrink-0 items-center justify-center bg-[#0F2341] text-white z-10" />
+            <section
+              className="relative flex h-screen w-[30vw] shrink-0 items-center justify-center bg-[#0F2341] text-white z-10"
+              style={{ backgroundColor: cardBgColor || '#0F2341' }}
+            />
           </motion.div>
         </div>
       </div>
 
       {/* Scroll Progress Indicator (Optional) */}
       <motion.div
-        className="fixed bottom-0 left-0 right-0 h-2 bg-[#0F2341] origin-left z-50"
-        style={{ scaleX: scrollYProgress }}
+        className="fixed bottom-0 left-0 right-0 h-2 bg-[#0F2341] origin-left z-50 hidden md:block"
+        style={{
+          scaleX: scrollYProgress,
+          backgroundColor: cardBgColor || '#0F2341',
+        }}
       />
     </>
   );

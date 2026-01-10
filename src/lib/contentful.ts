@@ -242,6 +242,8 @@ const mapDaily = (entry: any): DailyData => {
     bgMedia: bgMedia,
     description2: String(fields.description_2 || fields.description2 || ''),
     createdAt: entry.sys.createdAt,
+    card_bg_color: String(fields.card_bg_color || fields['card_bg_color'] || fields.cardBgColor || fields.card_background_color || fields.cardBackgroundColor || ''),
+    card_font_color: String(fields.card_font_color || fields['card_font_color'] || fields.cardFontColor || fields.card_text_color || fields.cardTextColor || ''),
   };
 };
 

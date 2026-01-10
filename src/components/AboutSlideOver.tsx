@@ -17,9 +17,9 @@ export default function AboutSlideOver({
 
   return (
     <>
-      {/* Backdrop - Only visible when open */}
+      {/* Backdrop - Only visible when open AND on desktop */}
       <div
-        className={`fixed inset-0 bg-black/60 z-30 transition-opacity duration-700 ${
+        className={`fixed inset-0 bg-black/60 z-30 transition-opacity duration-700 hidden md:block ${
           isOpen
             ? 'opacity-100 pointer-events-auto'
             : 'opacity-0 pointer-events-none'
@@ -27,29 +27,31 @@ export default function AboutSlideOver({
         onClick={() => setIsOpen(false)}
       />
 
-      {/* Card Container - Acts as both the trigger (when closed) and the content (when open) */}
+      {/* Card Container */}
       <div
-        onClick={() => !isOpen && setIsOpen(true)}
+        onClick={() => !isOpen && window.innerWidth >= 768 && setIsOpen(true)}
         className={`
-            fixed top-1/2 right-0 -translate-y-1/2 z-40
-            w-full max-w-6xl h-[85vh]
-            bg-white rounded-l-3xl md:rounded-3xl shadow-2xl overflow-hidden
+            md:fixed md:top-1/2 md:right-0 md:-translate-y-1/2 z-40
+            relative mt-16 md:mt-0
+            w-full md:max-w-6xl h-auto md:h-[85vh]
+            bg-white rounded-3xl md:rounded-l-3xl md:rounded-r-none shadow-2xl overflow-hidden
             flex flex-col md:flex-row
             transition-transform duration-700 ease-in-out
+            cursor-default
             ${
               isOpen
-                ? 'translate-x-[calc(50%-50vw)] cursor-default'
-                : 'translate-x-[calc(100%-60px)] hover:translate-x-[calc(100%-70px)] cursor-pointer'
+                ? 'md:translate-x-[calc(50%-50vw)] md:cursor-default'
+                : 'md:translate-x-[calc(100%-60px)] md:hover:translate-x-[calc(100%-70px)] md:cursor-pointer'
             }
         `}
       >
-        {/* Close Button - Visible when open */}
+        {/* Close Button - Visible when open (Desktop only) */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             setIsOpen(false);
           }}
-          className={`absolute top-6 right-6 z-50 text-white/80 hover:text-white transition-opacity duration-300 p-2 ${
+          className={`hidden md:block absolute top-6 right-6 z-50 text-white/80 hover:text-white transition-opacity duration-300 p-2 ${
             isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
@@ -69,7 +71,7 @@ export default function AboutSlideOver({
         </button>
 
         {/* Left Side - Image/Grey Area */}
-        <div className="w-full md:w-1/2 h-1/2 md:h-full relative bg-gray-200">
+        <div className="w-full md:w-1/2 h-[400px] md:h-full relative bg-gray-200">
           {founderImage ? (
             <Image
               src={founderImage}
@@ -80,8 +82,8 @@ export default function AboutSlideOver({
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <span
-                className={`text-gray-400 font-medium transition-opacity duration-500 ${
-                  isOpen ? 'opacity-100' : 'opacity-0'
+                className={`text-gray-400 font-medium transition-opacity duration-500 opacity-100 md:opacity-0 ${
+                  isOpen ? 'md:opacity-100' : ''
                 }`}
               >
                 Founder Image
@@ -91,10 +93,10 @@ export default function AboutSlideOver({
         </div>
 
         {/* Right Side - Info */}
-        <div className="w-full md:w-1/2 h-1/2 md:h-full bg-[#0F2341] text-white p-8 md:p-16 flex flex-col justify-center relative">
+        <div className="w-full md:w-1/2 h-auto md:h-full bg-[#0F2341] text-white p-8 md:p-16 flex flex-col justify-center relative">
           <div
-            className={`space-y-16 transition-opacity duration-700 delay-100 ${
-              isOpen ? 'opacity-100' : 'opacity-0'
+            className={`space-y-16 transition-opacity duration-700 delay-100 opacity-100 md:opacity-0 ${
+              isOpen ? 'md:opacity-100' : ''
             }`}
           >
             <div className="text-xs font-medium tracking-[0.2em] uppercase opacity-70">

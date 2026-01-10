@@ -199,23 +199,51 @@ export default function ProjectPageClient({
         {/* Mobile Layout */}
         <div className="md:hidden w-full pt-[70vh]">
           <div className="bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] overflow-hidden">
-            {/* 1. Info Block (Title, Description, Tags) */}
-            <div className="px-8 pt-10 pb-10">
+            {/* 1. Info Block (Title, Description) */}
+            <div
+              className="px-8 pt-10 pb-8 transition-colors duration-300"
+              style={{
+                backgroundColor: cardBgColor || '#E5E5E5',
+              }}
+            >
               {project.clientName && (
                 <div className="mb-4">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  <span
+                    className={`text-xs font-semibold uppercase tracking-wider ${
+                      !cardFontColor ? 'text-gray-500' : ''
+                    }`}
+                    style={
+                      cardFontColor
+                        ? { color: cardFontColor, opacity: 0.7 }
+                        : {}
+                    }
+                  >
                     CLIENT / {project.clientName}
                   </span>
                 </div>
               )}
-              <h1 className="text-4xl font-serif text-gray-900 leading-tight mb-6">
+              <h1
+                className={`text-4xl font-serif leading-tight mb-6 ${
+                  !cardFontColor ? 'text-gray-900' : ''
+                }`}
+                style={cardFontColor ? { color: cardFontColor } : {}}
+              >
                 {project.title}
               </h1>
-              <p className="text-base text-gray-700 leading-relaxed mb-8">
+              <p
+                className={`text-base leading-relaxed mb-0 ${
+                  !cardFontColor ? 'text-gray-700' : ''
+                }`}
+                style={
+                  cardFontColor ? { color: cardFontColor, opacity: 0.9 } : {}
+                }
+              >
                 {project.description}
               </p>
+            </div>
 
-              {/* Tags */}
+            {/* Tags */}
+            <div className="px-8 pt-4 pb-10 bg-white">
               <ul className="space-y-2">
                 {project.tags.map((tag, tagIndex) => (
                   <li
@@ -319,7 +347,7 @@ export default function ProjectPageClient({
         </div>
 
         {/* Gray Background Section for Gallery */}
-        <div className="w-full pt-12 pb-24 px-4 md:pt-40 md:px-24 mt-0 md:-mt-24 z-10 relative bg-gray-100 md:bg-transparent">
+        <div className="w-full pt-12 pb-24 px-8 md:pt-40 md:px-24 mt-0 md:-mt-24 z-10 relative bg-gray-100 md:bg-transparent">
           <div className="">
             {/* Image Gallery */}
             <div className="flex flex-col gap-8">
@@ -396,9 +424,9 @@ export default function ProjectPageClient({
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
                         viewport={{ once: true }}
-                        className="w-full py-16 flex justify-center"
+                        className="w-full pb-16 flex justify-start px-0 overflow-hidden"
                       >
-                        <p className="text-xl md:text-2xl text-gray-700 leading-relaxed max-w-3xl text-center font-light">
+                        <p className="text-base text-gray-700 leading-relaxed max-w-full text-left font-light break-words whitespace-pre-wrap">
                           {project.description_2}
                         </p>
                       </motion.div>
@@ -415,11 +443,11 @@ export default function ProjectPageClient({
           <div className="w-full px-4 md:px-8 z-10 relative -mt-8 bg-gray-100 md:bg-transparent pb-0">
             <Link
               href={`/project/${recommendedProject.id}`}
-              className="block w-full bg-[#D6A360] rounded-t-3xl p-12 md:p-24 hover:bg-[#c59556] transition-colors duration-300 group"
+              className="block w-full bg-[#F2B45A] rounded-t-3xl p-12 md:p-24 hover:bg-[#c59556] transition-colors duration-300 group"
             >
               <div className="flex flex-col items-start">
                 <div className="flex items-center space-x-2 mb-6 opacity-80 group-hover:opacity-100 transition-opacity">
-                  <span className="text-xs font-bold tracking-widest text-[#2c2c2c] uppercase">
+                  <span className="text-xs font-bold tracking-widest text-[#ffffff] uppercase">
                     Next Project
                   </span>
                   <svg
@@ -428,7 +456,7 @@ export default function ProjectPageClient({
                     viewBox="0 0 12 12"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
-                    className="text-[#2c2c2c]"
+                    className="text-[#ffffff]"
                   >
                     <path
                       d="M1 1L11 11M11 11V1M11 11H1"
