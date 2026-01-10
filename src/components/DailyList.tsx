@@ -1,10 +1,17 @@
 'use client';
 
+import React, {
+  useRef,
+  useEffect,
+  useState,
+  useTransition,
+  useCallback,
+} from 'react';
 import { DailyData } from '@/types/daily';
 import { getDailyEntriesAction } from '@/app/actions';
 import Image from 'next/image';
-import { useEffect, useRef, useState, useTransition } from 'react';
 import DetailCard, { DetailCardData } from './DetailCard';
+import LoadingSpinner from './LoadingSpinner';
 
 interface DailyListProps {
   initialItems: DailyData[];
@@ -17,6 +24,18 @@ export default function DailyList({ initialItems }: DailyListProps) {
   const [isPending, startTransition] = useTransition();
   const loaderRef = useRef<HTMLDivElement>(null);
   const [selectedDaily, setSelectedDaily] = useState<DailyData | null>(null);
+
+  const loadMore = useCallback(() => {
+    startTransition(async () => {
+      const newItems = await getDailyEntriesAction(page);
+      if (newItems.length === 0) {
+        setHasMore(false);
+      } else {
+        setItems((prev) => [...prev, ...newItems]);
+        setPage((prev) => prev + 1);
+      }
+    });
+  }, [page]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -33,28 +52,18 @@ export default function DailyList({ initialItems }: DailyListProps) {
       }
     );
 
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
+    const currentLoader = loaderRef.current;
+
+    if (currentLoader) {
+      observer.observe(currentLoader);
     }
 
     return () => {
-      if (loaderRef.current) {
-        observer.unobserve(loaderRef.current);
+      if (currentLoader) {
+        observer.unobserve(currentLoader);
       }
     };
-  }, [hasMore, isPending, page]);
-
-  const loadMore = () => {
-    startTransition(async () => {
-      const newItems = await getDailyEntriesAction(page);
-      if (newItems.length === 0) {
-        setHasMore(false);
-      } else {
-        setItems((prev) => [...prev, ...newItems]);
-        setPage((prev) => prev + 1);
-      }
-    });
-  };
+  }, [hasMore, isPending, loadMore]);
 
   const handleCardClose = () => {
     setSelectedDaily(null);
@@ -87,20 +96,21 @@ export default function DailyList({ initialItems }: DailyListProps) {
       />
       <div className="w-full max-w-2xl flex flex-col gap-32 pb-20">
         {items.map((item) => (
-          <div 
-            key={item.id} 
+          <div
+            key={item.id}
             className="flex flex-col items-center gap-6 cursor-pointer group"
             onClick={() => setSelectedDaily(item)}
           >
             {/* Image Container */}
             {/* Use thumbnail as the main image in the list view */}
             {item.thumbnail && item.thumbnail.url && (
-              <div 
+              <div
                 className="relative w-full rounded-3xl overflow-hidden shadow-sm"
                 style={{
-                  aspectRatio: item.thumbnail.width && item.thumbnail.height
-                    ? `${item.thumbnail.width}/${item.thumbnail.height}`
-                    : '4/5' // Default aspect ratio if dimensions missing
+                  aspectRatio:
+                    item.thumbnail.width && item.thumbnail.height
+                      ? `${item.thumbnail.width}/${item.thumbnail.height}`
+                      : '4/5', // Default aspect ratio if dimensions missing
                 }}
               >
                 <Image
@@ -124,23 +134,14 @@ export default function DailyList({ initialItems }: DailyListProps) {
             </div>
           </div>
         ))}
-        
+
         {/* Loading Indicator */}
         {hasMore && (
           <div ref={loaderRef} className="flex justify-center p-8">
-             {isPending ? (
-                <div className="flex gap-2">
-                  <div className="h-2 w-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0s' }} />
-                  <div className="h-2 w-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0.1s' }} />
-                  <div className="h-2 w-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0.2s' }} />
-                </div>
-             ) : (
-               <div className="h-8" /> 
-             )}
+            {isPending ? <LoadingSpinner size={24} /> : <div className="h-8" />}
           </div>
         )}
       </div>
     </>
   );
 }
-

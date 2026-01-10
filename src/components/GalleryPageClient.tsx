@@ -10,6 +10,7 @@ import {
   getFilteredProjectsAction,
 } from '@/app/actions';
 import { motion, AnimatePresence } from 'framer-motion';
+import LoadingSpinner from './LoadingSpinner';
 
 interface GalleryPageClientProps {
   initialFeaturedProjects: Project[];
@@ -395,9 +396,7 @@ export default function GalleryPageClient({
               ref={observerTarget}
               className="w-full h-20 flex items-center justify-center mt-12"
             >
-              {loading && (
-                <div className="w-6 h-6 border-2 border-gray-300 border-t-[#E32619] rounded-full animate-spin" />
-              )}
+              {loading && <LoadingSpinner size={24} />}
             </div>
           </div>
         </div>

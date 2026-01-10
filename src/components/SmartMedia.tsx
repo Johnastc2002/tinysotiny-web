@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useId } from 'react';
 import Image from 'next/image';
 import Player from '@vimeo/player';
 import { useVideoContext } from '@/context/VideoContext';
+import LoadingSpinner from './LoadingSpinner';
 
 interface VimeoTextTrack {
   language: string;
@@ -53,6 +54,9 @@ export default function SmartMedia({
     playIconSize: 32, // default play icon size
   });
   const [shouldLoad, setShouldLoad] = useState(type !== 'vimeo'); // Default to load non-vimeo
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  const [videoActivated, setVideoActivated] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
 
   const controlTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -114,6 +118,22 @@ export default function SmartMedia({
 
     return () => observer.disconnect();
   }, [type, shouldLoad]);
+
+  useEffect(() => {
+    if (type === 'vimeo' && shouldLoad && !thumbnailUrl && !videoActivated) {
+      // Fetch oEmbed thumbnail
+      fetch(`https://vimeo.com/api/oembed.json?url=${url}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.thumbnail_url) {
+            setThumbnailUrl(data.thumbnail_url);
+          } else {
+            setVideoActivated(true); // Fallback
+          }
+        })
+        .catch(() => setVideoActivated(true)); // Fallback
+    }
+  }, [type, shouldLoad, url, thumbnailUrl, videoActivated]);
 
   // Effect to pause video if another video becomes active
   useEffect(() => {
@@ -263,6 +283,12 @@ export default function SmartMedia({
   };
 
   const toggleVimeo = async () => {
+    if (!videoActivated) {
+      setVideoActivated(true);
+      setIsLoaded(false); // Reset loaded state for video player
+      return;
+    }
+
     if (!vimeoPlayerRef.current) return;
 
     const paused = await vimeoPlayerRef.current.getPaused();
@@ -426,7 +452,10 @@ export default function SmartMedia({
       vimeoPlayerRef.current = player;
 
       // Ensure state matches player
-      player.on('play', () => setIsPlaying(true));
+      player.on('play', () => {
+        setIsPlaying(true);
+        setHasStarted(true);
+      });
       player.on('pause', () => setIsPlaying(false));
       player.on('timeupdate', (data) => setCurrentTime(data.seconds));
       player.on('durationchange', (data) => setDuration(data.duration));
@@ -555,23 +584,42 @@ export default function SmartMedia({
           <div className="absolute inset-0 bg-gray-200" />
         ) : (
           <>
-            <div
-              className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${activeClassName.replace(
-                'hover:',
-                'group-hover:'
-              )} ${isLoaded ? 'opacity-100' : 'opacity-0'} pointer-events-none`}
-            >
-              <iframe
-                ref={setVimeoIframe}
-                src={`https://player.vimeo.com/video/${vimeoId}?autoplay=0&loop=1&controls=0&muted=0&title=0&byline=0&portrait=0`}
-                style={{ ...iframeStyle, minWidth: '100%', minHeight: '100%' }}
-                frameBorder="0"
-                allow="autoplay; fullscreen; picture-in-picture"
-                allowFullScreen
-                title={alt}
-                onLoad={setLoaded}
-              />
-            </div>
+            {videoActivated && (
+              <div
+                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${activeClassName.replace(
+                  'hover:',
+                  'group-hover:'
+                )} ${
+                  isLoaded ? 'opacity-100' : 'opacity-0'
+                } pointer-events-none`}
+              >
+                <iframe
+                  ref={setVimeoIframe}
+                  src={`https://player.vimeo.com/video/${vimeoId}?autoplay=1&loop=1&controls=0&muted=0&title=0&byline=0&portrait=0`}
+                  style={{
+                    ...iframeStyle,
+                    minWidth: '100%',
+                    minHeight: '100%',
+                  }}
+                  frameBorder="0"
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
+                  title={alt}
+                  onLoad={setLoaded}
+                />
+              </div>
+            )}
+
+            {thumbnailUrl && (!videoActivated || !isLoaded) && (
+              <div className="absolute inset-0 pointer-events-none">
+                <Image
+                  src={thumbnailUrl}
+                  alt={alt}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            )}
 
             {/* Fullscreen Custom Controls */}
             {isFullscreen && (
@@ -751,52 +799,71 @@ export default function SmartMedia({
             {/* Play/Pause Overlay (Center) - Only show if NOT fullscreen */}
             <div
               className={`absolute inset-0 flex items-center justify-center pointer-events-none ${
-                !isPlaying && isLoaded && !isFullscreen
+                !videoActivated ||
+                (!isLoaded && videoActivated) ||
+                (isLoaded &&
+                  videoActivated &&
+                  !isPlaying &&
+                  hasStarted &&
+                  !isFullscreen)
                   ? 'opacity-100'
                   : 'opacity-0'
               }`}
             >
-              <div
-                className="bg-black/30 rounded-full backdrop-blur-sm relative z-10 flex items-center justify-center"
-                style={{
-                  width: `${buttonConfig.playButtonSize}px`,
-                  height: `${buttonConfig.playButtonSize}px`,
-                }}
-              >
-                {!isPlaying ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="white"
-                    style={{
-                      width: `${buttonConfig.playIconSize}px`,
-                      height: `${buttonConfig.playIconSize}px`,
-                    }}
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="white"
-                    style={{
-                      width: `${buttonConfig.playIconSize}px`,
-                      height: `${buttonConfig.playIconSize}px`,
-                    }}
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M6.75 5.25a.75.75 0 01.75-.75H9a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H7.5a.75.75 0 01-.75-.75V5.25zm7.5 0A.75.75 0 0115 4.5h1.5a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H15a.75.75 0 01-.75-.75V5.25z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                )}
-              </div>
+              {videoActivated && !isLoaded ? (
+                // Loading Indicator
+                <div
+                  className="rounded-full relative z-10 flex items-center justify-center"
+                  style={{
+                    width: `${buttonConfig.playButtonSize}px`,
+                    height: `${buttonConfig.playButtonSize}px`,
+                  }}
+                >
+                  <LoadingSpinner size={buttonConfig.playIconSize} />
+                </div>
+              ) : (
+                <div
+                  className="bg-black/30 rounded-full backdrop-blur-sm relative z-10 flex items-center justify-center"
+                  style={{
+                    width: `${buttonConfig.playButtonSize}px`,
+                    height: `${buttonConfig.playButtonSize}px`,
+                  }}
+                >
+                  {!isPlaying ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="white"
+                      style={{
+                        width: `${buttonConfig.playIconSize}px`,
+                        height: `${buttonConfig.playIconSize}px`,
+                      }}
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="white"
+                      style={{
+                        width: `${buttonConfig.playIconSize}px`,
+                        height: `${buttonConfig.playIconSize}px`,
+                      }}
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M6.75 5.25a.75.75 0 01.75-.75H9a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H7.5a.75.75 0 01-.75-.75V5.25zm7.5 0A.75.75 0 0115 4.5h1.5a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H15a.75.75 0 01-.75-.75V5.25z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Fullscreen Button - Only show if NOT fullscreen (as we have it in bar) */}
@@ -844,7 +911,7 @@ export default function SmartMedia({
 
             <div
               className={`absolute inset-0 bg-gray-200 transition-opacity duration-700 ease-in-out pointer-events-none ${
-                isLoaded ? 'opacity-0' : 'opacity-100'
+                isLoaded || thumbnailUrl ? 'opacity-0' : 'opacity-100'
               }`}
             />
           </>
@@ -877,7 +944,10 @@ export default function SmartMedia({
           onLoadedMetadata={() => setIsLoaded(true)}
           onLoadedData={() => setIsLoaded(true)}
           onCanPlay={() => setIsLoaded(true)}
-          onPlay={() => setIsPlaying(true)}
+          onPlay={() => {
+            setIsPlaying(true);
+            setHasStarted(true);
+          }}
           onPause={() => setIsPlaying(false)}
         />
 
