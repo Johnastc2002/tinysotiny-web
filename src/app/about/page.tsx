@@ -44,7 +44,7 @@ export default async function About() {
           <div className="hidden md:col-span-5 md:block"></div>
 
           {/* Secondary Content Section */}
-          <div className="md:col-span-7 md:pr-16 pl-12 md:pl-0">
+          <div className="md:col-span-7 md:pr-16 pl-6 md:pl-0">
             <h2 className="mb-6 font-serif text-3xl italic text-[#0F2341] md:text-4xl">
               {aboutUs?.header || 'From statics to dynamics.'}
             </h2>

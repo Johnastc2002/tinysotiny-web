@@ -3,48 +3,218 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ClientData } from '@/types/client';
 import Image from 'next/image';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { motion, useMotionValue, useSpring, MotionValue } from 'framer-motion';
 
 interface ClientListProps {
   clients: ClientData[];
 }
 
+interface Bounds {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+}
+
+const BUFFER = 100; // Buffer in pixels
+
+const ClientImageOverlay = ({
+  hoveredClient,
+  initialX,
+  initialY,
+  mouseX, // Shared raw mouse motion values (relative to container)
+  mouseY,
+  bounds,
+}: {
+  hoveredClient: ClientData;
+  initialX: number;
+  initialY: number;
+  mouseX: MotionValue<number>;
+  mouseY: MotionValue<number>;
+  bounds: Bounds;
+}) => {
+  // Create local motion values initialized to the specific start position of THIS interaction
+  const x = useMotionValue(initialX);
+  const y = useMotionValue(initialY);
+
+  // Sync with parent mouse values, but clamp to bounds
+  useEffect(() => {
+    const updateX = (latestX: number) => {
+      x.set(Math.min(Math.max(latestX, bounds.minX), bounds.maxX));
+    };
+    const updateY = (latestY: number) => {
+      y.set(Math.min(Math.max(latestY, bounds.minY), bounds.maxY));
+    };
+
+    const unsubX = mouseX.on('change', updateX);
+    const unsubY = mouseY.on('change', updateY);
+
+    return () => {
+      unsubX();
+      unsubY();
+    };
+  }, [mouseX, mouseY, x, y, bounds]);
+
+  // Smooth spring animation
+  const springConfig = { damping: 25, stiffness: 300, mass: 0.2 };
+  const springX = useSpring(x, springConfig);
+  const springY = useSpring(y, springConfig);
+
+  // Calculate direction based on current clamped position relative to viewport width?
+  // Since we are using absolute positioning relative to container, we need to know container width or viewport width.
+  // We can just use the 'x' value to determine side if container is full width.
+  // But let's stick to the original logic using window.innerWidth if possible, or relative to center of bounds?
+
+  // Original logic used mouseX.get() > viewportWidth / 2.
+  // Here x is relative to container. We can approximate or pass viewport width.
+  // Let's use a simpler heuristic: is it on the right half of the bounds?
+  const [isRightSide, setIsRightSide] = useState(false);
+
+  useEffect(() => {
+    // Check initially and on updates
+    const checkSide = () => {
+      if (typeof window !== 'undefined') {
+        // We need screen coordinates for this check to match original behavior accurately
+        // But 'x' is relative.
+        // Let's assume container is roughly centered or full width.
+        // Or better, just check if x is past the midpoint of the bounds?
+        // The original code used viewportWidth / 2.
+        // Let's grab window width.
+        setIsRightSide((x.get() || 0) > window.innerWidth / 2); // Approximate since x is relative
+      }
+    };
+    checkSide();
+    const unsub = x.on('change', () => {
+      if (typeof window !== 'undefined') {
+        // This is rough because x is relative. But for ClientList which is usually wide, it might work.
+        // Better: pass the container's left offset to convert back to screen?
+        // Let's just use the bounds center.
+        const center = (bounds.minX + bounds.maxX) / 2;
+        setIsRightSide(x.get() > center);
+      }
+    });
+    return unsub;
+  }, [x, bounds]);
+
+  return (
+    <div className="pointer-events-none absolute inset-0 z-50 overflow-visible">
+      <motion.div
+        style={{ x: springX, y: springY }}
+        className="absolute top-0 left-0"
+      >
+        {hoveredClient.thumbnails?.map((src, index) => {
+          // Logic from original component adapted
+          const offset =
+            typeof window !== 'undefined' && window.innerWidth < 768 ? 30 : 60;
+          const overlap = 120;
+
+          let left;
+          if (isRightSide) {
+            const estimatedWidth =
+              typeof window !== 'undefined' && window.innerWidth < 768
+                ? 150
+                : 200;
+            left = -offset - estimatedWidth - index * overlap;
+          } else {
+            left = offset + index * overlap;
+          }
+
+          // Generate random vertical offsets locally or pass them?
+          // We can generate them here deterministically based on index to avoid flicker on re-mount?
+          // Or generate once on mount.
+          const verticalOffset = Math.random() * 100 - 50;
+
+          return (
+            <div
+              key={index}
+              className="absolute transition-all duration-300 ease-out"
+              style={{
+                left: left,
+                top: verticalOffset, // utilizing the random offset
+                transform: 'translate(0, -50%)',
+                width: 'clamp(150px, 20vw, 200px)',
+                height: 'clamp(187px, 25vw, 250px)',
+                zIndex: isRightSide ? 10 - index : index,
+              }}
+            >
+              <div className="relative w-full h-full rounded-xl overflow-hidden shadow-2xl bg-gray-100">
+                <Image
+                  src={src}
+                  alt={`${hoveredClient.clientName} thumbnail ${index + 1}`}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 150px, 200px"
+                  priority={index < 3}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </motion.div>
+    </div>
+  );
+};
+
 export default function ClientList({ clients }: ClientListProps) {
   const [hoveredClientId, setHoveredClientId] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Use Framer Motion values for performant cursor tracking without re-renders
+  // Shared mouse values (relative to container)
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  // Smooth spring animation for the cursor follower
-  const springConfig = { damping: 25, stiffness: 300, mass: 0.2 };
-  const springX = useSpring(mouseX, springConfig);
-  const springY = useSpring(mouseY, springConfig);
-
-  // Store random offsets for the currently hovered client's images
-  const [verticalOffsets, setVerticalOffsets] = useState<number[]>([]);
-  const containerRef = useRef<HTMLDivElement>(null);
+  // State for the current interaction
+  const [interactionState, setInteractionState] = useState<{
+    initialX: number;
+    initialY: number;
+    bounds: Bounds;
+  } | null>(null);
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    // Update motion values directly
-    mouseX.set(e.clientX);
-    mouseY.set(e.clientY);
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      mouseX.set(e.clientX - rect.left);
+      mouseY.set(e.clientY - rect.top);
+    }
+  };
+
+  const handleMouseEnterClient = (e: React.MouseEvent, clientId: string) => {
+    if (containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const itemRect = e.currentTarget.getBoundingClientRect();
+
+      // Calculate relative position
+      const relX = e.clientX - containerRect.left;
+      const relY = e.clientY - containerRect.top;
+
+      // Update shared mouse values immediately
+      mouseX.set(relX);
+      mouseY.set(relY);
+
+      // Calculate bounds relative to container
+      // Item bounds relative to container
+      const itemLeft = itemRect.left - containerRect.left;
+      const itemTop = itemRect.top - containerRect.top;
+      const itemRight = itemLeft + itemRect.width;
+      const itemBottom = itemTop + itemRect.height;
+
+      const bounds: Bounds = {
+        minX: itemLeft - BUFFER,
+        maxX: itemRight + BUFFER,
+        minY: itemTop - BUFFER,
+        maxY: itemBottom + BUFFER,
+      };
+
+      setInteractionState({
+        initialX: relX,
+        initialY: relY,
+        bounds,
+      });
+      setHoveredClientId(clientId);
+    }
   };
 
   const hoveredClient = clients.find((c) => c.id === hoveredClientId);
-
-  // Generate new random offsets whenever a new client is hovered
-  useEffect(() => {
-    if (hoveredClient && hoveredClient.thumbnails) {
-      // Generate an array of random offsets between -50 and 50
-      const newOffsets = hoveredClient.thumbnails.map(
-        () => Math.random() * 100 - 50
-      );
-      setVerticalOffsets(newOffsets);
-    } else {
-      setVerticalOffsets([]);
-    }
-  }, [hoveredClientId, hoveredClient]);
 
   return (
     <div
@@ -52,102 +222,25 @@ export default function ClientList({ clients }: ClientListProps) {
       className="relative flex flex-wrap justify-start items-center text-2xl md:text-4xl lg:text-5xl font-bold leading-normal tracking-wider text-gray-400"
       onMouseMove={handleMouseMove}
     >
-      {/* Thumbnails Overlay - Increased z-index to be on top */}
-      {hoveredClient && hoveredClient.thumbnails && (
-        <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
-          {/* Motion div that follows the cursor */}
-          <motion.div
-            style={{ x: springX, y: springY }}
-            className="fixed top-0 left-0"
-          >
-            {hoveredClient.thumbnails.map((src, index) => {
-              // Get viewport width
-              const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1000;
-              // Check if cursor is on the right side of the screen
-              const isRightSide = mouseX.get() > viewportWidth / 2;
-
-              // Position relative to the cursor (0,0 point of the motion.div)
-              // Responsive offset: 30px on small screens (mobile), 60px on larger screens
-              const offset = typeof window !== 'undefined' && window.innerWidth < 768 ? 30 : 60; 
-              const overlap = 120; // Reduced overlap for tighter stacking on mobile
-              
-              // If cursor is on the right, show images to the left (negative offset)
-              // If on the left, show images to the right (positive offset)
-              const direction = isRightSide ? -1 : 1;
-              
-              // Calculate left position:
-              // Right side: -60 - 0*180, -60 - 1*180... (stacked to left)
-              // Left side: 60 + 0*180, 60 + 1*180... (stacked to right)
-              // We also need to account for image width (200px) when going left
-              const imageWidth = 200; // This is the max width, but we are clamping. 
-              // Using a fixed offset calculation might result in gaps if width is smaller. 
-              // However, 'overlap' (180) handles the spacing.
-              // For correct alignment on right side with variable width, we might need dynamic width.
-              // But let's stick to the simpler logic for now as clamp is CSS-side.
-              
-              let left;
-              if (isRightSide) {
-                 // To prevent overlap with cursor, we shift left by (offset + width)
-                 // The 'width' here is the CSS width. 
-                 // Since we use clamp(150px, 20vw, 200px), the max width is 200px.
-                 // However, to match the "right side distance", we don't need to push it *so* far left.
-                 // The 'offset' alone (30px/60px) is the gap we want.
-                 // But because 'left' position of an element is its *left edge*,
-                 // if we want the *right edge* of the image to be at (cursorX - offset),
-                 // we must subtract width.
-                 // So left = -offset - width.
-                 // If the apparent gap is larger, it might be due to the width assumption (200px) 
-                 // being larger than the actual rendered width (e.g. 150px on mobile).
-                 // If we assume max width 200px but it renders at 150px, the gap increases by 50px.
-                 // To fix this, we should use the smaller width estimate for calculation on mobile?
-                 // Or better, let's use a conservative width estimate or rely on the same clamp logic?
-                 // We can approximate width:
-                 const estimatedWidth = typeof window !== 'undefined' && window.innerWidth < 768 ? 150 : 200;
-                 
-                 left = -offset - estimatedWidth - (index * overlap);
-              } else {
-                 left = offset + (index * overlap);
-              }
-
-              const verticalOffset = verticalOffsets[index] || 0;
-              const top = verticalOffset;
-
-              return (
-                <div
-                  key={index}
-                  className="absolute transition-all duration-300 ease-out"
-                  style={{
-                    left: left,
-                    top: top,
-                    transform: 'translate(0, -50%)', // Center vertically relative to cursor Y + offset
-                    width: 'clamp(150px, 20vw, 200px)', // Responsive width: min 150px, max 200px
-                    height: 'clamp(187px, 25vw, 250px)', // Maintain approx 4:5 aspect ratio
-                    zIndex: isRightSide ? 10 - index : index, // Reverse z-index stacking when on right side
-                  }}
-                >
-                  <div className="relative w-full h-full rounded-xl overflow-hidden shadow-2xl bg-gray-100">
-                    <Image
-                      src={src}
-                      alt={`${hoveredClient.clientName} thumbnail ${index + 1}`}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 150px, 200px"
-                      priority={index < 3}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </motion.div>
-        </div>
+      {/* Overlay Component */}
+      {hoveredClient && interactionState && (
+        <ClientImageOverlay
+          key={hoveredClient.id} // Re-mount on client change to reset springs
+          hoveredClient={hoveredClient}
+          initialX={interactionState.initialX}
+          initialY={interactionState.initialY}
+          mouseX={mouseX}
+          mouseY={mouseY}
+          bounds={interactionState.bounds}
+        />
       )}
 
       {/* List Items */}
       {clients.map((client) => (
         <div
           key={client.id}
-          className="flex items-center relative z-20 h-[1.5em]" // Added fixed height to container
-          onMouseEnter={() => setHoveredClientId(client.id)}
+          className="flex items-center relative z-20 h-[1.5em]"
+          onMouseEnter={(e) => handleMouseEnterClient(e, client.id)}
           onMouseLeave={() => setHoveredClientId(null)}
         >
           {/* Container to prevent layout shift */}

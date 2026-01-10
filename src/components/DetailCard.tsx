@@ -142,7 +142,7 @@ export default function DetailCard({
                     {data.title}
                   </h2>
                   <p
-                    className={`text-sm leading-relaxed max-w-md ${
+                    className={`text-sm leading-relaxed max-w-md line-clamp-3 md:line-clamp-none ${
                       !fontColor ? 'text-gray-600' : ''
                     }`}
                     style={fontColor ? { color: fontColor, opacity: 0.9 } : {}}

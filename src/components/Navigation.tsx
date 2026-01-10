@@ -25,8 +25,8 @@ function NavigationItem({
   isHome,
   toggleMenu,
 }: NavigationItemProps) {
-  // Initialize expanded state based on whether it is currently active.
-  const [isExpanded, setIsExpanded] = useState(isHome && isActive);
+  // Initialize expanded state to false to prevent auto-expansion
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleClick = (e: React.MouseEvent) => {
     if (isHome) {

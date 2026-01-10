@@ -514,8 +514,8 @@ export default function GalleryPageClient({
               : 'opacity-0 z-0 pointer-events-none'
           }`}
         >
-          <div className="w-full min-h-full pt-24 px-4 md:px-12 pb-32">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          <div className="w-full min-h-full pt-24 px-2 md:px-12 pb-32">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
               {displayedProjects.map((project) => (
                 <ProjectCard key={project.id} project={project} />
               ))}
@@ -561,19 +561,19 @@ function ProjectCard({ project }: { project: Project }) {
 
         {/* Client Overlay */}
         {project.clientName && (
-          <div className="absolute top-4 left-4 z-10">
-            <span className="text-xs font-semibold uppercase tracking-wider text-white drop-shadow-md">
+          <div className="absolute top-2 left-3 right-3 md:top-4 md:left-4 md:right-4 z-10 pointer-events-none">
+            <span className="inline-block text-[10px] md:text-xs font-semibold uppercase tracking-wider text-white drop-shadow-md whitespace-normal break-words">
               CLIENT / {project.clientName}
             </span>
           </div>
         )}
 
         {/* Tags Overlay */}
-        <div className="absolute bottom-4 left-4 z-10 flex flex-col gap-2 items-start">
+        <div className="absolute bottom-3 left-3 md:bottom-4 md:left-4 z-10 flex flex-col gap-1 md:gap-2 items-start">
           {project.tags.slice(0, 2).map((tag, i) => (
             <span
               key={i}
-              className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-[10px] uppercase tracking-wide font-medium text-white shadow-sm"
+              className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-white/20 backdrop-blur-sm text-[9px] md:text-[10px] uppercase tracking-wide font-medium text-white shadow-sm"
             >
               {tag}
             </span>
