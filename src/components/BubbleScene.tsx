@@ -231,7 +231,7 @@ const Bubble = ({
 }) => {
   const router = useRouter();
   const groupRef = useRef<THREE.Group>(null);
-  
+
   // Animation state
   // Start near center (atom-like) if explosion enabled, otherwise at final position
   const [currentPosition] = useState(() => {
@@ -246,7 +246,10 @@ const Bubble = ({
     return new THREE.Vector3(...position);
   });
 
-  const targetPosition = useMemo(() => new THREE.Vector3(...position), [position]);
+  const targetPosition = useMemo(
+    () => new THREE.Vector3(...position),
+    [position]
+  );
   const [startExplosion, setStartExplosion] = useState(!enableExplosion);
 
   useEffect(() => {
@@ -262,7 +265,7 @@ const Bubble = ({
     if (enableExplosion && groupRef.current && startExplosion) {
       // Lerp towards target
       // Adjust speed for "explosion" feel - start fast, slow down
-      const speed = 3; 
+      const speed = 3;
       currentPosition.lerp(targetPosition, delta * speed);
       groupRef.current.position.copy(currentPosition);
     }
@@ -746,7 +749,11 @@ export default function BubbleScene({
       />
       <Canvas
         camera={{ position: [0, 0, 20], fov: 50 }}
-        gl={{ antialias: true, toneMapping: THREE.NoToneMapping, alpha: transparent }}
+        gl={{
+          antialias: true,
+          toneMapping: THREE.NoToneMapping,
+          alpha: transparent,
+        }}
       >
         <ambientLight intensity={3} />
         <pointLight position={[10, 10, 10]} intensity={2} />

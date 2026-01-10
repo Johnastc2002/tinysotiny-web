@@ -48,6 +48,14 @@ export default function GalleryPageClient({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [appliedTags, setAppliedTags] = useState<string[]>([]);
 
+  const [isIOS, setIsIOS] = useState(false);
+  useEffect(() => {
+    // Simple check for iOS devices
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const isMobile = /iphone|ipad|ipod/.test(userAgent);
+    setIsIOS(isMobile);
+  }, []);
+
   const observerTarget = useRef<HTMLDivElement>(null);
 
   // Handle filter close and apply
@@ -294,29 +302,31 @@ export default function GalleryPageClient({
       {/* Filter Overlay */}
       <AnimatePresence>
         {isFilterOpen && gridFilter && (
-          <motion.div
+            <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-60 bg-black/20 backdrop-blur-md flex flex-col items-center justify-end pb-32 px-4"
+            className="fixed inset-0 z-60 bg-black/20 backdrop-blur-md flex flex-col items-center justify-end pb-8 px-4"
             onClick={handleCloseFilter}
           >
             <motion.div
-              initial={{ y: 20, opacity: 0 }}
+              initial={isIOS ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.1 }}
-              className="max-w-5xl w-full flex flex-wrap justify-center gap-3 md:gap-4"
-              onClick={(e) => e.stopPropagation()}
+              transition={isIOS ? { duration: 0 } : { delay: 0.1 }}
+              className="max-w-5xl w-full flex flex-wrap justify-center gap-3 md:gap-4 max-h-[60vh] overflow-y-auto pt-8 md:pt-0"
             >
               {gridFilter.filters.map((tag, index) => {
                 const isSelected = selectedTags.includes(tag.tag_id);
                 return (
                   <motion.button
                     key={tag.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
+                    initial={isIOS ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.03 * index }}
-                    onClick={() => toggleTag(tag.tag_id)}
+                    transition={isIOS ? { duration: 0 } : { delay: 0.03 * index }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleTag(tag.tag_id);
+                    }}
                     className={`px-6 py-2.5 rounded-full border transition-all text-xs md:text-sm uppercase tracking-wide font-medium shadow-sm ${
                       isSelected
                         ? 'border-[#E32619] bg-[#E32619] text-white'
