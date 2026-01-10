@@ -9,6 +9,91 @@ interface NavigationProps {
   contact?: ContactData | null;
 }
 
+interface NavigationItemProps {
+  item: string;
+  href: string;
+  isActive: boolean;
+  isHome: boolean;
+  toggleMenu: () => void;
+  pathname: string;
+}
+
+function NavigationItem({
+  item,
+  href,
+  isActive,
+  isHome,
+  toggleMenu,
+}: NavigationItemProps) {
+  // Initialize expanded state based on whether it is currently active.
+  const [isExpanded, setIsExpanded] = useState(isHome && isActive);
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (isHome) {
+      e.preventDefault();
+      // Always toggle expansion for home
+      setIsExpanded(!isExpanded);
+    } else {
+      toggleMenu();
+    }
+  };
+
+  // Only show submenu if expanded.
+  const showSubmenu = isHome && isExpanded;
+
+  return (
+    <div className="flex flex-col landscape:flex-row lg:[@media(min-height:720px)]:flex-col landscape:items-baseline lg:[@media(min-height:720px)]:items-start items-start w-fit">
+      <div className="relative">
+        {isHome ? (
+          <button
+            onClick={handleClick}
+            className={`text-4xl font-bold tracking-wider text-black transition-colors hover:text-gray-500 md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl! ${
+              isActive ? 'font-serif italic' : ''
+            }`}
+          >
+            {item}
+          </button>
+        ) : (
+          <Link
+            href={href}
+            className={`text-4xl font-bold tracking-wider text-black transition-colors hover:text-gray-500 md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl! ${
+              isActive ? 'font-serif italic' : ''
+            }`}
+            onClick={toggleMenu}
+          >
+            {item}
+          </Link>
+        )}
+
+        {isActive && (
+          <span className="absolute -top-2 -right-3 h-1.5 w-1.5 rounded-full bg-black lg:[@media(min-height:720px)]:-top-2 lg:[@media(min-height:720px)]:-right-4" />
+        )}
+      </div>
+
+      {isHome && (
+        <div
+          className={`flex flex-col landscape:flex-row lg:[@media(min-height:720px)]:flex-col gap-2 landscape:gap-8 lg:[@media(min-height:720px)]:gap-2 pl-1 landscape:pl-12 lg:[@media(min-height:720px)]:pl-1 transition-all duration-300 ease-in-out overflow-hidden landscape:items-baseline lg:[@media(min-height:720px)]:items-start ${
+            showSubmenu
+              ? 'max-h-40 opacity-100 mt-4 landscape:mt-0 lg:[@media(min-height:720px)]:mt-4 landscape:max-w-[500px] lg:[@media(min-height:720px)]:max-w-none landscape:opacity-100 landscape:max-h-20 lg:[@media(min-height:720px)]:max-h-40'
+              : 'max-h-0 opacity-0 mt-0 landscape:max-w-0 lg:[@media(min-height:720px)]:max-w-none landscape:max-h-20 lg:[@media(min-height:720px)]:max-h-0'
+          }`}
+        >
+          {['work', 'play'].map((subItem) => (
+            <Link
+              key={subItem}
+              href={`/${subItem}`}
+              onClick={toggleMenu}
+              className="text-2xl font-bold tracking-wider text-black transition-colors hover:text-gray-500 md:text-3xl landscape:text-xl lg:[@media(min-height:720px)]:text-3xl!"
+            >
+              {subItem}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Navigation({ contact }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
@@ -43,37 +128,44 @@ export default function Navigation({ contact }: NavigationProps) {
 
       {/* Menu Overlay */}
       <div
-        className={`fixed inset-y-0 right-0 z-50 h-full bg-white shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        } w-full md:w-[40%] md:max-w-xl flex flex-col`}
+        className={`fixed z-50 bg-white shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col ${
+          isOpen
+            ? 'translate-x-0'
+            : 'translate-x-full landscape:translate-x-[calc(100%+2rem)] lg:[@media(min-height:720px)]:translate-x-[calc(100%+2rem)]'
+        } inset-y-0 right-0 h-full w-full 
+        landscape:top-4 landscape:bottom-4 landscape:right-4 landscape:left-4 landscape:w-auto landscape:h-auto landscape:rounded-3xl
+        lg:[@media(min-height:720px)]:top-6! lg:[@media(min-height:720px)]:bottom-6! lg:[@media(min-height:720px)]:right-6! lg:[@media(min-height:720px)]:left-auto! lg:[@media(min-height:720px)]:w-[60%]! lg:[@media(min-height:720px)]:rounded-3xl! 
+        overflow-hidden`}
       >
-        {/* Close Button */}
+        {/* Close Button - Fixed relative to card */}
         <div
-          className="flex justify-end pb-8 pl-8"
-          style={{ paddingTop: '3.5rem', paddingRight: '1rem' }}
+          className="absolute z-50 flex items-center justify-center 
+          top-4 right-4
+          lg:[@media(min-height:720px)]:top-6! lg:[@media(min-height:720px)]:right-6!"
         >
           <button
             onClick={toggleMenu}
-            className="flex h-16 w-16 items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+            className="flex h-12 w-12 items-center justify-center rounded-full hover:bg-gray-100 transition-colors lg:[@media(min-height:720px)]:h-16! lg:[@media(min-height:720px)]:w-16!"
             aria-label="Close Menu"
           >
             <svg
-              width="32"
-              height="32"
+              width="24"
+              height="24"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
+              className="lg:[@media(min-height:720px)]:w-8! lg:[@media(min-height:720px)]:h-8!"
             >
               <path
                 d="M18 6L6 18"
-                stroke="black"
+                stroke="#B6B6B6"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
               <path
                 d="M6 6L18 18"
-                stroke="black"
+                stroke="#B6B6B6"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -82,46 +174,59 @@ export default function Navigation({ contact }: NavigationProps) {
           </button>
         </div>
 
-        {/* Menu Items */}
-        <div className="flex flex-1 flex-col justify-center px-16 md:px-24">
-          <nav className="flex flex-col gap-8">
-            {['HOME', 'ABOUT', 'CLIENT', 'DAILY'].map((item) => (
-              <Link
-                key={item}
-                href={`/${
-                  item.toLowerCase() === 'home' ? '' : item.toLowerCase()
-                }`}
-                className="text-4xl font-bold tracking-wider text-black transition-colors hover:text-gray-500 md:text-5xl"
-                onClick={toggleMenu}
-              >
-                {item}
-              </Link>
-            ))}
-          </nav>
-        </div>
+        {/* Scrollable Content Wrapper */}
+        <div className="w-full h-full overflow-y-auto overflow-x-hidden relative flex flex-col">
+          {/* Menu Items */}
+          <div className="flex min-h-full flex-col justify-center px-12 md:px-24 landscape:px-16 pb-16 landscape:pb-12 lg:[@media(min-height:720px)]:px-24! lg:[@media(min-height:720px)]:pb-24!">
+            <nav className="flex flex-col gap-6 landscape:gap-4 lg:[@media(min-height:720px)]:gap-8!">
+              {['HOME', 'ABOUT', 'CLIENT', 'DAILY'].map((item) => {
+                const isHome = item === 'HOME';
+                const href = isHome ? '/' : `/${item.toLowerCase()}`;
+                const isHomeActive = ['/', '/work', '/play'].includes(pathname);
+                const isActive = isHome
+                  ? isHomeActive
+                  : pathname.startsWith(href);
 
-        {/* Footer Items */}
-        <div className="flex justify-between px-16 pb-16 md:px-24">
-          <Link
-            href={contact?.instagram || 'https://instagram.com'}
-            className="text-sm font-semibold tracking-widest text-gray-400 hover:text-black transition-colors uppercase"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            INSTAGRAM
-          </Link>
-          <Link
-            href={`mailto:${contact?.email || 'hello@tinysotiny.com'}`}
-            className="text-sm font-semibold tracking-widest text-gray-400 hover:text-black transition-colors uppercase"
-          >
-            EMAIL
-          </Link>
-          <Link
-            href={`tel:${contact?.phone || '+85212345678'}`}
-            className="text-sm font-semibold tracking-widest text-gray-400 hover:text-black transition-colors uppercase"
-          >
-            PHONE
-          </Link>
+                return (
+                  <NavigationItem
+                    key={`${item}-${pathname}`}
+                    item={item}
+                    href={href}
+                    isActive={isActive}
+                    isHome={isHome}
+                    toggleMenu={toggleMenu}
+                    pathname={pathname}
+                  />
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Footer Items */}
+          <div className="absolute bottom-0 left-0 w-full flex justify-between px-12 pb-12 md:px-24 landscape:px-16 landscape:pb-8 lg:[@media(min-height:720px)]:px-24! lg:[@media(min-height:720px)]:pb-16!">
+            <Link
+              href={contact?.instagram || 'https://instagram.com'}
+              className="text-xs font-semibold tracking-widest text-gray-400 hover:text-black transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              INSTAGRAM
+            </Link>
+            <div className="flex gap-6 lg:gap-8">
+              <Link
+                href={`mailto:${contact?.email || 'hello@tinysotiny.com'}`}
+                className="text-xs font-semibold tracking-widest text-gray-400 hover:text-black transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!"
+              >
+                EMAIL
+              </Link>
+              <Link
+                href={`tel:${contact?.phone || '+85212345678'}`}
+                className="text-xs font-semibold tracking-widest text-gray-400 hover:text-black transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!"
+              >
+                PHONE
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
 
