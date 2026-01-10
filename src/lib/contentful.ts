@@ -46,6 +46,19 @@ export const getEntries = async (
   }
 };
 
+const optimizeUrl = (url: string, contentType?: string) => {
+  if (!url) return '';
+  if (
+    contentType &&
+    contentType.startsWith('image/') &&
+    !contentType.includes('svg')
+  ) {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}w=1920&q=80`;
+  }
+  return url;
+};
+
 const getMediaType = (contentType: string): 'image' | 'video' => {
   return contentType.startsWith('video/') ? 'video' : 'image';
 };
@@ -55,7 +68,8 @@ const getAssetUrl = (asset: any): string => {
   if (!asset || !asset.fields || !asset.fields.file || !asset.fields.file.url) {
     return '';
   }
-  return `https:${asset.fields.file.url}`;
+  const url = `https:${asset.fields.file.url}`;
+  return optimizeUrl(url, asset.fields.file.contentType);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -64,8 +78,9 @@ const getAssetMetadata = (asset: any) => {
     return { url: '', width: 0, height: 0, type: 'image' as const };
   }
   const file = asset.fields.file;
+  const rawUrl = `https:${file.url}`;
   return {
-    url: `https:${file.url}`,
+    url: optimizeUrl(rawUrl, file.contentType),
     width: file.details?.image?.width || 0,
     height: file.details?.image?.height || 0,
     type: getMediaType(file.contentType || ''),
@@ -147,9 +162,23 @@ const mapProject = (entry: any): Project => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .filter((row: any) => row !== null),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    card_bg_color: String(fields.card_bg_color || fields['card_bg_color'] || fields.cardBgColor || fields.card_background_color || fields.cardBackgroundColor || ''),
+    card_bg_color: String(
+      fields.card_bg_color ||
+        fields['card_bg_color'] ||
+        fields.cardBgColor ||
+        fields.card_background_color ||
+        fields.cardBackgroundColor ||
+        ''
+    ),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    card_font_color: String(fields.card_font_color || fields['card_font_color'] || fields.cardFontColor || fields.card_text_color || fields.cardTextColor || ''),
+    card_font_color: String(
+      fields.card_font_color ||
+        fields['card_font_color'] ||
+        fields.cardFontColor ||
+        fields.card_text_color ||
+        fields.cardTextColor ||
+        ''
+    ),
     description_2: String(fields.description_2 || fields.description2 || ''),
     projectType: (fields.projectType as ProjectType) || 'work',
   };
@@ -242,8 +271,22 @@ const mapDaily = (entry: any): DailyData => {
     bgMedia: bgMedia,
     description2: String(fields.description_2 || fields.description2 || ''),
     createdAt: entry.sys.createdAt,
-    card_bg_color: String(fields.card_bg_color || fields['card_bg_color'] || fields.cardBgColor || fields.card_background_color || fields.cardBackgroundColor || ''),
-    card_font_color: String(fields.card_font_color || fields['card_font_color'] || fields.cardFontColor || fields.card_text_color || fields.cardTextColor || ''),
+    card_bg_color: String(
+      fields.card_bg_color ||
+        fields['card_bg_color'] ||
+        fields.cardBgColor ||
+        fields.card_background_color ||
+        fields.cardBackgroundColor ||
+        ''
+    ),
+    card_font_color: String(
+      fields.card_font_color ||
+        fields['card_font_color'] ||
+        fields.cardFontColor ||
+        fields.card_text_color ||
+        fields.cardTextColor ||
+        ''
+    ),
   };
 };
 

@@ -17,4 +17,3 @@ export interface DailyData {
   card_bg_color?: string;
   card_font_color?: string;
 }
-
