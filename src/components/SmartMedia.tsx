@@ -55,7 +55,9 @@ export default function SmartMedia({
   });
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const vimeoIframeRef = useRef<HTMLIFrameElement>(null);
+  const [vimeoIframe, setVimeoIframe] = useState<HTMLIFrameElement | null>(
+    null
+  );
   const vimeoPlayerRef = useRef<Player | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -65,44 +67,74 @@ export default function SmartMedia({
   // Effect to pause video if another video becomes active
   useEffect(() => {
     if (activeVideoId && activeVideoId !== id) {
-      // Pause this video because another one is active
       if (isPlaying) {
         if (type === 'vimeo' && vimeoPlayerRef.current) {
           vimeoPlayerRef.current.pause();
         } else if (type === 'video' && videoRef.current) {
           videoRef.current.pause();
         }
-        setIsPlaying(false);
+        // State update for isPlaying will happen via event listeners
+        // setIsPlaying(false);
       }
     }
   }, [activeVideoId, id, isPlaying, type]);
+
+  const setLoaded = React.useCallback(() => {
+    setIsLoaded(true);
+  }, []);
 
   // Check cached state for HTML5 video
   useEffect(() => {
     if (type === 'video' && videoRef.current) {
       if (videoRef.current.readyState >= 1) {
-        // HAVE_METADATA
-        setIsLoaded(true);
+        // HAVE_METADATA - we can safely show it
+        setLoaded();
       }
     }
-  }, [type]);
+  }, [type, setLoaded]);
 
   // Fallback to ensure video becomes visible even if events don't fire immediately
   useEffect(() => {
-    if (type === 'video' || type === 'vimeo') {
+    // Only apply fallback for HTML5 video.
+    // For Vimeo, we rely on the 'loaded' event or safety timer.
+    if (type === 'video') {
       const timer = setTimeout(() => {
-        setIsLoaded(true);
+        setLoaded();
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [type]);
+  }, [type, setLoaded]);
 
   const updateIframeDimensions = React.useCallback(
     (videoW: number, videoH: number) => {
-      if (!containerRef.current || !videoW || !videoH) return;
+      if (!containerRef.current) return;
 
       const { clientWidth: containerW, clientHeight: containerH } =
         containerRef.current;
+
+      // If container has no dimensions yet, stick to 100% to ensure visibility
+      if (!containerW || !containerH) {
+        setIframeStyle({
+          width: '100%',
+          height: '100%',
+          position: 'absolute',
+          top: '0',
+          left: '0',
+        });
+        return;
+      }
+
+      if (!videoW || !videoH) {
+        // Fallback if video dimensions are missing
+        setIframeStyle({
+          width: '100%',
+          height: '100%',
+          position: 'absolute',
+          top: '0',
+          left: '0',
+        });
+        return;
+      }
 
       const containerRatio = containerW / containerH;
       const videoRatio = videoW / videoH;
@@ -120,10 +152,6 @@ export default function SmartMedia({
         coverWidth = containerH * videoRatio;
       }
 
-      // Add vertical padding to the iframe to create black bars top/bottom where controls sit
-      // Vimeo will center the video in this taller iframe.
-      // By centering the iframe in our container, we crop these black bars (and the controls).
-      // const VERTICAL_PADDING = 240; // No longer needed with controls=0
       const VERTICAL_PADDING = 0;
 
       setIframeStyle({
@@ -147,7 +175,7 @@ export default function SmartMedia({
       const fsElement = document.fullscreenElement;
       if (
         fsElement &&
-        ((vimeoIframeRef.current && fsElement === vimeoIframeRef.current) ||
+        ((vimeoIframe && fsElement === vimeoIframe) ||
           (containerRef.current && fsElement === containerRef.current))
       ) {
         setIsFullscreen(true);
@@ -160,7 +188,7 @@ export default function SmartMedia({
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () =>
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
+  }, [vimeoIframe]);
 
   const showControlsTemporary = () => {
     setShowControls(true);
@@ -301,8 +329,8 @@ export default function SmartMedia({
   }, [type]);
 
   useEffect(() => {
-    if (type === 'vimeo' && vimeoIframeRef.current) {
-      const player = new Player(vimeoIframeRef.current);
+    if (type === 'vimeo' && vimeoIframe) {
+      const player = new Player(vimeoIframe);
       vimeoPlayerRef.current = player;
 
       // Ensure state matches player
@@ -316,30 +344,49 @@ export default function SmartMedia({
         setTextTracks(tracks || []);
       });
 
-      player.on('loaded', async () => {
+      // Initialize player and handle loading state
+      const handleReady = () => {
+        setLoaded();
+      };
+
+      // Listen for the loaded event (normal flow)
+      player.on('loaded', handleReady);
+      // Also listen for play/timeupdate in case loaded doesn't fire but video starts
+      player.on('play', handleReady);
+      player.on('timeupdate', handleReady);
+
+      // Attempt initialization
+      player
+        .ready()
+        .then(() => {
+          // Player is ready, try to get dimensions to set correct aspect ratio
+          // But do NOT block showing the video on this
+          Promise.all([player.getVideoWidth(), player.getVideoHeight()])
+            .then(([w, h]) => {
+              updateIframeDimensions(w, h);
+            })
+            .catch((e) => {
+              console.warn('Failed to get Vimeo dimensions', e);
+              updateIframeDimensions(16, 9);
+            });
+        })
+        .catch((e) => {
+          console.warn('Vimeo player failed to initialize:', e);
+        });
+
+      // Safety fallback: force show after 1.5 seconds to prevent "forever loading"
+      // This is short enough to feel like a "long load" but not "broken"
+      // We rely on this timer OR the loaded event OR the onLoad callback.
+      const safetyTimer = setTimeout(() => {
         setIsLoaded(true);
-        // Calculate cover dimensions on load
-        if (containerRef.current) {
-          try {
-            // Get intrinsic video dimensions from Vimeo
-            const [videoWidth, videoHeight] = await Promise.all([
-              player.getVideoWidth(),
-              player.getVideoHeight(),
-            ]);
-            updateIframeDimensions(videoWidth, videoHeight);
-          } catch (e) {
-            console.error('Failed to get video dimensions', e);
-            // Fallback to 16:9
-            updateIframeDimensions(16, 9);
-          }
-        }
-      });
+      }, 1500);
 
       return () => {
+        clearTimeout(safetyTimer);
         player.destroy();
       };
     }
-  }, [type, url, updateIframeDimensions]);
+  }, [type, url, updateIframeDimensions, vimeoIframe]);
 
   // Resize observer to update dimensions on window resize
   useEffect(() => {
@@ -406,13 +453,14 @@ export default function SmartMedia({
           } pointer-events-none`}
         >
           <iframe
-            ref={vimeoIframeRef}
+            ref={setVimeoIframe}
             src={`https://player.vimeo.com/video/${vimeoId}?autoplay=0&loop=1&controls=0&muted=0&title=0&byline=0&portrait=0`}
-            style={iframeStyle}
+            style={{ ...iframeStyle, minWidth: '100%', minHeight: '100%' }}
             frameBorder="0"
             allow="autoplay; fullscreen; picture-in-picture"
             allowFullScreen
             title={alt}
+            onLoad={setLoaded}
           />
         </div>
 
@@ -759,7 +807,7 @@ export default function SmartMedia({
         className={`transition-opacity duration-700 ease-in-out ${
           isLoaded ? 'opacity-100' : 'opacity-0'
         } object-cover`}
-        onLoad={() => setIsLoaded(true)}
+        onLoad={setLoaded}
         priority={priority}
         sizes={sizes}
       />

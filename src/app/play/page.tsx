@@ -20,7 +20,7 @@ export default async function Play() {
         gridFilter={gridFilter}
         projectType="play"
         enableExplosion={true}
-        explosionDelay={2000}
+        explosionDelay={0}
       />
     </main>
   );

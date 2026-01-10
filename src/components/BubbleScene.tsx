@@ -682,15 +682,17 @@ export default function BubbleScene({
   projects,
   enableExplosion = false,
   explosionDelay = 0,
+  transparent = false,
 }: {
   mode?: 'home' | 'gallery';
   projects?: Project[];
   enableExplosion?: boolean;
   explosionDelay?: number;
+  transparent?: boolean;
 }) {
   console.log('BubbleScene render. Mode:', mode, 'Projects:', projects?.length);
 
-  const bgClass = 'bg-[#F0F2F5]';
+  const bgClass = transparent ? 'bg-transparent' : 'bg-[#F0F2F5]';
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   const handleOpenCard = (project: Project) => {
@@ -713,7 +715,9 @@ export default function BubbleScene({
           selectedProject.thumbnails && selectedProject.thumbnails.length > 0
             ? selectedProject.thumbnails[0]
             : undefined,
-        topLabel: `CLIENT / ${selectedProject.clientName}`,
+        topLabel: selectedProject.clientName
+          ? `CLIENT / ${selectedProject.clientName}`
+          : null,
         bottomContent: (
           <ul className="space-y-3">
             {selectedProject.tags.map((tag, index) => (
@@ -726,6 +730,9 @@ export default function BubbleScene({
             ))}
           </ul>
         ),
+        // Pass color data
+        cardBgColor: selectedProject.card_bg_color,
+        cardFontColor: selectedProject.card_font_color,
       }
     : null;
 
@@ -739,11 +746,11 @@ export default function BubbleScene({
       />
       <Canvas
         camera={{ position: [0, 0, 20], fov: 50 }}
-        gl={{ antialias: true, toneMapping: THREE.NoToneMapping }}
+        gl={{ antialias: true, toneMapping: THREE.NoToneMapping, alpha: transparent }}
       >
         <ambientLight intensity={3} />
         <pointLight position={[10, 10, 10]} intensity={2} />
-        <color attach="background" args={['#F0F2F5']} />
+        {!transparent && <color attach="background" args={['#F0F2F5']} />}
         <Environment preset="studio" />
         <CameraAdjuster userInteractionRef={userInteractionRef} />
         <React.Suspense fallback={<Loader />}>

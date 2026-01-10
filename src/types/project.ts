@@ -20,7 +20,7 @@ export interface MediaRow {
 export interface Project {
   id: string;
   title: string;
-  clientName: string;
+  clientName?: string;
   description: string;
   tags: string[];
   bubble_thumbnail: string;
@@ -31,6 +31,8 @@ export interface Project {
   media_rows: MediaRow[];
   description_2?: string;
   projectType: 'work' | 'play';
+  card_bg_color?: string;
+  card_font_color?: string;
 }
 
 export interface SearchTag {

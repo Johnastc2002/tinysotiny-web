@@ -234,8 +234,12 @@ export default function GalleryPageClient({
       ? filteredProjects
       : [...initialFeaturedProjects, ...nonFeaturedProjects];
 
+  const isPlay = projectType === 'play';
+  const bgClass = isPlay ? 'bg-play-gradient' : 'bg-[#F0F2F5]';
+  const textClass = isPlay ? 'text-white' : 'text-[#0F2341]';
+
   return (
-    <div className="relative w-full min-h-screen bg-[#F0F2F5]">
+    <div className={`relative w-full min-h-screen ${bgClass}`}>
       {/* Toggle Button */}
       <div className="fixed right-4 md:right-8 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-2">
         <span className="text-[10px] font-medium tracking-widest text-gray-500 uppercase">
@@ -342,12 +346,15 @@ export default function GalleryPageClient({
             projects={initialFeaturedProjects}
             enableExplosion={enableExplosion}
             explosionDelay={explosionDelay}
+            transparent={isPlay}
           />
         </div>
 
         {/* Grid View (Always Mounted, Hidden via CSS) */}
         <div
-          className={`w-full h-screen fixed inset-0 overflow-y-auto bg-[#F0F2F5] transition-opacity duration-500 ${
+          className={`w-full h-screen fixed inset-0 overflow-y-auto transition-opacity duration-500 ${
+            isPlay ? 'bg-transparent' : 'bg-[#F0F2F5]'
+          } ${
             viewMode === 'grid'
               ? 'opacity-100 z-20'
               : 'opacity-0 z-0 pointer-events-none'
@@ -356,7 +363,7 @@ export default function GalleryPageClient({
           <div className="w-full min-h-full pt-24 px-4 md:px-12 pb-32">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-12 md:gap-x-8 md:gap-y-16 max-w-7xl mx-auto">
               {displayedProjects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
+                <ProjectCard key={project.id} project={project} textClass={textClass} />
               ))}
             </div>
 
@@ -376,12 +383,21 @@ export default function GalleryPageClient({
   );
 }
 
-function ProjectCard({ project }: { project: Project }) {
+function ProjectCard({
+  project,
+  textClass = 'text-[#0F2341]',
+}: {
+  project: Project;
+  textClass?: string;
+}) {
   // Use bubble_thumbnail or first thumbnail
   const imageUrl = project.thumbnails?.[0] || project.bubble_thumbnail;
 
   return (
-    <Link href={`/project/${project.id}`} className="block group">
+    <Link
+      href={`/project/${project.id}`}
+      className="block group transition-all duration-300"
+    >
       <div className="relative w-full aspect-square overflow-hidden bg-gray-200 mb-4 rounded-3xl">
         {imageUrl ? (
           <Image
@@ -397,8 +413,10 @@ function ProjectCard({ project }: { project: Project }) {
           </div>
         )}
       </div>
-      <div className="flex flex-col items-center text-center">
-        <h3 className="text-lg md:text-xl font-medium text-[#0F2341] group-hover:text-gray-400 transition-colors font-serif">
+      <div className="flex flex-col items-center text-center transition-all duration-300">
+        <h3
+          className={`text-lg md:text-xl font-medium ${textClass} group-hover:text-gray-400 transition-colors font-serif`}
+        >
           {project.title}
         </h3>
         {project.clientName && (

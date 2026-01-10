@@ -12,6 +12,8 @@ export interface DetailCardData {
   description: string;
   topLabel: React.ReactNode;
   bottomContent: React.ReactNode;
+  cardBgColor?: string;
+  cardFontColor?: string;
 }
 
 interface DetailCardProps {
@@ -29,6 +31,17 @@ export default function DetailCard({
 }: DetailCardProps) {
   const [isImageLoaded, setIsImageLoaded] = React.useState(false);
   const router = useRouter();
+
+  // Helper to ensure color has # if it's a hex code
+  const formatColor = (c?: string) => {
+    if (!c) return undefined;
+    const clean = c.trim();
+    if (/^[0-9A-Fa-f]{6}$/.test(clean)) return `#${clean}`;
+    return clean;
+  };
+
+  const bgColor = data ? formatColor(data.cardBgColor) : undefined;
+  const fontColor = data ? formatColor(data.cardFontColor) : undefined;
 
   // Reset loading state when data changes
   React.useEffect(() => {
@@ -92,16 +105,48 @@ export default function DetailCard({
             {/* Right Side - Content */}
             <div className="flex w-1/2 flex-col cursor-pointer hover:bg-gray-50 transition-colors">
               {/* Top Section - Description */}
-              <div className="flex-1 bg-[#E5E5E5] p-10 flex flex-col justify-center">
-                <div className="mb-4">
-                  <span className="text-sm font-semibold uppercase tracking-wider text-gray-500">
-                    {data.topLabel}
-                  </span>
-                </div>
-                <h2 className="mb-4 text-4xl font-serif text-gray-800 leading-tight">
+              <div
+                className="flex-1 p-10 flex flex-col justify-center transition-colors duration-300"
+                style={{
+                  backgroundColor: bgColor || '#E5E5E5',
+                }}
+              >
+                {data.topLabel && (
+                  <div className="mb-4">
+                    <span
+                      className={`text-sm font-semibold uppercase tracking-wider ${
+                        !fontColor ? 'text-gray-500' : ''
+                      }`}
+                      style={
+                        fontColor
+                          ? { color: fontColor, opacity: 0.7 }
+                          : {}
+                      }
+                    >
+                      {data.topLabel}
+                    </span>
+                  </div>
+                )}
+                <h2
+                  className={`mb-4 text-4xl font-serif leading-tight ${
+                    !fontColor ? 'text-gray-800' : ''
+                  }`}
+                  style={
+                    fontColor ? { color: fontColor } : {}
+                  }
+                >
                   {data.title}
                 </h2>
-                <p className="text-sm text-gray-600 leading-relaxed max-w-md">
+                <p
+                  className={`text-sm leading-relaxed max-w-md ${
+                    !fontColor ? 'text-gray-600' : ''
+                  }`}
+                  style={
+                    fontColor
+                      ? { color: fontColor, opacity: 0.9 }
+                      : {}
+                  }
+                >
                   {data.description}
                 </p>
               </div>

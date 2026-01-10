@@ -1,6 +1,12 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  ReactNode,
+} from 'react';
 
 interface VideoContextType {
   activeVideoId: string | null;
@@ -26,7 +32,9 @@ export const VideoProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <VideoContext.Provider value={{ activeVideoId, registerVideo, playVideo, pauseVideo }}>
+    <VideoContext.Provider
+      value={{ activeVideoId, registerVideo, playVideo, pauseVideo }}
+    >
       {children}
     </VideoContext.Provider>
   );
@@ -39,5 +47,3 @@ export const useVideoContext = () => {
   }
   return context;
 };
-
-

@@ -146,6 +146,10 @@ const mapProject = (entry: any): Project => {
       })
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .filter((row: any) => row !== null),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    card_bg_color: String(fields.card_bg_color || fields['card_bg_color'] || fields.cardBgColor || fields.card_background_color || fields.cardBackgroundColor || ''),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    card_font_color: String(fields.card_font_color || fields['card_font_color'] || fields.cardFontColor || fields.card_text_color || fields.cardTextColor || ''),
     description_2: String(fields.description_2 || fields.description2 || ''),
     projectType: (fields.projectType as ProjectType) || 'work',
   };

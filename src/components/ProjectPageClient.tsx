@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useRef } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Project } from '@/types/project';
@@ -50,6 +49,17 @@ export default function ProjectPageClient({
     [0, 1],
     ['0%', `-${(numSlides - 1) * 100}%`]
   );
+
+  // Helper to ensure color has # if it's a hex code
+  const formatColor = (c?: string) => {
+    if (!c) return undefined;
+    const clean = c.trim();
+    if (/^[0-9A-Fa-f]{6}$/.test(clean)) return `#${clean}`;
+    return clean;
+  };
+
+  const cardBgColor = formatColor(project.card_bg_color);
+  const cardFontColor = formatColor(project.card_font_color);
 
   return (
     <div className="bg-white">
@@ -109,16 +119,52 @@ export default function ProjectPageClient({
                     {/* Right Side - Content */}
                     <div className="flex w-2/5 flex-col bg-white">
                       {/* Top Section - Description */}
-                      <div className="flex-1 bg-[#E5E5E5] p-10 flex flex-col justify-center">
-                        <div className="mb-4">
-                          <span className="text-sm font-semibold uppercase tracking-wider text-gray-500">
-                            CLIENT / {project.clientName}
-                          </span>
-                        </div>
-                        <h2 className="mb-4 text-4xl font-serif text-gray-800 leading-tight">
+                      <div
+                        className="flex-1 p-10 flex flex-col justify-center transition-colors duration-300"
+                        style={{
+                          backgroundColor: cardBgColor || '#E5E5E5',
+                        }}
+                      >
+                        {project.clientName && (
+                          <div className="mb-4">
+                            <span
+                              className={`text-sm font-semibold uppercase tracking-wider ${
+                                !cardFontColor ? 'text-gray-500' : ''
+                              }`}
+                              style={
+                                cardFontColor
+                                  ? {
+                                      color: cardFontColor,
+                                      opacity: 0.7,
+                                    }
+                                  : {}
+                              }
+                            >
+                              CLIENT / {project.clientName}
+                            </span>
+                          </div>
+                        )}
+                        <h2
+                          className={`mb-4 text-4xl font-serif leading-tight ${
+                            !cardFontColor ? 'text-gray-800' : ''
+                          }`}
+                          style={cardFontColor ? { color: cardFontColor } : {}}
+                        >
                           {project.title}
                         </h2>
-                        <p className="text-sm text-gray-600 leading-relaxed max-w-md">
+                        <p
+                          className={`text-sm leading-relaxed max-w-md ${
+                            !cardFontColor ? 'text-gray-600' : ''
+                          }`}
+                          style={
+                            cardFontColor
+                              ? {
+                                  color: cardFontColor,
+                                  opacity: 0.9,
+                                }
+                              : {}
+                          }
+                        >
                           {project.description}
                         </p>
                       </div>
@@ -155,11 +201,13 @@ export default function ProjectPageClient({
           <div className="bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] overflow-hidden">
             {/* 1. Info Block (Title, Description, Tags) */}
             <div className="px-8 pt-10 pb-10">
-              <div className="mb-4">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  CLIENT / {project.clientName}
-                </span>
-              </div>
+              {project.clientName && (
+                <div className="mb-4">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    CLIENT / {project.clientName}
+                  </span>
+                </div>
+              )}
               <h1 className="text-4xl font-serif text-gray-900 leading-tight mb-6">
                 {project.title}
               </h1>
@@ -239,11 +287,13 @@ export default function ProjectPageClient({
                 transition={{ duration: 0.8, ease: 'easeOut' }}
                 viewport={{ once: true }}
               >
-                <div className="mb-6">
-                  <span className="text-sm font-semibold uppercase tracking-wider text-gray-500">
-                    CLIENT / {project.clientName}
-                  </span>
-                </div>
+                {project.clientName && (
+                  <div className="mb-6">
+                    <span className="text-sm font-semibold uppercase tracking-wider text-gray-500">
+                      CLIENT / {project.clientName}
+                    </span>
+                  </div>
+                )}
                 <h1 className="text-5xl md:text-7xl font-serif text-gray-900 leading-tight mb-8">
                   {project.title}
                 </h1>
