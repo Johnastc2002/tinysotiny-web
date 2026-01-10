@@ -132,7 +132,7 @@ export default function GalleryPageClient({
       // The logic above handles page=1 specially.
       fetchProjects();
     }
-  }, [appliedTags, page]); // Only fetch when appliedTags change (reset) or page changes (scroll)
+  }, [appliedTags, page, projectType]); // Only fetch when appliedTags change (reset) or page changes (scroll)
 
   // Note: The above useEffect has a flaw: `setPage` inside it might cause loop if not careful.
   // Actually, for "load more", we increment page in the observer, which triggers this effect.
@@ -172,7 +172,7 @@ export default function GalleryPageClient({
       setHasMore(true);
       setPage(2); // Reset for non-featured pagination
     }
-  }, [appliedTags]);
+  }, [appliedTags, projectType]);
 
   // Infinite Scroll Observer
   useEffect(() => {
@@ -235,7 +235,7 @@ export default function GalleryPageClient({
         observer.unobserve(currentTarget);
       }
     };
-  }, [hasMore, loading, page, viewMode, appliedTags]);
+  }, [hasMore, loading, page, viewMode, appliedTags, projectType]);
 
   const displayedProjects =
     filteredProjects !== null
@@ -249,7 +249,10 @@ export default function GalleryPageClient({
   return (
     <div className={`relative w-full min-h-screen ${bgClass}`}>
       {/* Toggle Button */}
-      <div className="fixed right-4 md:right-8 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-2">
+      <div
+        className="fixed top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-2"
+        style={{ right: '1.75rem' }}
+      >
         <span className="text-[10px] font-medium tracking-widest text-gray-500 uppercase">
           DOT
         </span>
@@ -302,7 +305,7 @@ export default function GalleryPageClient({
       {/* Filter Overlay */}
       <AnimatePresence>
         {isFilterOpen && gridFilter && (
-            <motion.div
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -320,9 +323,15 @@ export default function GalleryPageClient({
                 return (
                   <motion.button
                     key={tag.id}
-                    initial={isIOS ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
+                    initial={
+                      isIOS
+                        ? { opacity: 1, scale: 1 }
+                        : { opacity: 0, scale: 0.9 }
+                    }
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={isIOS ? { duration: 0 } : { delay: 0.03 * index }}
+                    transition={
+                      isIOS ? { duration: 0 } : { delay: 0.03 * index }
+                    }
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleTag(tag.tag_id);
@@ -373,7 +382,11 @@ export default function GalleryPageClient({
           <div className="w-full min-h-full pt-24 px-4 md:px-12 pb-32">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-12 md:gap-x-8 md:gap-y-16 max-w-7xl mx-auto">
               {displayedProjects.map((project) => (
-                <ProjectCard key={project.id} project={project} textClass={textClass} />
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  textClass={textClass}
+                />
               ))}
             </div>
 

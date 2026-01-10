@@ -12,7 +12,7 @@ interface NavigationProps {
 export default function Navigation({ contact }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-  const isDarkPage = false; // All pages currently use black text for menu except potential future dark pages
+  const isDarkPage = pathname === '/play';
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -21,15 +21,23 @@ export default function Navigation({ contact }: NavigationProps) {
       {/* Glass Hamburger Button */}
       <button
         onClick={toggleMenu}
-        className={`fixed top-8 right-8 z-50 flex h-20 w-20 items-center justify-center rounded-full border border-white/40 bg-white/10 backdrop-blur-xl transition-all hover:bg-white/20 shadow-lg ${
+        style={{ top: '3rem', right: '1.5rem', height: '3rem', width: '3rem' }}
+        className={`fixed z-50 flex items-center justify-center rounded-full border border-white/40 bg-white/10 backdrop-blur-xl transition-all hover:bg-white/20 shadow-lg ${
           isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
         aria-label="Open Menu"
       >
-        <div className="flex flex-col gap-[6px]">
-          <span className={`h-0.5 w-8 rounded-full transition-colors ${isDarkPage ? 'bg-white' : 'bg-black'}`} />
-          <span className={`h-0.5 w-8 rounded-full transition-colors ${isDarkPage ? 'bg-white' : 'bg-black'}`} />
-          <span className={`h-0.5 w-8 rounded-full transition-colors ${isDarkPage ? 'bg-white' : 'bg-black'}`} />
+        <div className="flex flex-col" style={{ gap: '4px' }}>
+          <span
+            className={`h-0.5 w-5 rounded-full transition-colors ${
+              isDarkPage ? 'bg-white' : 'bg-black'
+            }`}
+          />
+          <span
+            className={`h-0.5 w-5 rounded-full transition-colors ${
+              isDarkPage ? 'bg-white' : 'bg-black'
+            }`}
+          />
         </div>
       </button>
 
@@ -40,34 +48,37 @@ export default function Navigation({ contact }: NavigationProps) {
         } w-full md:w-[40%] md:max-w-xl flex flex-col`}
       >
         {/* Close Button */}
-        <div className="flex justify-end p-8">
+        <div
+          className="flex justify-end pb-8 pl-8"
+          style={{ paddingTop: '3.5rem', paddingRight: '1rem' }}
+        >
           <button
             onClick={toggleMenu}
             className="flex h-16 w-16 items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
             aria-label="Close Menu"
           >
-             <svg
-                width="32"
-                height="32"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M18 6L6 18"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M6 6L18 18"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 6L6 18"
+                stroke="black"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M6 6L18 18"
+                stroke="black"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </button>
         </div>
 
@@ -77,7 +88,9 @@ export default function Navigation({ contact }: NavigationProps) {
             {['HOME', 'ABOUT', 'CLIENT', 'DAILY'].map((item) => (
               <Link
                 key={item}
-                href={`/${item.toLowerCase() === 'home' ? '' : item.toLowerCase()}`}
+                href={`/${
+                  item.toLowerCase() === 'home' ? '' : item.toLowerCase()
+                }`}
                 className="text-4xl font-bold tracking-wider text-black transition-colors hover:text-gray-500 md:text-5xl"
                 onClick={toggleMenu}
               >
@@ -111,10 +124,10 @@ export default function Navigation({ contact }: NavigationProps) {
           </Link>
         </div>
       </div>
-      
+
       {/* Backdrop for mobile/desktop to close when clicking outside */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm transition-opacity"
           onClick={toggleMenu}
         />
