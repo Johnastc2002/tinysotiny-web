@@ -480,8 +480,8 @@ const ImageBubble = ({
         lockY={false}
         lockZ={false}
       >
+        {/* Interaction Mesh - exact size */}
         <mesh
-          ref={meshRef}
           onClick={onClick}
           onPointerOver={() => {
             setHovered(true);
@@ -492,6 +492,11 @@ const ImageBubble = ({
             onPointerOut();
           }}
         >
+          <circleGeometry args={[scale, 32]} />
+          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+        </mesh>
+
+        <mesh ref={meshRef} raycast={() => null}>
           {/* Scale geometry to allow for outside feathering */}
           <circleGeometry args={[scale * PADDING_SCALE, 128]} />
           <meshBasicMaterial
@@ -775,12 +780,17 @@ const ColorBubble = ({
         lockY={false}
         lockZ={false}
       >
+        {/* Interaction Mesh */}
         <mesh
-          ref={meshRef}
           onClick={onClick}
           onPointerOver={onPointerOver}
           onPointerOut={onPointerOut}
         >
+          <circleGeometry args={[scale, 32]} />
+          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+        </mesh>
+
+        <mesh ref={meshRef} raycast={() => null}>
           {/* Use padded geometry if blur is enabled to allow feathering space */}
           <circleGeometry
             args={[scale * (enableBlur ? PADDING_SCALE : 1.0), 128]}

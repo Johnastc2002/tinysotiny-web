@@ -2,6 +2,7 @@
 
 import {
   getDailyEntries,
+  getDailyEntryById,
   getNonFeaturedProjects,
   getProjectsByTags,
   getProjectById,
