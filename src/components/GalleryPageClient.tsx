@@ -786,14 +786,6 @@ export default function GalleryPageClient(props: GalleryPageClientProps) {
   );
 }
 
-export default function GalleryPageClient(props: GalleryPageClientProps) {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <GalleryPageContent {...props} />
-    </Suspense>
-  );
-}
-
 function ProjectCard({ project }: { project: Project }) {
   // Use bubble_thumbnail or first thumbnail
   const imageUrl = project.thumbnails?.[0] || project.bubble_thumbnail;
