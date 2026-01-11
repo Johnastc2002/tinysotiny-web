@@ -8,13 +8,18 @@ import SmartMedia from '@/components/SmartMedia';
 
 interface HorizontalScrollProps {
   daily: DailyData;
+  scrollContainerRef?: React.RefObject<HTMLElement>;
 }
 
-export default function HorizontalScroll({ daily }: HorizontalScrollProps) {
+export default function HorizontalScroll({
+  daily,
+  scrollContainerRef,
+}: HorizontalScrollProps) {
   const targetRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: targetRef,
+    container: scrollContainerRef,
     offset: ['start start', 'end end'],
   });
 
@@ -220,7 +225,7 @@ export default function HorizontalScroll({ daily }: HorizontalScrollProps) {
         <div className="sticky top-0 left-0 w-full h-screen overflow-hidden bg-[#fcfcfc] z-0">
           <motion.div
             ref={containerRef}
-            style={{ x }}
+            style={{ x, willChange: 'transform' }}
             className="flex h-full w-[max-content]"
           >
             {/* Section 1: Hero (Navy) */}

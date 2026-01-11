@@ -13,6 +13,10 @@ export async function getDailyEntriesAction(page: number) {
   return await getDailyEntries(page, 10);
 }
 
+export async function getDailyEntryByIdAction(id: string) {
+  return await getDailyEntryById(id);
+}
+
 export async function getMoreNonFeaturedProjects(
   page: number,
   type: ProjectType

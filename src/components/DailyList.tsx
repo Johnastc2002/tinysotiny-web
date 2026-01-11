@@ -7,22 +7,87 @@ import React, {
   useTransition,
   useCallback,
 } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { DailyData } from '@/types/daily';
-import { getDailyEntriesAction } from '@/app/actions';
+import { getDailyEntriesAction, getDailyEntryByIdAction } from '@/app/actions';
 import Image from 'next/image';
-import Link from 'next/link';
 import LoadingSpinner from './LoadingSpinner';
+import HorizontalScroll from '@/components/HorizontalScroll';
 
 interface DailyListProps {
   initialItems: DailyData[];
 }
 
 export default function DailyList({ initialItems }: DailyListProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [items, setItems] = useState<DailyData[]>(initialItems);
   const [page, setPage] = useState(2); // Start from page 2 since page 1 is passed as initialItems
   const [hasMore, setHasMore] = useState(true);
   const [isPending, startTransition] = useTransition();
   const loaderRef = useRef<HTMLDivElement>(null);
+
+  // Overlay state
+  const [selectedDaily, setSelectedDaily] = useState<DailyData | null>(null);
+  const [overlayContainer, setOverlayContainer] = useState<HTMLElement | null>(
+    null
+  );
+
+  // Handle URL param for daily detail
+  useEffect(() => {
+    const dailyId = searchParams.get('daily');
+    if (dailyId) {
+      // Check if we already have it in items
+      const existing = items.find((i) => i.id === dailyId);
+      if (existing) {
+        setSelectedDaily(existing);
+      }
+
+      // Always fetch to ensure we have latest/full data especially if fields were omitted in list
+      const fetchDaily = async () => {
+        try {
+          const daily = await getDailyEntryByIdAction(dailyId);
+          if (daily) {
+            setSelectedDaily(daily);
+            document.body.style.overflow = 'hidden';
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      };
+      fetchDaily();
+    } else {
+      setSelectedDaily(null);
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [searchParams, items]);
+
+  // Scroll reset for overlay
+  useEffect(() => {
+    if (overlayContainer) {
+      overlayContainer.scrollTo(0, 0);
+    }
+  }, [selectedDaily, overlayContainer]);
+
+  const updateUrlWithDaily = (dailyId: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('daily', dailyId);
+    // Push to history so back button works
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleClose = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('daily');
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
 
   const loadMore = useCallback(() => {
     startTransition(async () => {
@@ -66,11 +131,54 @@ export default function DailyList({ initialItems }: DailyListProps) {
 
   return (
     <>
+      <AnimatePresence mode="wait">
+        {selectedDaily && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-50 bg-white overflow-y-auto"
+            ref={setOverlayContainer}
+            style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
+          >
+            {/* Close Button */}
+            <button
+              onClick={handleClose}
+              className="fixed top-4 right-4 z-60 p-2 bg-white/50 backdrop-blur-md rounded-full shadow-md hover:bg-white transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+
+            {overlayContainer && (
+              <HorizontalScroll
+                key={selectedDaily.id}
+                daily={selectedDaily}
+                scrollContainerRef={{ current: overlayContainer }}
+              />
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="w-full max-w-2xl flex flex-col gap-16 md:gap-24 pb-20">
         {items.map((item) => (
-          <Link
-            href={`/daily/${item.id}`}
+          <div
             key={item.id}
+            onClick={() => updateUrlWithDaily(item.id)}
             className="flex flex-col items-center gap-3 cursor-pointer group"
           >
             {/* Image Container */}
@@ -101,7 +209,7 @@ export default function DailyList({ initialItems }: DailyListProps) {
                 {item.title}
               </h2>
             </div>
-          </Link>
+          </div>
         ))}
 
         {/* Loading Indicator */}
