@@ -264,13 +264,12 @@ function GalleryPageContent({
   };
 
   const updateUrlWithProject = (projectId: string) => {
-    setSelectedProject(null); // Close preview card
+    // Keep preview card open (don't set null)
     const params = new URLSearchParams(searchParams.toString());
-    // Remove card param if exists
-    if (params.has('card')) params.delete('card');
+    // Keep card param if exists (don't delete)
 
     params.set('project', projectId);
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   // Update URL when opening DetailCard (Bubble Click)
