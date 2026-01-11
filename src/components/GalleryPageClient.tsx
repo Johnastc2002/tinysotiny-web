@@ -673,11 +673,12 @@ function GalleryPageContent({
             <motion.div
               initial={isIOS ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={isIOS ? { duration: 0 } : { delay: 0.1 }}
+              transition={isIOS ? { duration: 0 } : { delay: 0.3 }}
               className="max-w-5xl w-full flex flex-wrap justify-center gap-3 md:gap-4 max-h-[60vh] overflow-y-auto pt-0 pb-4 md:pt-0"
             >
               {gridFilter.filters.map((tag, index) => {
                 const isSelected = selectedTags.includes(tag.tag_id);
+
                 return (
                   <motion.button
                     key={tag.id}
@@ -694,10 +695,10 @@ function GalleryPageContent({
                       e.stopPropagation();
                       toggleTag(tag.tag_id);
                     }}
-                    className={`px-6 py-2.5 rounded-full transition-all text-xs md:text-sm uppercase tracking-wide font-medium shadow-sm ${
+                    className={`px-6 py-2.5 rounded-full transition-colors duration-200 text-xs md:text-sm uppercase tracking-wide font-medium text-white ${
                       isSelected
-                        ? 'bg-[#0F2341]/80 text-white'
-                        : 'bg-white/80 backdrop-blur-sm text-gray-600 hover:text-[#0F2341] hover:bg-white'
+                        ? 'bg-[#0F2341]/80'
+                        : 'bg-[#B6B6B6]/60 hover:bg-[#B6B6B6]/80'
                     }`}
                   >
                     {tag.display_name}
