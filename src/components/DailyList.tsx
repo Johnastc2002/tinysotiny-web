@@ -37,10 +37,16 @@ function DailyListContent({ initialItems }: DailyListProps) {
     null
   );
 
+  // Track if close was triggered manually to enable exit animation
+  const isManualClose = useRef(false);
+
   // Handle URL param for daily detail
   useEffect(() => {
     const dailyId = searchParams.get('daily');
     if (dailyId) {
+      // Reset manual close ref when opening a daily entry
+      isManualClose.current = false;
+
       // Check if we already have it in items
       const existing = items.find((i) => i.id === dailyId);
       if (existing) {
@@ -90,6 +96,7 @@ function DailyListContent({ initialItems }: DailyListProps) {
   };
 
   const handleClose = () => {
+    isManualClose.current = true;
     const params = new URLSearchParams(searchParams.toString());
     params.delete('daily');
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
@@ -138,11 +145,16 @@ function DailyListContent({ initialItems }: DailyListProps) {
   return (
     <>
       <AnimatePresence mode="wait">
-        {selectedDaily && (
+        {selectedDaily && searchParams.get('daily') && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            exit={
+              // eslint-disable-next-line
+              isManualClose.current
+                ? { opacity: 0 }
+                : { opacity: 0, transition: { duration: 0 } }
+            }
             transition={{ duration: 0.3 }}
             className="fixed inset-0 z-50 bg-white overflow-y-auto"
             ref={setOverlayContainer}
