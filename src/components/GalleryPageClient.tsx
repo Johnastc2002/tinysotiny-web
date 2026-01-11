@@ -580,7 +580,7 @@ function GalleryPageContent({
               type: 'spring',
               stiffness: 400,
               damping: 25,
-              }}
+            }}
           />
         </button>
 

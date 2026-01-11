@@ -4,7 +4,6 @@ import {
   getGridFilter,
 } from '@/lib/contentful';
 import GalleryPageClient from '@/components/GalleryPageClient';
-import { Suspense } from 'react';
 
 export const revalidate = 60; // Revalidate every 60 seconds
 
@@ -15,16 +14,14 @@ export default async function Work() {
 
   return (
     <main className="w-full min-h-screen">
-      <Suspense fallback={<div>Loading...</div>}>
-        <GalleryPageClient
-          initialFeaturedProjects={featuredProjects}
-          initialNonFeaturedProjects={nonFeaturedProjects}
-          gridFilter={gridFilter}
-          projectType="work"
-          enableExplosion={false}
-          explosionDelay={0}
-        />
-      </Suspense>
+      <GalleryPageClient
+        initialFeaturedProjects={featuredProjects}
+        initialNonFeaturedProjects={nonFeaturedProjects}
+        gridFilter={gridFilter}
+        projectType="work"
+        enableExplosion={false}
+        explosionDelay={0}
+      />
     </main>
   );
 }
