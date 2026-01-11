@@ -75,6 +75,8 @@ function GalleryPageContent({
   const [isBubblePaused, setIsBubblePaused] = useState(false);
 
   useEffect(() => {
+    // Pause bubbles ONLY if full project overlay is open
+    // Allow bubbles to keep moving when Detail Card (selectedProject) is open
     if (fullProject) {
       // Delay pause to ensure any layout shifts (scrollbars) are handled by a few frames
       // Matches transition duration (300ms) + buffer

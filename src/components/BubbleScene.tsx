@@ -2,7 +2,13 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Canvas, useThree, useFrame, ThreeEvent } from '@react-three/fiber';
+import {
+  Canvas,
+  useThree,
+  useFrame,
+  ThreeEvent,
+  invalidate,
+} from '@react-three/fiber';
 import {
   OrbitControls,
   Billboard,
@@ -1083,6 +1089,12 @@ export default function BubbleScene({
 
   const bgClass = transparent ? 'bg-transparent' : 'bg-[#F0F2F5]';
   const userInteractionRef = useRef(false);
+
+  useEffect(() => {
+    if (!paused) {
+      invalidate();
+    }
+  }, [paused]);
 
   return (
     <div className={`w-full h-screen ${bgClass}`}>
