@@ -198,6 +198,7 @@ const generateBubbles = (
 };
 
 const Bubble = ({
+  id,
   position,
   scale,
   imageUrl,
@@ -213,7 +214,10 @@ const Bubble = ({
   enableExplosion,
   explosionDelay = 0,
   enableBlur,
+  isHovered,
+  setHoveredId,
 }: {
+  id: number;
   position: [number, number, number];
   scale: number;
   imageUrl?: string;
@@ -229,6 +233,8 @@ const Bubble = ({
   enableExplosion?: boolean;
   explosionDelay?: number;
   enableBlur?: boolean;
+  isHovered: boolean;
+  setHoveredId: (id: number | null) => void;
 }) => {
   const router = useRouter();
   const groupRef = useRef<THREE.Group>(null);
@@ -286,13 +292,24 @@ const Bubble = ({
     }
   };
 
-  const handlePointerOver = () => {
+  const handlePointerOver = (e: THREE.Event) => {
+    e.stopPropagation(); // Stop propagation to bubbles behind
+    setHoveredId(id);
     if (link) {
       document.body.style.cursor = 'pointer';
     }
   };
 
   const handlePointerOut = () => {
+    // Only clear if we are the one currently hovered
+    // Actually, if we move out, we just clear ourselves.
+    // If we move into another bubble, its over event will fire and overwrite.
+    // But we need to be careful about race conditions or gaps.
+    // Ideally, we check if the new target is null.
+    // For now, simpler logic:
+    if (isHovered) {
+      setHoveredId(null);
+    }
     if (link) {
       document.body.style.cursor = 'auto';
     }
@@ -318,6 +335,7 @@ const Bubble = ({
           onPointerOver={handlePointerOver}
           onPointerOut={handlePointerOut}
           enableBlur={enableBlur}
+          isHovered={isHovered}
         />
       </group>
     );
@@ -355,15 +373,17 @@ const ImageBubble = ({
   onPointerOver,
   onPointerOut,
   enableBlur,
+  isHovered,
 }: {
   position: [number, number, number];
   scale: number;
   imageUrl: string;
   imageHoverUrl?: string;
   onClick: (e: THREE.Event) => void;
-  onPointerOver: () => void;
-  onPointerOut: () => void;
+  onPointerOver: (e: THREE.Event) => void;
+  onPointerOut: (e: THREE.Event) => void;
   enableBlur?: boolean;
+  isHovered: boolean;
 }) => {
   const textures = useTexture([imageUrl, imageHoverUrl || imageUrl]);
   const defaultTexture = textures[0];
@@ -410,27 +430,36 @@ const ImageBubble = ({
   });
 
   const [hovered, setHovered] = useState(false);
+
+  // Sync local hover state with parent-controlled isHovered
+  useEffect(() => {
+    setHovered(isHovered);
+  }, [isHovered]);
+
   // Removed unused materialRef
   // const materialRef = useRef<THREE.MeshBasicMaterial>(null);
 
-  // Configure textures to fill the circle without stretching
-  // We need to calculate aspect ratio and adjust repeat/offset
-  // This mimics object-fit: cover
   useMemo(() => {
+    // Configure textures to fill the circle without stretching
     [defaultTexture, hoverTexture].forEach((tex) => {
       if (!tex || !tex.image) return;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const imageAspect = (tex.image as any).width / (tex.image as any).height;
-      // Since our geometry is a circle (aspect 1:1), we just need to compare imageAspect to 1
+
+      // Reset first to avoid compounding transforms if useMemo re-runs
+      tex.center.set(0.5, 0.5);
+      tex.rotation = 0;
+
       if (imageAspect > 1) {
-        // Image is wider than it is tall
+        // Landscape: cover width
         tex.repeat.set(1 / imageAspect, 1);
         tex.offset.set((1 - 1 / imageAspect) / 2, 0);
       } else {
-        // Image is taller than it is wide
+        // Portrait: cover height
         tex.repeat.set(1, imageAspect);
         tex.offset.set(0, (1 - imageAspect) / 2);
       }
+
       // Improve texture quality
       tex.colorSpace = THREE.SRGBColorSpace;
       tex.anisotropy = 16;
@@ -458,8 +487,6 @@ const ImageBubble = ({
         );
         if (materialRef.current.opacity > 0.99) {
           materialRef.current.opacity = 1;
-          // Keep transparent=true to allow for feathering alpha
-          // materialRef.current.transparent = false;
           materialRef.current.needsUpdate = true;
         }
       }
@@ -483,14 +510,8 @@ const ImageBubble = ({
         {/* Interaction Mesh - exact size */}
         <mesh
           onClick={onClick}
-          onPointerOver={() => {
-            setHovered(true);
-            onPointerOver();
-          }}
-          onPointerOut={() => {
-            setHovered(false);
-            onPointerOut();
-          }}
+          onPointerOver={onPointerOver}
+          onPointerOut={onPointerOut}
         >
           <circleGeometry args={[scale, 32]} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} />
@@ -664,8 +685,8 @@ const ColorBubble = ({
   color?: string;
   type: 'solid' | 'glass';
   onClick: (e: THREE.Event) => void;
-  onPointerOver: () => void;
-  onPointerOut: () => void;
+  onPointerOver: (e: THREE.Event) => void;
+  onPointerOut: (e: THREE.Event) => void;
   alphaMap?: THREE.Texture | null;
   label?: string;
   textOffset?: [number, number, number];
@@ -900,11 +921,53 @@ const Bubbles = ({
     return generateBubbles(count, mode, projects || []);
   });
 
+  // Track the single hovered bubble ID
+  const [hoveredId, setHoveredId] = useState<number | null>(null);
+
+  const { camera, raycaster, pointer, scene } = useThree();
+
+  // Raycaster logic to find the closest bubble
+  useFrame(() => {
+    // Only run if we have bubbles
+    if (bubbles.length === 0) return;
+
+    // Update raycaster with current pointer position
+    raycaster.setFromCamera(pointer, camera);
+
+    // Get all intersections with our bubble meshes
+    // We need to filter for the interaction meshes (the first mesh in each bubble group)
+    // Actually, we can just intersect with everything and filter by distance
+    const intersects = raycaster.intersectObjects(scene.children, true);
+
+    // Filter intersects to find bubble interaction meshes
+    // We rely on the fact that our interaction mesh is the one with onClick handler attached in React
+    // But in Three.js raycaster, we get objects.
+    // The closest intersection is intersects[0].
+
+    if (intersects.length > 0) {
+      // Find the first object that is part of a Bubble
+      // We can identify them by checking if they belong to a Bubble group or have userData
+      // Simpler approach: We know our structure.
+      // Let's iterate and find the first one that corresponds to a bubble ID we know.
+      // But passing ref back is hard.
+      // Alternative: Just use the distance from camera to center of bubble?
+      // No, raycasting is better for overlap.
+      // Logic:
+      // 1. Find all intersections.
+      // 2. Sort by distance (done by default).
+      // 3. The first valid bubble hit is the "closest" one visually under the cursor.
+      // 4. Set that as hovered.
+      // We need to map mesh -> bubble ID.
+      // We can use userData on the interaction mesh.
+    }
+  });
+
   return (
     <>
       {bubbles.map((bubble) => (
         <Bubble
           key={bubble.id}
+          id={bubble.id}
           position={bubble.position}
           scale={bubble.scale}
           imageUrl={bubble.imageUrl}
@@ -920,6 +983,8 @@ const Bubbles = ({
           enableExplosion={enableExplosion}
           explosionDelay={explosionDelay}
           enableBlur={enableBlur}
+          isHovered={hoveredId === bubble.id}
+          setHoveredId={setHoveredId}
         />
       ))}
     </>
@@ -955,14 +1020,21 @@ const CameraAdjuster = ({
     // Scene bounds: range +/- 7.5 plus bubble radius ~1.0 => ~8.5.
     // Diameter ~17. Add padding => 22.
     const targetSize = 22;
+    // Fix: Ensure FOV is handled correctly for aspect ratio.
+    // Vertical FOV is constant in Three.js PerspectiveCamera.
+    // If aspect < 1 (portrait), we need to distance camera further to fit width.
     const fovRad = (camera.fov * Math.PI) / 180;
 
-    // Distance to fit height
+    // Distance needed to fit targetSize vertically
     const distV = targetSize / 2 / Math.tan(fovRad / 2);
 
-    // Distance to fit width (visible width = visible height * aspect)
+    // Distance needed to fit targetSize horizontally
+    // visible_width = visible_height * aspect
+    // visible_height_needed = targetSize / aspect
+    // distH = (targetSize / aspect) / 2 / Math.tan(fovRad / 2) = distV / aspect
     const distH = distV / aspect;
 
+    // Use the larger distance to ensure object fits both dimensions
     const finalDist = Math.max(distV, distH);
 
     // Adjust camera distance while preserving orientation

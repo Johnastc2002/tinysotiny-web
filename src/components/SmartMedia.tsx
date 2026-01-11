@@ -624,7 +624,7 @@ export default function SmartMedia({
           <>
             {(videoActivated || (shouldLoad && type === 'vimeo')) && (
               <div
-                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${activeClassName.replace(
+                className={`absolute inset-0 transition-opacity duration-[1500ms] ease-in-out ${activeClassName.replace(
                   'hover:',
                   'group-hover:'
                 )} ${
@@ -949,7 +949,7 @@ export default function SmartMedia({
             )}
 
             <div
-              className={`absolute inset-0 bg-gray-200 transition-opacity duration-700 ease-in-out pointer-events-none ${
+              className={`absolute inset-0 bg-gray-200 transition-opacity duration-[1500ms] ease-in-out pointer-events-none ${
                 isLoaded || thumbnailUrl ? 'opacity-0' : 'opacity-100'
               }`}
             />
@@ -972,7 +972,7 @@ export default function SmartMedia({
         <video
           ref={videoRef}
           src={videoSrc}
-          className={`w-full h-full object-cover transition-opacity duration-700 ease-in-out ${activeClassName.replace(
+          className={`w-full h-full object-cover transition-opacity duration-[1500ms] ease-in-out ${activeClassName.replace(
             'hover:',
             'group-hover:'
           )} ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
@@ -1040,7 +1040,7 @@ export default function SmartMedia({
         </div>
 
         <div
-          className={`absolute inset-0 bg-gray-200 transition-opacity duration-700 ease-in-out pointer-events-none ${
+          className={`absolute inset-0 bg-gray-200 transition-opacity duration-[1500ms] ease-in-out pointer-events-none ${
             isLoaded ? 'opacity-0' : 'opacity-100'
           }`}
         />
@@ -1058,7 +1058,7 @@ export default function SmartMedia({
         fill={fill}
         width={!fill ? width : undefined}
         height={!fill ? height : undefined}
-        className={`transition-opacity duration-700 ease-in-out ${
+        className={`transition-opacity duration-[1500ms] ease-in-out ${
           isLoaded ? 'opacity-100' : 'opacity-0'
         } object-cover`}
         onLoad={setLoaded}
