@@ -103,7 +103,6 @@ function GalleryPageContent({
     // Restore state from URL
     const view = searchParams.get('view');
     const tags = searchParams.get('tags');
-    const cardId = searchParams.get('card');
     // project (full detail) is handled in separate effect
 
     if (view === 'grid') {
@@ -117,29 +116,39 @@ function GalleryPageContent({
     }
 
     // Restore DetailCard state
-    if (cardId) {
-      // We need to find the project to show in card
-      const allProjects = [
-        ...initialFeaturedProjects,
-        ...initialNonFeaturedProjects,
-      ];
-      const proj = allProjects.find((p) => p.id === cardId);
-      if (proj) {
-        setSelectedProject(proj);
-      }
-    }
+    // Note: DetailCard state is now fully synced with URL in a separate effect below
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once on mount to restore state
 
-  // Close DetailCard if URL param 'card' is removed (e.g., Back button navigation)
+  // Sync DetailCard state with URL (Open and Close)
   useEffect(() => {
-    if (!searchParams.has('card') && selectedProject) {
-      setSelectedProject(null);
+    const cardId = searchParams.get('card');
+
+    if (cardId) {
+      // If URL has card param but state doesn't match, open it
+      if (selectedProject?.id !== cardId) {
+        const allProjects = [
+          ...initialFeaturedProjects,
+          ...nonFeaturedProjects,
+        ];
+        const proj = allProjects.find((p) => p.id === cardId);
+        if (proj) {
+          setSelectedProject(proj);
+        }
+      }
+    } else {
+      // If URL doesn't have card param but state is open, close it
+      if (selectedProject) {
+        setSelectedProject(null);
+      }
     }
-    // Note: We don't auto-open from URL in this effect to avoid conflicts.
-    // Initial restoration is handled in the mount useEffect.
-  }, [searchParams, selectedProject]);
+  }, [
+    searchParams,
+    selectedProject,
+    initialFeaturedProjects,
+    nonFeaturedProjects,
+  ]);
 
   // Handle Project URL Param (Full Detail)
   useEffect(() => {
@@ -274,7 +283,8 @@ function GalleryPageContent({
 
   // Update URL when opening DetailCard (Bubble Click)
   const handleOpenCard = (project: Project) => {
-    setSelectedProject(project);
+    // We only update the URL. The useEffect above will handle setting the state.
+    // This prevents race conditions where state is set but URL param hasn't propagated yet.
     const params = new URLSearchParams(searchParams.toString());
     params.set('card', project.id);
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
