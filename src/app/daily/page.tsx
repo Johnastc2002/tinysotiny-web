@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { getDailyEntries } from '@/lib/contentful';
 import DailyList from '@/components/DailyList';
@@ -23,9 +23,7 @@ export default async function Daily() {
 
       <main className="w-full flex-1 flex flex-col items-center">
         {/* Client Side Daily List with Infinite Scroll */}
-        <Suspense fallback={<div>Loading...</div>}>
-          <DailyList initialItems={initialItems} />
-        </Suspense>
+        <DailyList initialItems={initialItems} />
       </main>
     </div>
   );
