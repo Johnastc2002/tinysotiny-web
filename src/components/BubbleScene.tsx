@@ -292,21 +292,17 @@ const Bubble = ({
     }
   };
 
-  const handlePointerOver = (e: THREE.Event) => {
-    e.stopPropagation(); // Stop propagation to bubbles behind
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handlePointerOver = (e: any) => {
+    if (e.stopPropagation) e.stopPropagation(); // Stop propagation to bubbles behind
     setHoveredId(id);
     if (link) {
       document.body.style.cursor = 'pointer';
     }
   };
 
-  const handlePointerOut = () => {
+  const handlePointerOut = (e: any) => {
     // Only clear if we are the one currently hovered
-    // Actually, if we move out, we just clear ourselves.
-    // If we move into another bubble, its over event will fire and overwrite.
-    // But we need to be careful about race conditions or gaps.
-    // Ideally, we check if the new target is null.
-    // For now, simpler logic:
     if (isHovered) {
       setHoveredId(null);
     }
@@ -380,8 +376,8 @@ const ImageBubble = ({
   imageUrl: string;
   imageHoverUrl?: string;
   onClick: (e: THREE.Event) => void;
-  onPointerOver: (e: THREE.Event) => void;
-  onPointerOut: (e: THREE.Event) => void;
+  onPointerOver: (e: any) => void;
+  onPointerOut: (e: any) => void;
   enableBlur?: boolean;
   isHovered: boolean;
 }) => {
@@ -685,8 +681,8 @@ const ColorBubble = ({
   color?: string;
   type: 'solid' | 'glass';
   onClick: (e: THREE.Event) => void;
-  onPointerOver: (e: THREE.Event) => void;
-  onPointerOut: (e: THREE.Event) => void;
+  onPointerOver: (e: any) => void;
+  onPointerOut: (e: any) => void;
   alphaMap?: THREE.Texture | null;
   label?: string;
   textOffset?: [number, number, number];
