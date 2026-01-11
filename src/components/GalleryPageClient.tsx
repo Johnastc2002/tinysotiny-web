@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, Suspense, useMemo } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Project, GridFilter } from '@/types/project';
 import BubbleScene from '@/components/BubbleScene';
@@ -101,7 +101,7 @@ function GalleryPageContent({
     // Restore state from URL
     const view = searchParams.get('view');
     const tags = searchParams.get('tags');
-    // const cardId = searchParams.get('card');
+    const cardId = searchParams.get('card');
     // project (full detail) is handled in separate effect
 
     if (view === 'grid') {
@@ -115,9 +115,8 @@ function GalleryPageContent({
     }
 
     // Restore DetailCard state
-    // Managed by separate useEffect now
-    /*
     if (cardId) {
+      // We need to find the project to show in card
       const allProjects = [
         ...initialFeaturedProjects,
         ...initialNonFeaturedProjects,
@@ -127,45 +126,18 @@ function GalleryPageContent({
         setSelectedProject(proj);
       }
     }
-    */
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once on mount to restore state
 
-  // Combine all available projects for lookup (memoized)
-  const allProjects = useMemo(() => {
-    const map = new Map<string, Project>();
-    initialFeaturedProjects.forEach((p) => map.set(p.id, p));
-    initialNonFeaturedProjects.forEach((p) => map.set(p.id, p));
-    nonFeaturedProjects.forEach((p) => map.set(p.id, p));
-    if (filteredProjects) filteredProjects.forEach((p) => map.set(p.id, p));
-    return map;
-  }, [
-    initialFeaturedProjects,
-    initialNonFeaturedProjects,
-    nonFeaturedProjects,
-    filteredProjects,
-  ]);
-
-  // Sync selectedProject with URL 'card' param
+  // Close DetailCard if URL param 'card' is removed (e.g., Back button navigation)
   useEffect(() => {
-    const cardId = searchParams.get('card');
-    if (cardId) {
-      // If we have a card param, ensure selectedProject is set to it
-      // But avoid redundant updates
-      if (!selectedProject || selectedProject.id !== cardId) {
-        const proj = allProjects.get(cardId);
-        if (proj) {
-          setSelectedProject(proj);
-        }
-      }
-    } else {
-      // If no card param, ensure selectedProject is null
-      if (selectedProject) {
-        setSelectedProject(null);
-      }
+    if (!searchParams.has('card') && selectedProject) {
+      setSelectedProject(null);
     }
-  }, [searchParams, allProjects, selectedProject]);
+    // Note: We don't auto-open from URL in this effect to avoid conflicts.
+    // Initial restoration is handled in the mount useEffect.
+  }, [searchParams, selectedProject]);
 
   // Handle Project URL Param (Full Detail)
   useEffect(() => {
