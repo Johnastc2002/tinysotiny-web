@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Project, GridFilter } from '@/types/project';
 import BubbleScene from '@/components/BubbleScene';
@@ -26,7 +26,7 @@ interface GalleryPageClientProps {
   explosionDelay?: number;
 }
 
-export default function GalleryPageClient({
+function GalleryPageContent({
   initialFeaturedProjects,
   initialNonFeaturedProjects,
   gridFilter,
@@ -580,7 +580,7 @@ export default function GalleryPageClient({
               type: 'spring',
               stiffness: 400,
               damping: 25,
-            }}
+              }}
           />
         </button>
 
@@ -775,6 +775,22 @@ export default function GalleryPageClient({
         </div>
       </div>
     </div>
+  );
+}
+
+export default function GalleryPageClient(props: GalleryPageClientProps) {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <GalleryPageContent {...props} />
+    </Suspense>
+  );
+}
+
+export default function GalleryPageClient(props: GalleryPageClientProps) {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <GalleryPageContent {...props} />
+    </Suspense>
   );
 }
 
