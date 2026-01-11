@@ -61,6 +61,9 @@ function GalleryPageContent({
   const [isIOS, setIsIOS] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
+  // Track if close was triggered manually to enable exit animation
+  const isManualClose = useRef(false);
+
   // Full Project Details State
   const [fullProject, setFullProject] = useState<Project | null>(null);
   const [recommendedProject, setRecommendedProject] = useState<Project | null>(
@@ -145,6 +148,9 @@ function GalleryPageContent({
   useEffect(() => {
     const projectId = searchParams.get('project');
     if (projectId) {
+      // Reset manual close ref when opening a project
+      isManualClose.current = false;
+
       // Fetch full project details
       const fetchProjectDetails = async () => {
         try {
@@ -498,11 +504,15 @@ function GalleryPageContent({
 
       {/* Full Project Overlay */}
       <AnimatePresence mode="wait">
-        {fullProject && (
+        {fullProject && searchParams.get('project') && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            exit={
+              isManualClose.current
+                ? { opacity: 0 }
+                : { opacity: 0, transition: { duration: 0 } }
+            }
             transition={{ duration: 0.3 }}
             className="fixed inset-0 z-50 bg-white overflow-y-auto"
             ref={setOverlayContainer}
@@ -511,6 +521,7 @@ function GalleryPageContent({
             {/* Close Button */}
             <button
               onClick={() => {
+                isManualClose.current = true;
                 // Clear 'project' param but keep view/tags/page state
                 const params = new URLSearchParams(searchParams.toString());
                 params.delete('project');
