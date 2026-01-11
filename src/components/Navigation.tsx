@@ -177,7 +177,7 @@ export default function Navigation({ contact }: NavigationProps) {
         {/* Scrollable Content Wrapper */}
         <div className="w-full h-full overflow-y-auto overflow-x-hidden relative flex flex-col">
           {/* Menu Items */}
-          <div className="flex min-h-full flex-col justify-center px-12 md:px-24 landscape:px-16 pb-16 landscape:pb-12 lg:[@media(min-height:720px)]:px-24! lg:[@media(min-height:720px)]:pb-24!">
+          <div className="flex min-h-full flex-col justify-center landscape:justify-start landscape:pt-12 px-12 md:px-24 landscape:px-16 landscape:w-auto lg:[@media(min-height:720px)]:flex-none lg:[@media(min-height:720px)]:justify-center lg:[@media(min-height:720px)]:pt-0 lg:[@media(min-height:720px)]:w-full pb-16 landscape:pb-12 lg:[@media(min-height:720px)]:px-24! lg:[@media(min-height:720px)]:pb-24!">
             <nav className="flex flex-col gap-6 landscape:gap-4 lg:[@media(min-height:720px)]:gap-8!">
               {['HOME', 'ABOUT', 'CLIENT', 'DAILY'].map((item) => {
                 const isHome = item === 'HOME';
@@ -203,10 +203,10 @@ export default function Navigation({ contact }: NavigationProps) {
           </div>
 
           {/* Footer Items */}
-          <div className="absolute bottom-0 left-0 w-full flex justify-between px-12 pb-12 md:px-24 landscape:px-16 landscape:pb-8 lg:[@media(min-height:720px)]:px-24! lg:[@media(min-height:720px)]:pb-16!">
+          <div className="absolute bottom-0 left-0 w-full flex justify-between landscape:justify-end lg:[@media(min-height:720px)]:justify-between px-12 pb-12 md:px-24 landscape:px-16 landscape:pb-8 lg:[@media(min-height:720px)]:px-24! lg:[@media(min-height:720px)]:pb-16!">
             <Link
               href={contact?.instagram || 'https://instagram.com'}
-              className="text-xs font-semibold tracking-widest text-[#B6B6B6] hover:text-[#0F2341] transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!"
+              className="text-xs font-semibold tracking-widest text-[#B6B6B6] hover:text-[#0F2341] transition-colors uppercase landscape:absolute landscape:left-[40%] lg:[@media(min-height:720px)]:static lg:[@media(min-height:720px)]:ml-0 lg:[@media(min-height:720px)]:text-sm!"
               target="_blank"
               rel="noopener noreferrer"
             >
