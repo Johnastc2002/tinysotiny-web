@@ -667,7 +667,7 @@ function GalleryPageContent({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-60 bg-black/20 backdrop-blur-md flex flex-col items-center justify-end pb-32 md:pb-8 px-4"
+            className="fixed inset-0 z-60 bg-black/20 backdrop-blur-md flex flex-col items-center justify-end pb-32 md:pb-32 px-4"
             onClick={handleCloseFilter}
           >
             <motion.div
