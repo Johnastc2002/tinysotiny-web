@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Canvas, useThree, useFrame } from '@react-three/fiber';
+import { Canvas, useThree, useFrame, ThreeEvent } from '@react-three/fiber';
 import {
   OrbitControls,
   Billboard,
@@ -13,6 +13,13 @@ import {
 } from '@react-three/drei';
 import * as THREE from 'three';
 import { Project } from '@/types/project';
+
+interface Shader {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  uniforms: { [uniform: string]: { value: any } };
+  vertexShader: string;
+  fragmentShader: string;
+}
 
 export const BUBBLE_COLORS = {
   PLAY: '#001EFF',
@@ -278,10 +285,9 @@ const Bubble = ({
     }
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleClick = (e: any) => {
+  const handleClick = (e: ThreeEvent<PointerEvent>) => {
     // Check if the event has 'delta' (distance moved) and it's small enough to be a click, not a drag
-    if (e.delta !== undefined && e.delta > 5) return;
+    if (e.delta > 5) return;
 
     if (link) {
       e.stopPropagation();
@@ -292,16 +298,15 @@ const Bubble = ({
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handlePointerOver = (e: any) => {
-    if (e.stopPropagation) e.stopPropagation(); // Stop propagation to bubbles behind
+  const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation(); // Stop propagation to bubbles behind
     setHoveredId(id);
     if (link) {
       document.body.style.cursor = 'pointer';
     }
   };
 
-  const handlePointerOut = (e: any) => {
+  const handlePointerOut = () => {
     // Only clear if we are the one currently hovered
     if (isHovered) {
       setHoveredId(null);
@@ -375,9 +380,9 @@ const ImageBubble = ({
   scale: number;
   imageUrl: string;
   imageHoverUrl?: string;
-  onClick: (e: THREE.Event) => void;
-  onPointerOver: (e: any) => void;
-  onPointerOut: (e: any) => void;
+  onClick: (e: ThreeEvent<PointerEvent>) => void;
+  onPointerOver: (e: ThreeEvent<PointerEvent>) => void;
+  onPointerOut: (e: ThreeEvent<PointerEvent>) => void;
   enableBlur?: boolean;
   isHovered: boolean;
 }) => {
@@ -387,10 +392,8 @@ const ImageBubble = ({
 
   const { camera } = useThree();
   const meshRef = useRef<THREE.Mesh>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const shaderRef = useRef<any>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const overlayShaderRef = useRef<any>(null);
+  const shaderRef = useRef<Shader>(null);
+  const overlayShaderRef = useRef<Shader>(null);
   const worldPos = useMemo(() => new THREE.Vector3(), []);
   const camDir = useMemo(() => new THREE.Vector3(), []);
 
@@ -439,8 +442,9 @@ const ImageBubble = ({
     // Configure textures to fill the circle without stretching
     [defaultTexture, hoverTexture].forEach((tex) => {
       if (!tex || !tex.image) return;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const imageAspect = (tex.image as any).width / (tex.image as any).height;
+      const imageAspect =
+        (tex.image as HTMLImageElement).width /
+        (tex.image as HTMLImageElement).height;
 
       // Reset first to avoid compounding transforms if useMemo re-runs
       tex.center.set(0.5, 0.5);
@@ -449,11 +453,11 @@ const ImageBubble = ({
       if (imageAspect > 1) {
         // Landscape: cover width
         tex.repeat.set(1 / imageAspect, 1);
-        tex.offset.set((1 - 1 / imageAspect) / 2, 0);
+        tex.offset.set(0, 0);
       } else {
         // Portrait: cover height
         tex.repeat.set(1, imageAspect);
-        tex.offset.set(0, (1 - imageAspect) / 2);
+        tex.offset.set(0, 0);
       }
 
       // Improve texture quality
@@ -680,9 +684,9 @@ const ColorBubble = ({
   scale: number;
   color?: string;
   type: 'solid' | 'glass';
-  onClick: (e: THREE.Event) => void;
-  onPointerOver: (e: any) => void;
-  onPointerOut: (e: any) => void;
+  onClick: (e: ThreeEvent<PointerEvent>) => void;
+  onPointerOver: (e: ThreeEvent<PointerEvent>) => void;
+  onPointerOut: (e: ThreeEvent<PointerEvent>) => void;
   alphaMap?: THREE.Texture | null;
   label?: string;
   textOffset?: [number, number, number];
@@ -694,8 +698,7 @@ const ColorBubble = ({
 
   const { camera } = useThree();
   const meshRef = useRef<THREE.Mesh>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const shaderRef = useRef<any>(null);
+  const shaderRef = useRef<Shader>(null);
   const worldPos = useMemo(() => new THREE.Vector3(), []);
   const camDir = useMemo(() => new THREE.Vector3(), []);
 
@@ -720,8 +723,7 @@ const ColorBubble = ({
     }
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onBeforeCompile = (shader: any) => {
+  const onBeforeCompile = (shader: Shader) => {
     shader.uniforms.uFeather = { value: 0.0 };
     shader.uniforms.uScaleFactor = { value: PADDING_SCALE };
 
