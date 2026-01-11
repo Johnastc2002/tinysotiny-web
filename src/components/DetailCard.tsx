@@ -88,7 +88,7 @@ export default function DetailCard({
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               className={`
                 relative flex flex-col md:flex-row 
-                w-full md:w-[80vw] md:max-w-5xl md:h-[60vh]
+                w-full max-h-[85vh] md:max-h-none md:w-[80vw] md:max-w-5xl md:h-[60vh]
                 overflow-hidden 
                 bg-white 
                 rounded-4xl md:rounded-4xl 
@@ -135,15 +135,15 @@ export default function DetailCard({
               <div className="flex w-full md:w-1/2 flex-col cursor-pointer hover:bg-gray-50 transition-colors flex-1 md:h-auto overflow-y-auto md:overflow-hidden bg-white">
                 {/* Top Section - Description */}
                 <div
-                  className="flex-1 p-10 md:p-10 flex flex-col justify-center transition-colors duration-300 min-h-min"
+                  className="flex-1 p-6 md:p-10 flex flex-col justify-center transition-colors duration-300 min-h-min"
                   style={{
                     backgroundColor: bgColor || '#E5E5E5',
                   }}
                 >
                   {data.topLabel && (
-                    <div className="mb-4">
+                    <div className="mb-2 md:mb-4">
                       <span
-                        className={`text-xs md:text-sm font-semibold uppercase tracking-wider ${
+                        className={`text-[10px] md:text-sm font-semibold uppercase tracking-wider ${
                           !fontColor ? 'text-gray-500' : ''
                         }`}
                         style={
@@ -155,7 +155,7 @@ export default function DetailCard({
                     </div>
                   )}
                   <h2
-                    className={`mb-4 text-3xl md:text-4xl font-serif leading-tight ${
+                    className={`mb-2 md:mb-4 text-2xl md:text-4xl font-serif leading-tight ${
                       !fontColor ? 'text-gray-800' : ''
                     }`}
                     style={fontColor ? { color: fontColor } : {}}
@@ -163,7 +163,7 @@ export default function DetailCard({
                     {data.title}
                   </h2>
                   <p
-                    className={`text-sm leading-relaxed max-w-md line-clamp-3 md:line-clamp-none ${
+                    className={`text-xs md:text-sm leading-relaxed max-w-md line-clamp-3 md:line-clamp-none ${
                       !fontColor ? 'text-gray-600' : ''
                     }`}
                     style={fontColor ? { color: fontColor, opacity: 0.9 } : {}}
@@ -172,7 +172,7 @@ export default function DetailCard({
                   </p>
 
                   {/* Mobile: Tags moved here under description */}
-                  <div className="mt-6 md:hidden">
+                  <div className="mt-4 md:hidden">
                     {/* Clone bottomContent but style it differently if needed, or assume it's just content */}
                     {/* We need to apply font color to children if possible, but they are ReactNodes. */}
                     {/* Assuming bottomContent is structured for styling or we wrap it */}

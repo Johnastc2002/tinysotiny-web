@@ -248,7 +248,7 @@ function GalleryPageContent({
             {selectedProject.tags.map((tag, index) => (
               <li
                 key={index}
-                className={`flex items-center text-xs font-semibold uppercase tracking-wide transition-colors ${
+                className={`flex items-center text-[10px] md:text-xs font-semibold uppercase tracking-wide transition-colors ${
                   selectedProject.card_font_color ? '' : 'text-gray-400'
                 }`}
                 style={
@@ -257,7 +257,7 @@ function GalleryPageContent({
                     : {}
                 }
               >
-                <span className="mr-2 text-[10px]">◉</span> {tag}
+                <span className="mr-2 text-[8px] md:text-[10px]">◉</span> {tag}
               </li>
             ))}
           </ul>

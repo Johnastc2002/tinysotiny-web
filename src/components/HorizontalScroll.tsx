@@ -125,17 +125,17 @@ export default function HorizontalScroll({
 
         {/* Title Card */}
         <div
-          className="relative z-20 mx-0 -mt-20 bg-white p-8 shadow-2xl rounded-tr-3xl rounded-br-3xl mr-8"
-          style={{ backgroundColor: cardBgColor || 'white' }}
+          className="relative z-20 mx-0 -mt-20 bg-[#0F2341] p-8 shadow-2xl rounded-tr-3xl rounded-br-3xl mr-8"
+          style={{ backgroundColor: cardBgColor || '#0F2341' }}
         >
           <h1
-            className="text-4xl font-serif font-bold leading-tight mb-4 text-[#0F2341]"
+            className="text-4xl font-serif font-bold leading-tight mb-4 text-white"
             style={{ color: cardFontColor }}
           >
             {daily.title}
           </h1>
           <p
-            className="text-base text-gray-600 font-light leading-relaxed"
+            className="text-base text-gray-300 font-light leading-relaxed"
             style={{ color: cardFontColor }}
           >
             {daily.description}
