@@ -49,6 +49,9 @@ export default function DetailCard({
   React.useEffect(() => {
     if (isOpen) {
       setIsImageLoaded(false);
+      // Safety timeout: force show image after 1s to prevent infinite loading state
+      const timer = setTimeout(() => setIsImageLoaded(true), 1000);
+      return () => clearTimeout(timer);
     }
   }, [data?.id, isOpen]); // Only reset when ID changes or opens
 
@@ -78,6 +81,7 @@ export default function DetailCard({
         >
           <div className="min-h-full flex items-center justify-center p-12 md:p-0">
             <motion.div
+              key={data.id} // Add key to force proper AnimatePresence behavior on ID change
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
@@ -96,23 +100,29 @@ export default function DetailCard({
               }}
             >
               {/* Left Side - Image */}
-              <div className="relative w-full md:w-1/2 h-[55vh] md:h-full bg-gray-100 group shrink-0">
+              <div className="relative w-full md:w-1/2 h-[55vh] md:h-full bg-gray-100 group shrink-0 overflow-hidden">
                 {data.imageUrl ? (
                   <>
                     <Image
                       src={data.imageUrl}
                       alt={data.title}
                       fill
-                      className={`object-cover transition-opacity duration-700 ${
+                      className={`object-cover z-10 group-hover:scale-105 transition-transform duration-700 ${
                         isImageLoaded ? 'opacity-100' : 'opacity-0'
-                      } group-hover:scale-105 transition-transform`}
+                      } transition-opacity duration-500`}
                       sizes="(max-width: 768px) 100vw, 50vw"
                       onLoad={() => setIsImageLoaded(true)}
+                      onError={() => setIsImageLoaded(true)} // Ensure placeholder clears even on error
                       priority
+                      unoptimized={true} // Bypass Next.js image optimization
                     />
-                    {!isImageLoaded && (
-                      <div className="absolute inset-0 bg-gray-200 animate-pulse" />
-                    )}
+                    <div
+                      className={`absolute inset-0 bg-gray-100 z-20 transition-all duration-700 group-hover:scale-105 ${
+                        isImageLoaded
+                          ? 'opacity-0 pointer-events-none'
+                          : 'opacity-100'
+                      }`}
+                    />
                   </>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-200">

@@ -237,9 +237,9 @@ function GalleryPageContent({
         title: selectedProject.title,
         description: selectedProject.description,
         imageUrl:
-          selectedProject.thumbnails && selectedProject.thumbnails.length > 0
+          (selectedProject.thumbnails && selectedProject.thumbnails.length > 0
             ? selectedProject.thumbnails[0]
-            : undefined,
+            : undefined) || selectedProject.bubble_thumbnail,
         topLabel: selectedProject.clientName
           ? `CLIENT / ${selectedProject.clientName}`
           : null,
