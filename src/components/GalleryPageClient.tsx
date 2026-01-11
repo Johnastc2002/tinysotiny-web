@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, Suspense } from 'react';
+import { useState, useRef, useEffect, Suspense, useMemo } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Project, GridFilter } from '@/types/project';
 import BubbleScene from '@/components/BubbleScene';
@@ -101,7 +101,7 @@ function GalleryPageContent({
     // Restore state from URL
     const view = searchParams.get('view');
     const tags = searchParams.get('tags');
-    const cardId = searchParams.get('card');
+    // const cardId = searchParams.get('card');
     // project (full detail) is handled in separate effect
 
     if (view === 'grid') {
@@ -115,15 +115,9 @@ function GalleryPageContent({
     }
 
     // Restore DetailCard state
+    // Managed by separate useEffect now
+    /*
     if (cardId) {
-      // We need to find the project to show in card
-      // This is tricky because we might not have fetched it if it's deep in pagination
-      // But assuming it's from initial or we can fetch it?
-      // Actually, DetailCard is usually triggered from BubbleScene which has the project object.
-      // If we want to restore from URL, we need to fetch it or find it.
-      // For now, let's just allow `card` param to exist but we need logic to find project.
-      // Given complexity, maybe we just use `card` param to track state, but if user reloads, we might not show card unless we fetch.
-      // Simpler approach: Check if we have it in initial lists.
       const allProjects = [
         ...initialFeaturedProjects,
         ...initialNonFeaturedProjects,
@@ -131,18 +125,47 @@ function GalleryPageContent({
       const proj = allProjects.find((p) => p.id === cardId);
       if (proj) {
         setSelectedProject(proj);
-      } else {
-        // If not found in initial, we might want to fetch it strictly for the card?
-        // Or just ignore if not simple. Let's try to fetch if not found?
-        // Actually, for now, let's just support it if we can find it, to keep it simple as requested "add some query params".
-        // The user says "detail card query params crashes with the detail page".
-        // So we just need to ensure they don't conflict.
-        // We'll use ?card=ID for DetailCard and ?project=ID for Full Detail.
       }
     }
+    */
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once on mount to restore state
+
+  // Combine all available projects for lookup (memoized)
+  const allProjects = useMemo(() => {
+    const map = new Map<string, Project>();
+    initialFeaturedProjects.forEach((p) => map.set(p.id, p));
+    initialNonFeaturedProjects.forEach((p) => map.set(p.id, p));
+    nonFeaturedProjects.forEach((p) => map.set(p.id, p));
+    if (filteredProjects) filteredProjects.forEach((p) => map.set(p.id, p));
+    return map;
+  }, [
+    initialFeaturedProjects,
+    initialNonFeaturedProjects,
+    nonFeaturedProjects,
+    filteredProjects,
+  ]);
+
+  // Sync selectedProject with URL 'card' param
+  useEffect(() => {
+    const cardId = searchParams.get('card');
+    if (cardId) {
+      // If we have a card param, ensure selectedProject is set to it
+      // But avoid redundant updates
+      if (!selectedProject || selectedProject.id !== cardId) {
+        const proj = allProjects.get(cardId);
+        if (proj) {
+          setSelectedProject(proj);
+        }
+      }
+    } else {
+      // If no card param, ensure selectedProject is null
+      if (selectedProject) {
+        setSelectedProject(null);
+      }
+    }
+  }, [searchParams, allProjects, selectedProject]);
 
   // Handle Project URL Param (Full Detail)
   useEffect(() => {
@@ -273,7 +296,7 @@ function GalleryPageContent({
     if (params.has('card')) params.delete('card');
 
     params.set('project', projectId);
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   // Update URL when opening DetailCard (Bubble Click)
@@ -281,7 +304,7 @@ function GalleryPageContent({
     setSelectedProject(project);
     const params = new URLSearchParams(searchParams.toString());
     params.set('card', project.id);
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   // Intercept DetailCard open to just update URL for simple card or keep separate?
