@@ -106,7 +106,12 @@ export default function Navigation({ contact }: NavigationProps) {
       {/* Glass Hamburger Button */}
       <button
         onClick={toggleMenu}
-        style={{ top: '3rem', right: '1.5rem', height: '3rem', width: '3rem' }}
+        style={{
+          top: '1.5rem',
+          right: '1.5rem',
+          height: '3rem',
+          width: '3rem',
+        }}
         className={`fixed z-50 flex items-center justify-center rounded-full border border-white/40 bg-white/10 backdrop-blur-sm transition-all hover:bg-white/20 shadow-lg ${
           isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
