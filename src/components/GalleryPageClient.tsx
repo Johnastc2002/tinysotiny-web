@@ -790,8 +790,23 @@ function GalleryPageContent({
 }
 
 export default function GalleryPageClient(props: GalleryPageClientProps) {
+  const isPlay = props.projectType === 'play';
+  const bgClass = isPlay ? 'bg-play-gradient' : 'bg-[#F0F2F5]';
+  const spinnerColor = isPlay ? '#ffffff' : '#0F2341';
+  const trackColor = isPlay
+    ? 'rgba(255, 255, 255, 0.1)'
+    : 'rgba(15, 35, 65, 0.1)';
+
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense
+      fallback={
+        <div
+          className={`w-full h-screen flex items-center justify-center ${bgClass}`}
+        >
+          <LoadingSpinner color={spinnerColor} trackColor={trackColor} />
+        </div>
+      }
+    >
       <GalleryPageContent {...props} />
     </Suspense>
   );
