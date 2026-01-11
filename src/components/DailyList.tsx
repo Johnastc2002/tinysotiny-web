@@ -6,6 +6,7 @@ import React, {
   useState,
   useTransition,
   useCallback,
+  Suspense,
 } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,7 +20,7 @@ interface DailyListProps {
   initialItems: DailyData[];
 }
 
-export default function DailyList({ initialItems }: DailyListProps) {
+function DailyListContent({ initialItems }: DailyListProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -43,7 +44,10 @@ export default function DailyList({ initialItems }: DailyListProps) {
       // Check if we already have it in items
       const existing = items.find((i) => i.id === dailyId);
       if (existing) {
-        setSelectedDaily(existing);
+        // Wrap in startTransition to avoid sync render warning
+        React.startTransition(() => {
+          setSelectedDaily(existing);
+        });
       }
 
       // Always fetch to ensure we have latest/full data especially if fields were omitted in list
@@ -60,7 +64,9 @@ export default function DailyList({ initialItems }: DailyListProps) {
       };
       fetchDaily();
     } else {
-      setSelectedDaily(null);
+      React.startTransition(() => {
+        setSelectedDaily(null);
+      });
       document.body.style.overflow = '';
     }
 
@@ -220,5 +226,19 @@ export default function DailyList({ initialItems }: DailyListProps) {
         )}
       </div>
     </>
+  );
+}
+
+export default function DailyList(props: DailyListProps) {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex justify-center p-8">
+          <LoadingSpinner size={24} color="#0F2341" trackColor="#e5e7eb" />
+        </div>
+      }
+    >
+      <DailyListContent {...props} />
+    </Suspense>
   );
 }

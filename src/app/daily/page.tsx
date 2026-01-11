@@ -1,8 +1,7 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { getDailyEntries } from '@/lib/contentful';
 import DailyList from '@/components/DailyList';
-import LoadingSpinner from '@/components/LoadingSpinner';
 
 export const revalidate = 3600; // Revalidate every hour
 
@@ -24,15 +23,7 @@ export default async function Daily() {
 
       <main className="w-full flex-1 flex flex-col items-center">
         {/* Client Side Daily List with Infinite Scroll */}
-        <Suspense
-          fallback={
-            <div className="flex justify-center p-8">
-              <LoadingSpinner color="#0F2341" trackColor="#e5e7eb" />
-            </div>
-          }
-        >
-          <DailyList initialItems={initialItems} />
-        </Suspense>
+        <DailyList initialItems={initialItems} />
       </main>
     </div>
   );
