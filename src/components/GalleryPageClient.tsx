@@ -126,11 +126,12 @@ function GalleryPageContent({
     const cardId = searchParams.get('card');
 
     if (cardId) {
-      // If URL has card param but state doesn't match, open it
+      // If URL has card param but state doesn't match or matches different ID, open the correct one
       if (selectedProject?.id !== cardId) {
         const allProjects = [
           ...initialFeaturedProjects,
           ...nonFeaturedProjects,
+          ...(filteredProjects || []),
         ];
         const proj = allProjects.find((p) => p.id === cardId);
         if (proj) {
@@ -143,11 +144,14 @@ function GalleryPageContent({
         setSelectedProject(null);
       }
     }
+    // Remove selectedProject from dependency array to avoid double-firing or stale closures causing re-renders
+    // We only want to react to searchParams changes predominantly.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     searchParams,
-    selectedProject,
     initialFeaturedProjects,
     nonFeaturedProjects,
+    filteredProjects,
   ]);
 
   // Handle Project URL Param (Full Detail)
@@ -283,6 +287,10 @@ function GalleryPageContent({
 
   // Update URL when opening DetailCard (Bubble Click)
   const handleOpenCard = (project: Project) => {
+    // Check if card is already open or url param exists
+    const currentCardId = searchParams.get('card');
+    if (currentCardId === project.id) return;
+
     // We only update the URL. The useEffect above will handle setting the state.
     // This prevents race conditions where state is set but URL param hasn't propagated yet.
     const params = new URLSearchParams(searchParams.toString());

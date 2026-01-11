@@ -99,9 +99,6 @@ export default function DetailCard({
               <div className="relative w-full md:w-1/2 h-[55vh] md:h-full bg-gray-100 group shrink-0">
                 {data.imageUrl ? (
                   <>
-                    {!isImageLoaded && (
-                      <div className="absolute inset-0 bg-gray-200 animate-pulse" />
-                    )}
                     <Image
                       src={data.imageUrl}
                       alt={data.title}
@@ -111,7 +108,11 @@ export default function DetailCard({
                       } group-hover:scale-105 transition-transform`}
                       sizes="(max-width: 768px) 100vw, 50vw"
                       onLoad={() => setIsImageLoaded(true)}
+                      priority
                     />
+                    {!isImageLoaded && (
+                      <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                    )}
                   </>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-200">
