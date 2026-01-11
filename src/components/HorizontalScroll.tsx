@@ -15,6 +15,7 @@ export default function HorizontalScroll({ daily }: HorizontalScrollProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: targetRef,
+    offset: ['start start', 'end end'],
   });
 
   const [scrollRange, setScrollRange] = React.useState(0);
@@ -22,33 +23,47 @@ export default function HorizontalScroll({ daily }: HorizontalScrollProps) {
 
   // Measure content width dynamically
   React.useEffect(() => {
-    // Set initial viewport width
-    setViewportWidth(window.innerHeight); // Using innerHeight as placeholder until ref updates
+    if (!containerRef.current) return;
 
-    if (containerRef.current) {
-      const updateScrollRange = () => {
-        if (containerRef.current) {
-          const scrollWidth = containerRef.current.scrollWidth;
-          const vw = window.innerWidth;
-          // Scroll distance = Content Width - Viewport Width
-          // We add a small buffer to ensure end is reached comfortably
-          setScrollRange(-(scrollWidth - vw));
-          setViewportWidth(window.innerHeight); // Update height for vertical container
-        }
-      };
+    const updateScrollRange = () => {
+      if (containerRef.current) {
+        // Use getBoundingClientRect for more accurate sub-pixel width
+        // and to respect transforms/max-content
+        const scrollWidth = containerRef.current.getBoundingClientRect().width;
+        const viewportW = window.innerWidth;
+        const viewportH = window.innerHeight;
 
-      // Initial update
-      updateScrollRange();
-      // Retry after a short delay to allow images to load layout
-      setTimeout(updateScrollRange, 100);
-      setTimeout(updateScrollRange, 500);
+        // Calculate total scrollable distance (negative value)
+        // Ensure we actually have scrollable content
+        const range = -(scrollWidth - viewportW);
 
-      window.addEventListener('resize', updateScrollRange);
-      return () => window.removeEventListener('resize', updateScrollRange);
-    }
-  }, [daily]); // Recalculate if daily data changes
+        // Only update if dimensions effectively changed or initialized
+        setScrollRange(range > 0 ? 0 : range);
+        setViewportWidth(viewportH);
+      }
+    };
 
-  // Use dynamic scroll range instead of hardcoded value
+    // Initial measure with a slight delay to ensure layout is stable
+    // and resources (fonts/images) have initiated layout
+    const timeoutId = setTimeout(updateScrollRange, 100);
+
+    // Use ResizeObserver to detect size changes of the content
+    const observer = new ResizeObserver(() => {
+      // Small delay to allow layout to settle
+      requestAnimationFrame(() => updateScrollRange());
+    });
+
+    observer.observe(containerRef.current);
+    window.addEventListener('resize', updateScrollRange);
+
+    return () => {
+      clearTimeout(timeoutId);
+      observer.disconnect();
+      window.removeEventListener('resize', updateScrollRange);
+    };
+  }, [daily]);
+
+  // Use dynamic scroll range
   const x = useTransform(scrollYProgress, [0, 1], ['0px', `${scrollRange}px`]);
 
   // Helper to ensure color has # if it's a hex code
@@ -195,13 +210,19 @@ export default function HorizontalScroll({ daily }: HorizontalScrollProps) {
         ref={targetRef}
         style={{
           height:
-            scrollRange !== 0 ? Math.abs(scrollRange) + viewportWidth : '500vh',
+            scrollRange !== 0
+              ? `${Math.abs(scrollRange) + viewportWidth}px`
+              : '500vh',
         }}
         className="relative hidden md:block"
       >
-        {/* Sticky Container - Stays fixed while parent scrolls */}
-        <div className="sticky top-0 flex h-screen items-center overflow-hidden">
-          <motion.div ref={containerRef} style={{ x }} className="flex h-full">
+        {/* Fixed Container - Matches ProjectPageClient behavior */}
+        <div className="sticky top-0 left-0 w-full h-screen overflow-hidden bg-[#fcfcfc] z-0">
+          <motion.div
+            ref={containerRef}
+            style={{ x }}
+            className="flex h-full w-[max-content]"
+          >
             {/* Section 1: Hero (Navy) */}
             <section
               className="relative flex h-screen w-auto shrink-0 items-center bg-[#0F2341] text-white overflow-hidden z-10"

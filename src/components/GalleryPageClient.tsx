@@ -9,10 +9,13 @@ import Image from 'next/image';
 import {
   getMoreNonFeaturedProjects,
   getFilteredProjectsAction,
+  getProjectByIdAction,
+  getRecommendedProjectAction,
 } from '@/app/actions';
 import { motion, AnimatePresence } from 'framer-motion';
 import LoadingSpinner from './LoadingSpinner';
 import DetailCard, { DetailCardData } from './DetailCard';
+import ProjectPageClient from '@/components/ProjectPageClient';
 
 interface GalleryPageClientProps {
   initialFeaturedProjects: Project[];
@@ -58,6 +61,34 @@ export default function GalleryPageClient({
   const [isIOS, setIsIOS] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
+  // Full Project Details State
+  const [fullProject, setFullProject] = useState<Project | null>(null);
+  const [recommendedProject, setRecommendedProject] = useState<Project | null>(
+    null
+  );
+  const [overlayContainer, setOverlayContainer] = useState<HTMLElement | null>(
+    null
+  );
+  const [isBubblePaused, setIsBubblePaused] = useState(false);
+
+  useEffect(() => {
+    if (fullProject) {
+      // Delay pause to ensure any layout shifts (scrollbars) are handled by a few frames
+      // Matches transition duration (300ms) + buffer
+      const timer = setTimeout(() => setIsBubblePaused(true), 400);
+      return () => clearTimeout(timer);
+    } else {
+      setIsBubblePaused(false);
+    }
+  }, [fullProject]);
+
+  // Reset scroll on project change (handle Back/Forward navigation)
+  useEffect(() => {
+    if (overlayContainer) {
+      overlayContainer.scrollTop = 0;
+    }
+  }, [fullProject, overlayContainer]);
+
   useEffect(() => {
     // Simple check for iOS devices
     const userAgent = window.navigator.userAgent.toLowerCase();
@@ -67,6 +98,8 @@ export default function GalleryPageClient({
     // Restore state from URL
     const view = searchParams.get('view');
     const tags = searchParams.get('tags');
+    const cardId = searchParams.get('card');
+    // project (full detail) is handled in separate effect
 
     if (view === 'grid') {
       setViewMode('grid');
@@ -77,8 +110,74 @@ export default function GalleryPageClient({
       setAppliedTags(t);
       setSelectedTags(t);
     }
+
+    // Restore DetailCard state
+    if (cardId) {
+      // We need to find the project to show in card
+      // This is tricky because we might not have fetched it if it's deep in pagination
+      // But assuming it's from initial or we can fetch it?
+      // Actually, DetailCard is usually triggered from BubbleScene which has the project object.
+      // If we want to restore from URL, we need to fetch it or find it.
+      // For now, let's just allow `card` param to exist but we need logic to find project.
+      // Given complexity, maybe we just use `card` param to track state, but if user reloads, we might not show card unless we fetch.
+      // Simpler approach: Check if we have it in initial lists.
+      const allProjects = [
+        ...initialFeaturedProjects,
+        ...initialNonFeaturedProjects,
+      ];
+      const proj = allProjects.find((p) => p.id === cardId);
+      if (proj) {
+        setSelectedProject(proj);
+      } else {
+        // If not found in initial, we might want to fetch it strictly for the card?
+        // Or just ignore if not simple. Let's try to fetch if not found?
+        // Actually, for now, let's just support it if we can find it, to keep it simple as requested "add some query params".
+        // The user says "detail card query params crashes with the detail page".
+        // So we just need to ensure they don't conflict.
+        // We'll use ?card=ID for DetailCard and ?project=ID for Full Detail.
+      }
+    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once on mount to restore state
+
+  // Handle Project URL Param (Full Detail)
+  useEffect(() => {
+    const projectId = searchParams.get('project');
+    if (projectId) {
+      // Fetch full project details
+      const fetchProjectDetails = async () => {
+        try {
+          const project = await getProjectByIdAction(projectId);
+          if (project) {
+            setFullProject(project);
+            const recommended = await getRecommendedProjectAction(
+              project.id,
+              projectType
+            );
+            setRecommendedProject(recommended);
+
+            // Lock body scroll
+            // document.body.style.overflow = 'hidden';
+          }
+        } catch (error) {
+          console.error('Error fetching project details:', error);
+        }
+      };
+      fetchProjectDetails();
+    } else {
+      // When projectId is gone, we just want to close.
+      // We set state to null. AnimatePresence handles the rest.
+      setFullProject(null);
+      setRecommendedProject(null);
+      // Unlock body scroll
+      // document.body.style.overflow = '';
+    }
+
+    return () => {
+      // document.body.style.overflow = '';
+    };
+  }, [searchParams, projectType]);
 
   // Sync state to URL
   useEffect(() => {
@@ -154,7 +253,43 @@ export default function GalleryPageClient({
 
   const handleCloseCard = () => {
     setSelectedProject(null);
+    const params = new URLSearchParams(searchParams.toString());
+    if (params.has('card')) {
+      params.delete('card');
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    }
   };
+
+  const updateUrlWithProject = (projectId: string) => {
+    setSelectedProject(null); // Close preview card
+    const params = new URLSearchParams(searchParams.toString());
+    // Remove card param if exists
+    if (params.has('card')) params.delete('card');
+
+    params.set('project', projectId);
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  // Update URL when opening DetailCard (Bubble Click)
+  const handleOpenCard = (project: Project) => {
+    setSelectedProject(project);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('card', project.id);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  // Intercept DetailCard open to just update URL for simple card or keep separate?
+  // The user says "when the user press the project detail... navigate to it".
+  // The DetailCard seems to be a preview.
+  // BubbleScene onOpenCard currently sets selectedProject for DetailCard.
+  // The user might mean clicking the card inside DetailCard or clicking ProjectCard.
+
+  // If DetailCard is just a preview, we can keep it. But wait, user said "the project details page is using the same URL... as overlay".
+  // So likely they mean the FULL details page.
+  // Currently ProjectCard links to /project/[id].
+  // DetailCard also has handleCardClick which pushes to /project/[id].
+
+  // We should intercept these.
 
   const observerTarget = useRef<HTMLDivElement>(null);
 
@@ -358,7 +493,58 @@ export default function GalleryPageClient({
         onClose={handleCloseCard}
         data={cardData}
         basePath="/project"
+        onCardClick={(id) => updateUrlWithProject(id)}
       />
+
+      {/* Full Project Overlay */}
+      <AnimatePresence mode="wait">
+        {fullProject && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-50 bg-white overflow-y-auto"
+            ref={setOverlayContainer}
+            style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                // Clear 'project' param but keep view/tags/page state
+                const params = new URLSearchParams(searchParams.toString());
+                params.delete('project');
+                router.push(`${pathname}?${params.toString()}`);
+              }}
+              className="fixed top-4 right-4 z-60 p-2 bg-white/50 backdrop-blur-md rounded-full shadow-md hover:bg-white transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+
+            {overlayContainer && (
+              <ProjectPageClient
+                key={fullProject.id} // Add key to force remount on project change
+                project={fullProject}
+                recommendedProject={recommendedProject}
+                scrollContainerRef={{ current: overlayContainer }}
+              />
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Toggle Button */}
       <div
@@ -555,8 +741,9 @@ export default function GalleryPageClient({
             enableExplosion={enableExplosion}
             explosionDelay={explosionDelay}
             transparent={isPlay}
-            onOpenCard={setSelectedProject}
+            onOpenCard={handleOpenCard}
             enableBlur={true}
+            paused={isBubblePaused}
           />
         </div>
 
@@ -594,10 +781,18 @@ export default function GalleryPageClient({
 function ProjectCard({ project }: { project: Project }) {
   // Use bubble_thumbnail or first thumbnail
   const imageUrl = project.thumbnails?.[0] || project.bubble_thumbnail;
+  const searchParams = useSearchParams();
+
+  const getHref = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('project', project.id);
+    return `?${params.toString()}`;
+  };
 
   return (
     <Link
-      href={`/project/${project.id}`}
+      href={getHref()}
+      scroll={false}
       className="block group transition-all duration-300"
     >
       <div className="relative w-full aspect-square overflow-hidden bg-gray-200 rounded-3xl">

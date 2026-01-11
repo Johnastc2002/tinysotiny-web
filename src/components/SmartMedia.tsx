@@ -547,6 +547,9 @@ export default function SmartMedia({
 
   // Resize observer to update dimensions on window resize
   useEffect(() => {
+    // Only needed for video types that use buttonConfig or iframe resizing
+    if (type === 'image') return;
+
     if (containerRef.current) {
       const update = () => {
         if (containerRef.current) {
@@ -635,6 +638,7 @@ export default function SmartMedia({
                     ...iframeStyle,
                     minWidth: '100%',
                     minHeight: '100%',
+                    pointerEvents: 'none',
                   }}
                   frameBorder="0"
                   allow="autoplay; fullscreen; picture-in-picture"

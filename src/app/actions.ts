@@ -4,6 +4,8 @@ import {
   getDailyEntries,
   getNonFeaturedProjects,
   getProjectsByTags,
+  getProjectById,
+  getRecommendedProject,
   ProjectType,
 } from '@/lib/contentful';
 
@@ -24,4 +26,15 @@ export async function getFilteredProjectsAction(
   type: ProjectType
 ) {
   return await getProjectsByTags(tags, page, 12, type);
+}
+
+export async function getProjectByIdAction(id: string) {
+  return await getProjectById(id);
+}
+
+export async function getRecommendedProjectAction(
+  currentId: string,
+  type: ProjectType
+) {
+  return await getRecommendedProject(currentId, type);
 }

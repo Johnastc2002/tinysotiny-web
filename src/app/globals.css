@@ -23,8 +23,12 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .animate-fade-in {
@@ -33,11 +37,14 @@ body {
 
 .bg-play-gradient {
   background-color: #000000;
-  background-image:
-    radial-gradient(circle at 15% 105%, #001EFF 0%, transparent 45%),
-    radial-gradient(circle at 85% 105%, #001EFF 0%, transparent 45%),
-    radial-gradient(circle at 50% 115%, #001EFF 0%, transparent 55%),
-    radial-gradient(ellipse 150% 40% at 50% 100%, #001EFF 0%, transparent 70%);
+  background-image: radial-gradient(
+      circle at 15% 105%,
+      #001eff 0%,
+      transparent 45%
+    ),
+    radial-gradient(circle at 85% 105%, #001eff 0%, transparent 45%),
+    radial-gradient(circle at 50% 115%, #001eff 0%, transparent 55%),
+    radial-gradient(ellipse 150% 40% at 50% 100%, #001eff 0%, transparent 70%);
   background-repeat: no-repeat;
   background-attachment: fixed;
 }

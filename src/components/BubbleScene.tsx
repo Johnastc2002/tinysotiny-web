@@ -921,15 +921,27 @@ const CameraAdjuster = ({
 }: {
   userInteractionRef: React.MutableRefObject<boolean>;
 }) => {
-  const { camera, size } = useThree();
+  const { camera, size, gl } = useThree();
   const controls = useThree((state) => state.controls);
 
   useEffect(() => {
-    if (userInteractionRef.current) return;
+    // Force a resize/render when pausing might happen
+    const handleResize = () => {
+      camera.updateProjectionMatrix();
+      gl.setSize(window.innerWidth, window.innerHeight);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [camera, gl]);
 
+  useEffect(() => {
+    if (userInteractionRef.current) return;
     if (!(camera instanceof THREE.PerspectiveCamera)) return;
 
+    // ... existing logic ...
     const aspect = size.width / size.height;
+    // ...
+
     // Scene bounds: range +/- 7.5 plus bubble radius ~1.0 => ~8.5.
     // Diameter ~17. Add padding => 22.
     const targetSize = 22;
@@ -976,6 +988,7 @@ export default function BubbleScene({
   transparent = false,
   onOpenCard,
   enableBlur = false,
+  paused = false,
 }: {
   mode?: 'home' | 'gallery';
   projects?: Project[];
@@ -984,6 +997,7 @@ export default function BubbleScene({
   transparent?: boolean;
   onOpenCard?: (project: Project) => void;
   enableBlur?: boolean;
+  paused?: boolean;
 }) {
   console.log('BubbleScene render. Mode:', mode, 'Projects:', projects?.length);
 
@@ -993,11 +1007,13 @@ export default function BubbleScene({
   return (
     <div className={`w-full h-screen ${bgClass}`}>
       <Canvas
+        frameloop={paused ? 'never' : 'always'}
         camera={{ position: [0, 0, 20], fov: 50 }}
         gl={{
           antialias: true,
           toneMapping: THREE.NoToneMapping,
           alpha: transparent,
+          preserveDrawingBuffer: true,
         }}
       >
         <ambientLight intensity={3} />

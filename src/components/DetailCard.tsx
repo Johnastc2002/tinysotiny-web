@@ -21,6 +21,7 @@ interface DetailCardProps {
   onClose: () => void;
   isOpen: boolean;
   basePath: string;
+  onCardClick?: (id: string) => void;
 }
 
 export default function DetailCard({
@@ -28,6 +29,7 @@ export default function DetailCard({
   onClose,
   isOpen,
   basePath,
+  onCardClick,
 }: DetailCardProps) {
   const [isImageLoaded, setIsImageLoaded] = React.useState(false);
   const router = useRouter();
@@ -48,11 +50,15 @@ export default function DetailCard({
     if (isOpen) {
       setIsImageLoaded(false);
     }
-  }, [data, isOpen]);
+  }, [data?.id, isOpen]); // Only reset when ID changes or opens
 
   const handleCardClick = () => {
     if (data) {
-      router.push(`${basePath}/${data.id}`);
+      if (onCardClick) {
+        onCardClick(data.id);
+      } else {
+        router.push(`${basePath}/${data.id}`);
+      }
     }
   };
 
@@ -63,7 +69,11 @@ export default function DetailCard({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-40 overflow-y-auto bg-black/20 backdrop-blur-md cursor-pointer"
+          className="fixed inset-0 z-40 overflow-y-auto cursor-pointer"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.2)',
+            backdropFilter: 'blur(12px)',
+          }}
           onClick={onClose}
         >
           <div className="min-h-full flex items-center justify-center p-12 md:p-0">
@@ -96,9 +106,9 @@ export default function DetailCard({
                       src={data.imageUrl}
                       alt={data.title}
                       fill
-                      className={`object-cover transition-all duration-700 ${
+                      className={`object-cover transition-opacity duration-700 ${
                         isImageLoaded ? 'opacity-100' : 'opacity-0'
-                      } group-hover:scale-105`}
+                      } group-hover:scale-105 transition-transform`}
                       sizes="(max-width: 768px) 100vw, 50vw"
                       onLoad={() => setIsImageLoaded(true)}
                     />

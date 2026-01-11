@@ -3,6 +3,7 @@
 import React, { useRef } from 'react';
 import Link from 'next/link';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import { useSearchParams } from 'next/navigation';
 import { Project } from '@/types/project';
 
 import SmartMedia from '@/components/SmartMedia';
@@ -10,6 +11,7 @@ import SmartMedia from '@/components/SmartMedia';
 interface ProjectPageClientProps {
   project: Project;
   recommendedProject: Project | null;
+  scrollContainerRef?: React.RefObject<HTMLElement>;
 }
 
 // Removed local FadeInImage as it is superseded by SmartMedia
@@ -17,13 +19,32 @@ interface ProjectPageClientProps {
 export default function ProjectPageClient({
   project,
   recommendedProject,
+  scrollContainerRef,
 }: ProjectPageClientProps) {
   // Ref for the container that holds the horizontal scroll section
   const containerRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
+
+  const getRecommendedHref = (id: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('project', id);
+    return `?${params.toString()}`;
+  };
+
+  const handleNextProject = () => {
+    // Logic handled by Link, but we might want to scroll to top first
+    // Actually, since we use key={project.id} in parent, the component remounts
+    // and scroll state of the container (overlay) is reset?
+    // No, the container is in parent (overlayContainer).
+    if (scrollContainerRef && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo(0, 0);
+    }
+  };
 
   // Track scroll progress of the container
   const { scrollYProgress } = useScroll({
     target: containerRef,
+    container: scrollContainerRef,
     offset: ['start start', 'end end'],
   });
 
@@ -64,7 +85,7 @@ export default function ProjectPageClient({
   return (
     <div className="bg-white">
       {/* Mobile Fixed Banner 1 */}
-      <div className="fixed top-0 left-0 w-full h-screen z-0 md:hidden">
+      <div className="sticky top-0 left-0 w-full h-screen z-0 md:hidden -mb-[100vh]">
         {project.banners.length > 0 && (
           <SmartMedia
             url={project.banners[0]}
@@ -83,8 +104,11 @@ export default function ProjectPageClient({
         style={{ height: scrollHeight }}
         className="relative z-0 hidden md:block"
       >
-        <div className="fixed top-0 left-0 w-full h-screen overflow-hidden bg-black z-0">
-          <motion.div style={{ x }} className="flex h-full">
+        <div className="sticky top-0 left-0 w-full h-screen overflow-hidden bg-black z-0">
+          <motion.div
+            style={{ x, willChange: 'transform' }}
+            className="flex h-full"
+          >
             {slides.map((slide, index) => (
               <div
                 key={slide.id}
@@ -442,7 +466,9 @@ export default function ProjectPageClient({
         {recommendedProject && (
           <div className="w-full px-4 md:px-8 z-10 relative -mt-8 bg-gray-100 md:bg-transparent pb-0">
             <Link
-              href={`/project/${recommendedProject.id}`}
+              href={getRecommendedHref(recommendedProject.id)}
+              scroll={false}
+              onClick={handleNextProject}
               className="block w-full bg-[#F2B45A] rounded-t-3xl p-12 md:p-24 hover:bg-[#c59556] transition-colors duration-300 group"
             >
               <div className="flex flex-col items-start">
