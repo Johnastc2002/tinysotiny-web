@@ -179,6 +179,13 @@ const mapProject = (entry: any): Project => {
         fields.cardTextColor ||
         ''
     ),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    card_tag_color: String(
+      fields.card_tag_color ||
+        fields['card_tag_color'] ||
+        fields.cardTagColor ||
+        ''
+    ),
     description_2: String(fields.description_2 || fields.description2 || ''),
     projectType: (fields.projectType as ProjectType) || 'work',
   };

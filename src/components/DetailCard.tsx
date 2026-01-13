@@ -16,6 +16,9 @@ export interface DetailCardData {
   bottomContent: React.ReactNode;
   cardBgColor?: string;
   cardFontColor?: string;
+  cardTagColor?: string;
+  thumbnails?: string[];
+  tags?: string[];
 }
 
 interface DetailCardProps {
@@ -102,6 +105,9 @@ export default function DetailCard({
 
   const bgColor = data ? formatColor(data.cardBgColor) : undefined;
   const fontColor = data ? formatColor(data.cardFontColor) : undefined;
+  const tagColor = data ? formatColor(data.cardTagColor) : undefined;
+
+  const showSecondThumbnail = data?.thumbnails && data.thumbnails.length > 1;
 
   // Reset loading state when data changes
   React.useEffect(() => {
@@ -192,59 +198,108 @@ export default function DetailCard({
               </div>
 
               {/* Right Side - Content */}
-              <div className="flex w-full md:w-1/2 flex-col cursor-pointer hover:bg-gray-50 transition-colors flex-none md:flex-1 md:h-auto md:overflow-y-auto bg-white z-10">
+              <div className="flex w-full md:w-1/2 flex-col cursor-pointer hover:bg-gray-50 transition-colors flex-none md:flex-1 md:h-full md:overflow-y-auto bg-white z-10">
                 {/* Top Section - Description */}
                 <div
-                  className="flex-1 px-6 pt-3 pb-6 md:p-10 flex flex-col justify-start md:justify-center transition-colors duration-300 min-h-min"
+                  className="flex-1 px-6 pt-3 pb-6 md:p-10 flex flex-col transition-colors duration-300 min-h-min relative"
                   style={{
                     backgroundColor: bgColor || '#E5E5E5',
                   }}
                 >
-                  {data.topLabel && (
-                    <div className="mb-2 md:mb-4">
-                      <span
-                        className={`text-[10px] md:text-sm font-semibold uppercase tracking-wider ${
-                          !fontColor ? 'text-gray-500' : ''
-                        }`}
-                        style={
-                          fontColor ? { color: fontColor, opacity: 0.7 } : {}
-                        }
-                      >
-                        {data.topLabel}
-                      </span>
-                    </div>
-                  )}
-                  <h2
-                    className={`mb-2 md:mb-4 text-2xl md:text-4xl font-['Value_Serif'] font-medium leading-tight ${
-                      !fontColor ? 'text-[#0F2341]' : ''
-                    }`}
-                    style={fontColor ? { color: fontColor } : {}}
-                  >
-                    {data.title}
-                  </h2>
-                  <p
-                    className={`text-xs md:text-sm leading-relaxed max-w-md font-['Value_Sans'] font-normal line-clamp-5 md:line-clamp-6 text-ellipsis overflow-hidden ${
-                      !fontColor ? 'text-[#0F2341]' : ''
-                    }`}
-                    style={fontColor ? { color: fontColor, opacity: 0.9 } : {}}
-                  >
-                    {data.description}
-                  </p>
+                  <div className="flex-1 flex flex-col justify-start md:justify-center">
+                    {data.topLabel && (
+                      <div className="mb-2 md:mb-4">
+                        <span
+                          className={`text-[10px] md:text-sm font-semibold uppercase tracking-wider ${
+                            !fontColor ? 'text-gray-500' : ''
+                          }`}
+                          style={
+                            fontColor ? { color: fontColor, opacity: 0.7 } : {}
+                          }
+                        >
+                          {data.topLabel}
+                        </span>
+                      </div>
+                    )}
+                    <h2
+                      className={`mb-2 md:mb-4 text-2xl md:text-4xl font-['Value_Serif'] font-medium leading-tight ${
+                        !fontColor ? 'text-[#0F2341]' : ''
+                      }`}
+                      style={fontColor ? { color: fontColor } : {}}
+                    >
+                      {data.title}
+                    </h2>
+                    <p
+                      className={`text-xs md:text-sm leading-relaxed max-w-md font-['Value_Sans'] font-normal line-clamp-5 md:line-clamp-6 text-ellipsis overflow-hidden ${
+                        !fontColor ? 'text-[#0F2341]' : ''
+                      }`}
+                      style={
+                        fontColor ? { color: fontColor, opacity: 0.9 } : {}
+                      }
+                    >
+                      {data.description}
+                    </p>
 
-                  {/* Mobile: Tags moved here under description */}
-                  <div className="mt-4 md:hidden">
-                    {/* Clone bottomContent but style it differently if needed, or assume it's just content */}
-                    {/* We need to apply font color to children if possible, but they are ReactNodes. */}
-                    {/* Assuming bottomContent is structured for styling or we wrap it */}
-                    <div style={fontColor ? { color: fontColor } : {}}>
-                      {data.bottomContent}
+                    {/* Mobile: Tags moved here under description */}
+                    <div className="mt-4 md:hidden">
+                      {/* Clone bottomContent but style it differently if needed, or assume it's just content */}
+                      {/* We need to apply font color to children if possible, but they are ReactNodes. */}
+                      {/* Assuming bottomContent is structured for styling or we wrap it */}
+                      <div style={fontColor ? { color: fontColor } : {}}>
+                        {data.bottomContent}
+                      </div>
                     </div>
                   </div>
+
+                  {/* Desktop: Tags moved here if showing second thumbnail */}
+                  {showSecondThumbnail && data.tags && (
+                    <ul className="hidden md:flex flex-wrap gap-x-4 gap-y-2 mt-8 md:mt-0 pt-4 p-0 list-none shrink-0">
+                      {data.tags.map((tag, index) => (
+                        <li
+                          key={index}
+                          className={`flex items-center leading-none text-xs font-['Value_Sans'] font-normal uppercase tracking-wide transition-colors ${
+                            !tagColor && !fontColor ? 'text-[#B6B6B6]' : ''
+                          }`}
+                          style={
+                            tagColor
+                              ? { color: tagColor }
+                              : fontColor
+                              ? { color: fontColor }
+                              : {}
+                          }
+                        >
+                          <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />
+                          {tag}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
 
                 {/* Bottom Section - Tags/Points (Desktop Only) */}
-                <div className="hidden md:flex bg-white px-10 flex-col justify-center min-h-[30%]">
-                  {data.bottomContent}
+                <div
+                  className={`hidden md:flex bg-white ${
+                    showSecondThumbnail
+                      ? 'relative p-0'
+                      : 'px-10 flex-col justify-center'
+                  } min-h-[30%] overflow-hidden shrink-0`}
+                >
+                  {showSecondThumbnail &&
+                  data.thumbnails &&
+                  data.thumbnails[1] ? (
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={data.thumbnails[1]}
+                        alt={data.title}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        priority
+                      />
+                    </div>
+                  ) : (
+                    data.bottomContent
+                  )}
                 </div>
               </div>
             </motion.div>

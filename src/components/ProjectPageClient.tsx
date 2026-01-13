@@ -2,6 +2,7 @@
 
 import React, { useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
 import { Project } from '@/types/project';
@@ -81,6 +82,11 @@ export default function ProjectPageClient({
 
   const cardBgColor = formatColor(project.card_bg_color);
   const cardFontColor = formatColor(project.card_font_color);
+  const cardTagColor = formatColor(project.card_tag_color);
+
+  // Check if we should show the split layout (2nd thumbnail instead of tags at bottom)
+  const showSecondThumbnail =
+    project.thumbnails && project.thumbnails.length > 1;
 
   return (
     <div className="bg-white">
@@ -144,73 +150,128 @@ export default function ProjectPageClient({
                     <div className="flex w-2/5 flex-col bg-white">
                       {/* Top Section - Description */}
                       <div
-                        className="flex-1 p-10 flex flex-col justify-center transition-colors duration-300"
+                        className="flex-1 p-10 flex flex-col transition-colors duration-300 relative"
                         style={{
                           backgroundColor: cardBgColor || '#E5E5E5',
                         }}
                       >
-                        {project.clientName && (
-                          <div className="mb-4">
-                            <span
-                              className={`text-sm font-semibold uppercase tracking-wider ${
-                                !cardFontColor ? 'text-gray-500' : ''
-                              }`}
-                              style={
-                                cardFontColor
-                                  ? {
-                                      color: cardFontColor,
-                                      opacity: 0.7,
-                                    }
-                                  : {}
-                              }
-                            >
-                              <span className="font-['Value_Sans'] font-normal">
-                                CLIENT /{' '}
-                              </span>
-                              <span className="font-['Value_Serif'] font-medium">
-                                {project.clientName}
-                              </span>
-                            </span>
-                          </div>
-                        )}
-                        <h2
-                          className={`mb-4 text-4xl font-['Value_Serif'] font-medium leading-tight ${
-                            !cardFontColor ? 'text-[#0F2341]' : ''
-                          }`}
-                          style={cardFontColor ? { color: cardFontColor } : {}}
-                        >
-                          {project.title}
-                        </h2>
-                        <p
-                          className={`text-sm leading-relaxed max-w-md font-['Value_Sans'] font-normal ${
-                            !cardFontColor ? 'text-[#0F2341]' : ''
-                          }`}
-                          style={
-                            cardFontColor
-                              ? {
-                                  color: cardFontColor,
-                                  opacity: 0.9,
+                        <div className="flex-1 flex flex-col justify-center">
+                          {project.clientName && (
+                            <div className="mb-4">
+                              <span
+                                className={`text-sm font-semibold uppercase tracking-wider ${
+                                  !cardFontColor ? 'text-gray-500' : ''
+                                }`}
+                                style={
+                                  cardFontColor
+                                    ? {
+                                        color: cardFontColor,
+                                        opacity: 0.7,
+                                      }
+                                    : {}
                                 }
-                              : {}
-                          }
-                        >
-                          {project.description}
-                        </p>
+                              >
+                                <span className="font-['Value_Sans'] font-normal">
+                                  CLIENT /{' '}
+                                </span>
+                                <span className="font-['Value_Serif'] font-medium">
+                                  {project.clientName}
+                                </span>
+                              </span>
+                            </div>
+                          )}
+                          <h2
+                            className={`mb-4 text-4xl font-['Value_Serif'] font-medium leading-tight ${
+                              !cardFontColor ? 'text-[#0F2341]' : ''
+                            }`}
+                            style={
+                              cardFontColor ? { color: cardFontColor } : {}
+                            }
+                          >
+                            {project.title}
+                          </h2>
+                          <p
+                            className={`text-sm leading-relaxed max-w-md font-['Value_Sans'] font-normal ${
+                              !cardFontColor ? 'text-[#0F2341]' : ''
+                            }`}
+                            style={
+                              cardFontColor
+                                ? {
+                                    color: cardFontColor,
+                                    opacity: 0.9,
+                                  }
+                                : {}
+                            }
+                          >
+                            {project.description}
+                          </p>
+                        </div>
+
+                        {/* Desktop: Tags moved here if showing second thumbnail */}
+                        {showSecondThumbnail && (
+                          <ul className="flex flex-wrap gap-x-4 gap-y-2 mt-8 pt-4 p-0 list-none shrink-0">
+                            {project.tags.map((tag, index) => (
+                              <li
+                                key={index}
+                                className={`flex items-center leading-none text-xs font-['Value_Sans'] font-normal uppercase tracking-wide transition-colors ${
+                                  !cardTagColor && !cardFontColor
+                                    ? 'text-[#B6B6B6]'
+                                    : ''
+                                }`}
+                                style={
+                                  cardTagColor
+                                    ? { color: cardTagColor }
+                                    : cardFontColor
+                                    ? { color: cardFontColor }
+                                    : {}
+                                }
+                              >
+                                <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />
+                                {tag}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
 
-                      {/* Bottom Section - Tags/Points */}
-                      <div className="bg-white p-10 flex flex-col justify-center min-h-[30%]">
-                        <ul className="space-y-3">
-                          {project.tags.map((tag, tagIndex) => (
-                            <li
-                              key={tagIndex}
-                              className="flex items-center leading-none text-xs font-['Value_Sans'] font-normal text-[#B6B6B6] uppercase tracking-wide"
-                            >
-                              <div className="w-2 h-2 rounded-full bg-[#B6B6B6] mr-2 shrink-0 mb-0.5" />{' '}
-                              {tag}
-                            </li>
-                          ))}
-                        </ul>
+                      {/* Bottom Section - Tags/Points or Second Thumbnail */}
+                      <div
+                        className={`bg-white ${
+                          showSecondThumbnail
+                            ? 'relative p-0'
+                            : 'p-10 flex flex-col justify-center'
+                        } min-h-[30%] overflow-hidden shrink-0`}
+                      >
+                        {showSecondThumbnail ? (
+                          <div className="relative w-full h-full">
+                            <Image
+                              src={project.thumbnails[1]}
+                              alt={`${project.title} Thumbnail 2`}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 768px) 100vw, 40vw"
+                              priority
+                              unoptimized={true}
+                            />
+                          </div>
+                        ) : (
+                          <ul className="space-y-3">
+                            {project.tags.map((tag, tagIndex) => (
+                              <li
+                                key={tagIndex}
+                                className={`flex items-center leading-none text-xs font-['Value_Sans'] font-normal uppercase tracking-wide ${
+                                  !cardTagColor ? 'text-[#B6B6B6]' : ''
+                                }`}
+                                style={
+                                  cardTagColor ? { color: cardTagColor } : {}
+                                }
+                              >
+                                <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />{' '}
+                                {tag}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -263,9 +324,12 @@ export default function ProjectPageClient({
                     {project.tags.map((tag, tagIndex) => (
                       <li
                         key={tagIndex}
-                        className="flex items-center leading-none text-xs font-['Value_Sans'] font-normal text-[#B6B6B6] uppercase tracking-wide"
+                        className={`flex items-center leading-none text-xs font-['Value_Sans'] font-normal uppercase tracking-wide ${
+                          !cardTagColor ? 'text-[#B6B6B6]' : ''
+                        }`}
+                        style={cardTagColor ? { color: cardTagColor } : {}}
                       >
-                        <div className="w-2 h-2 rounded-full bg-[#B6B6B6] mr-2 shrink-0 mb-0.5" />{' '}
+                        <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />{' '}
                         {tag}
                       </li>
                     ))}
@@ -304,9 +368,12 @@ export default function ProjectPageClient({
                   {project.tags.map((tag, tagIndex) => (
                     <li
                       key={tagIndex}
-                      className="flex items-center leading-none text-xs font-['Value_Sans'] font-normal text-[#B6B6B6] uppercase tracking-wide"
+                      className={`flex items-center leading-none text-xs font-['Value_Sans'] font-normal uppercase tracking-wide ${
+                        !cardTagColor ? 'text-[#B6B6B6]' : ''
+                      }`}
+                      style={cardTagColor ? { color: cardTagColor } : {}}
                     >
-                      <div className="w-2 h-2 rounded-full bg-[#B6B6B6] mr-2 shrink-0 mb-0.5" />{' '}
+                      <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />{' '}
                       {tag}
                     </li>
                   ))}

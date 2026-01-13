@@ -240,6 +240,8 @@ function GalleryPageContent({
           (selectedProject.thumbnails && selectedProject.thumbnails.length > 0
             ? selectedProject.thumbnails[0]
             : undefined) || selectedProject.bubble_thumbnail,
+        thumbnails: selectedProject.thumbnails,
+        tags: selectedProject.tags,
         topLabel: selectedProject.clientName ? (
           <>
             <span className="font-['Value_Sans'] font-normal">CLIENT / </span>
@@ -254,10 +256,17 @@ function GalleryPageContent({
               <li
                 key={index}
                 className={`flex items-center leading-none text-[10px] md:text-xs font-['Value_Sans'] font-normal uppercase tracking-wide transition-colors ${
-                  selectedProject.card_font_color
+                  selectedProject.card_tag_color
+                    ? 'text-current'
+                    : selectedProject.card_font_color
                     ? 'text-current opacity-80 md:text-[#B6B6B6] md:opacity-100'
                     : 'text-[#B6B6B6]'
                 }`}
+                style={
+                  selectedProject.card_tag_color
+                    ? { color: selectedProject.card_tag_color }
+                    : {}
+                }
               >
                 <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />
                 {tag}
@@ -267,6 +276,7 @@ function GalleryPageContent({
         ),
         cardBgColor: selectedProject.card_bg_color,
         cardFontColor: selectedProject.card_font_color,
+        cardTagColor: selectedProject.card_tag_color,
       }
     : null;
 

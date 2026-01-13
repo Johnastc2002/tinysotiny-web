@@ -33,6 +33,7 @@ export interface Project {
   projectType: 'work' | 'play';
   card_bg_color?: string;
   card_font_color?: string;
+  card_tag_color?: string;
 }
 
 export interface SearchTag {
