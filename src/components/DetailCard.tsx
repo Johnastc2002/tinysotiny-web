@@ -152,7 +152,7 @@ export default function DetailCard({
                 overflow-hidden 
                 bg-white 
                 rounded-4xl md:rounded-4xl 
-                shadow-2xl cursor-none
+                shadow-2xl cursor-pointer
               `}
               onClick={(e) => {
                 e.stopPropagation();
@@ -192,7 +192,7 @@ export default function DetailCard({
               </div>
 
               {/* Right Side - Content */}
-              <div className="flex w-full md:w-1/2 flex-col cursor-none hover:bg-gray-50 transition-colors flex-none md:flex-1 md:h-auto md:overflow-y-auto bg-white z-10">
+              <div className="flex w-full md:w-1/2 flex-col cursor-pointer hover:bg-gray-50 transition-colors flex-none md:flex-1 md:h-auto md:overflow-y-auto bg-white z-10">
                 {/* Top Section - Description */}
                 <div
                   className="flex-1 px-6 pt-3 pb-6 md:p-10 flex flex-col justify-start md:justify-center transition-colors duration-300 min-h-min"
