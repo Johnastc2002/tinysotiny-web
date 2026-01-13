@@ -15,8 +15,9 @@ export default async function Client() {
 
       <div className="w-full max-w-7xl mx-auto flex-1 flex flex-col">
         {/* Header Label */}
-        <div className="text-sm font-medium tracking-widest text-[#B6B6B6] uppercase">
-          Who We Serve / Client
+        <div className="text-sm font-['Value_Sans'] font-normal tracking-widest text-[#B6B6B6] uppercase">
+          Who We Serve /{' '}
+          <span className="font-['Value_Serif'] font-medium">Client</span>
         </div>
 
         {/* Vertical Spacer (~1/3 screen height) */}
@@ -24,7 +25,7 @@ export default async function Client() {
 
         {/* Client List */}
         <div className="flex-1 w-full flex items-start justify-start">
-          <div className="w-full max-w-6xl text-left">
+          <div className="w-full text-left">
             <ClientList clients={clients} />
           </div>
         </div>

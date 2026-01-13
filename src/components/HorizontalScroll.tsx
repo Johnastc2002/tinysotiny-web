@@ -118,13 +118,13 @@ export default function HorizontalScroll({
           style={{ backgroundColor: cardBgColor || '#0F2341' }}
         >
           <h1
-            className="text-4xl font-serif font-bold leading-tight mb-4 text-white"
+            className="text-4xl font-['Value_Serif'] font-medium leading-tight mb-4 text-white"
             style={{ color: cardFontColor }}
           >
             {daily.title}
           </h1>
           <p
-            className="text-base text-gray-300 font-light leading-relaxed"
+            className="text-base text-gray-300 font-['Value_Sans'] font-normal leading-relaxed"
             style={{ color: cardFontColor }}
           >
             {daily.description}
@@ -150,8 +150,8 @@ export default function HorizontalScroll({
         </div>
 
         {/* Description 2 */}
-        <div className="px-8 py-8 bg-white break-words pb-32">
-          <p className="text-gray-600 leading-loose break-words whitespace-pre-wrap">
+        <div className="px-8 py-8 bg-white wrap-break-word pb-32">
+          <p className="text-gray-600 leading-loose wrap-break-word whitespace-pre-wrap font-['Value_Sans'] font-medium">
             {daily.description2 ||
               daily.description ||
               'More details coming soon...'}
@@ -215,7 +215,7 @@ export default function HorizontalScroll({
           <motion.div
             ref={containerRef}
             style={{ x, willChange: 'transform' }}
-            className="flex h-full w-[max-content]"
+            className="flex h-full w-max"
           >
             {/* Section 1: Hero (Navy) */}
             <section
@@ -226,13 +226,13 @@ export default function HorizontalScroll({
                 {/* Text Container */}
                 <div className="flex flex-col justify-center space-y-6 w-[40vw] min-w-[300px] pl-8 md:pl-16 shrink-0 z-20">
                   <h1
-                    className="text-5xl md:text-7xl font-serif font-bold leading-tight"
+                    className="text-5xl md:text-7xl font-['Value_Serif'] font-medium leading-tight"
                     style={{ color: cardFontColor }}
                   >
                     {daily.title}
                   </h1>
                   <p
-                    className="text-lg text-gray-300 max-w-md font-light leading-relaxed"
+                    className="text-lg text-gray-300 max-w-md font-['Value_Sans'] font-normal leading-relaxed"
                     style={{ color: cardFontColor }}
                   >
                     {daily.description}
@@ -318,9 +318,9 @@ export default function HorizontalScroll({
             {/* Reduced width to 60vw to bring next section closer */}
             {/* Added z-10 to allow Section 4 to overlap it if needed */}
             <section className="relative flex h-screen w-[60vw] shrink-0 items-center justify-center bg-white z-10">
-              <div className="flex flex-col md:flex-row items-center gap-20 px-12 break-words">
+              <div className="flex flex-col md:flex-row items-center gap-20 px-12 wrap-break-word">
                 <div className="flex flex-col space-y-6 max-w-xl">
-                  <p className="text-gray-600 leading-loose break-words whitespace-pre-wrap">
+                  <p className="text-gray-600 leading-loose wrap-break-word whitespace-pre-wrap font-['Value_Sans'] font-medium">
                     {daily.description2 ||
                       daily.description ||
                       'More details coming soon...'}

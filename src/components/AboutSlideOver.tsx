@@ -100,16 +100,19 @@ export default function AboutSlideOver({
             }`}
           >
             <div className="text-xs font-medium tracking-[0.2em] uppercase opacity-70">
-              Founder / About Us
+              <span className="font-['Value_Sans'] font-normal">
+                Founder /{' '}
+              </span>
+              <span className="font-['Value_Serif'] font-medium">About Us</span>
             </div>
 
             <div className="space-y-8 md:space-y-12">
               {founders?.map((founder, index) => (
                 <div key={index}>
-                  <h3 className="font-serif text-3xl md:text-6xl mb-2 md:mb-3 text-white">
+                  <h3 className="font-['Value_Serif'] font-medium text-3xl md:text-6xl mb-2 md:mb-3 text-white">
                     {founder.name}
                   </h3>
-                  <p className="text-xs md:text-base font-light opacity-80 tracking-wide">
+                  <p className="text-xs md:text-base font-['Value_Sans'] font-normal opacity-80 tracking-wide">
                     {founder.role}
                   </p>
                 </div>
@@ -118,18 +121,18 @@ export default function AboutSlideOver({
               {!founders?.length && (
                 <>
                   <div>
-                    <h3 className="font-serif text-3xl md:text-6xl mb-2 md:mb-3 text-white">
+                    <h3 className="font-['Value_Serif'] font-medium text-3xl md:text-6xl mb-2 md:mb-3 text-white">
                       eddie li
                     </h3>
-                    <p className="text-xs md:text-base font-light opacity-80 tracking-wide">
+                    <p className="text-xs md:text-base font-['Value_Sans'] font-normal opacity-80 tracking-wide">
                       co-founder & photographer
                     </p>
                   </div>
                   <div>
-                    <h3 className="font-serif text-3xl md:text-6xl mb-2 md:mb-3 text-white">
+                    <h3 className="font-['Value_Serif'] font-medium text-3xl md:text-6xl mb-2 md:mb-3 text-white">
                       yin ip
                     </h3>
-                    <p className="text-xs md:text-base font-light opacity-80 tracking-wide">
+                    <p className="text-xs md:text-base font-['Value_Sans'] font-normal opacity-80 tracking-wide">
                       co-founder & art director
                     </p>
                   </div>

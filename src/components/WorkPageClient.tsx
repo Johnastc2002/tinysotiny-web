@@ -235,7 +235,7 @@ export default function WorkPageClient({
     <div className="relative w-full min-h-screen bg-[#F0F2F5]">
       {/* Toggle Button */}
       <div className="fixed right-4 md:right-8 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-2">
-        <span className="text-[10px] font-medium tracking-widest text-gray-500 uppercase">
+        <span className="text-[10px] font-['Value_Sans'] font-normal tracking-widest text-gray-500 uppercase">
           DOT
         </span>
 
@@ -262,7 +262,7 @@ export default function WorkPageClient({
           />
         </button>
 
-        <span className="text-[10px] font-medium tracking-widest text-gray-400 uppercase">
+        <span className="text-[10px] font-['Value_Sans'] font-normal tracking-widest text-gray-400 uppercase">
           GRID
         </span>
       </div>

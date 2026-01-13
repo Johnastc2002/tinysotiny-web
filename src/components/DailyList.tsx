@@ -223,7 +223,7 @@ function DailyListContent({ initialItems }: DailyListProps) {
 
             {/* Caption */}
             <div className="w-full text-left px-4">
-              <h2 className="text-lg md:text-xl font-serif text-[#0F2341] mb-2 tracking-wide uppercase group-hover:text-gray-600 transition-colors">
+              <h2 className="text-lg md:text-xl font-['Value_Serif'] font-medium text-[#0F2341] mb-2 tracking-wide uppercase group-hover:text-gray-600 transition-colors">
                 {item.title}
               </h2>
             </div>

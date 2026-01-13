@@ -215,16 +215,16 @@ export default function DetailCard({
                     </div>
                   )}
                   <h2
-                    className={`mb-2 md:mb-4 text-2xl md:text-4xl font-serif leading-tight ${
-                      !fontColor ? 'text-gray-800' : ''
+                    className={`mb-2 md:mb-4 text-2xl md:text-4xl font-['Value_Serif'] font-medium leading-tight ${
+                      !fontColor ? 'text-[#0F2341]' : ''
                     }`}
                     style={fontColor ? { color: fontColor } : {}}
                   >
                     {data.title}
                   </h2>
                   <p
-                    className={`text-xs md:text-sm leading-relaxed max-w-md ${
-                      !fontColor ? 'text-gray-600' : ''
+                    className={`text-xs md:text-sm leading-relaxed max-w-md font-['Value_Sans'] font-normal line-clamp-5 md:line-clamp-6 text-ellipsis overflow-hidden ${
+                      !fontColor ? 'text-[#0F2341]' : ''
                     }`}
                     style={fontColor ? { color: fontColor, opacity: 0.9 } : {}}
                   >
@@ -243,7 +243,7 @@ export default function DetailCard({
                 </div>
 
                 {/* Bottom Section - Tags/Points (Desktop Only) */}
-                <div className="hidden md:flex bg-white p-10 flex-col justify-center min-h-[30%]">
+                <div className="hidden md:flex bg-white px-10 flex-col justify-center min-h-[30%]">
                   {data.bottomContent}
                 </div>
               </div>

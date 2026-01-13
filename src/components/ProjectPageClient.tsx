@@ -164,21 +164,26 @@ export default function ProjectPageClient({
                                   : {}
                               }
                             >
-                              CLIENT / {project.clientName}
+                              <span className="font-['Value_Sans'] font-normal">
+                                CLIENT /{' '}
+                              </span>
+                              <span className="font-['Value_Serif'] font-medium">
+                                {project.clientName}
+                              </span>
                             </span>
                           </div>
                         )}
                         <h2
-                          className={`mb-4 text-4xl font-serif leading-tight ${
-                            !cardFontColor ? 'text-gray-800' : ''
+                          className={`mb-4 text-4xl font-['Value_Serif'] font-medium leading-tight ${
+                            !cardFontColor ? 'text-[#0F2341]' : ''
                           }`}
                           style={cardFontColor ? { color: cardFontColor } : {}}
                         >
                           {project.title}
                         </h2>
                         <p
-                          className={`text-sm leading-relaxed max-w-md ${
-                            !cardFontColor ? 'text-gray-600' : ''
+                          className={`text-sm leading-relaxed max-w-md font-['Value_Sans'] font-normal ${
+                            !cardFontColor ? 'text-[#0F2341]' : ''
                           }`}
                           style={
                             cardFontColor
@@ -199,9 +204,10 @@ export default function ProjectPageClient({
                           {project.tags.map((tag, tagIndex) => (
                             <li
                               key={tagIndex}
-                              className="flex items-center text-xs font-semibold text-gray-400 uppercase tracking-wide"
+                              className="flex items-center leading-none text-xs font-['Value_Sans'] font-normal text-[#B6B6B6] uppercase tracking-wide"
                             >
-                              <span className="mr-2 text-[10px]">◉</span> {tag}
+                              <div className="w-2 h-2 rounded-full bg-[#B6B6B6] mr-2 shrink-0 mb-0.5" />{' '}
+                              {tag}
                             </li>
                           ))}
                         </ul>
@@ -230,7 +236,7 @@ export default function ProjectPageClient({
                 backgroundColor: cardBgColor || '#E5E5E5',
               }}
             >
-              {project.clientName && (
+              {project.clientName ? (
                 <div className="mb-4">
                   <span
                     className={`text-xs font-semibold uppercase tracking-wider ${
@@ -242,21 +248,41 @@ export default function ProjectPageClient({
                         : {}
                     }
                   >
-                    CLIENT / {project.clientName}
+                    <span className="font-['Value_Sans'] font-normal">
+                      CLIENT /{' '}
+                    </span>
+                    <span className="font-['Value_Serif'] font-medium">
+                      {project.clientName}
+                    </span>
                   </span>
+                </div>
+              ) : (
+                /* No Client: Show Tags here */
+                <div className="mb-6">
+                  <ul className="flex flex-wrap gap-x-4 gap-y-2">
+                    {project.tags.map((tag, tagIndex) => (
+                      <li
+                        key={tagIndex}
+                        className="flex items-center leading-none text-xs font-['Value_Sans'] font-normal text-[#B6B6B6] uppercase tracking-wide"
+                      >
+                        <div className="w-2 h-2 rounded-full bg-[#B6B6B6] mr-2 shrink-0 mb-0.5" />{' '}
+                        {tag}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
               <h1
-                className={`text-4xl font-serif leading-tight mb-6 ${
-                  !cardFontColor ? 'text-gray-900' : ''
+                className={`text-4xl font-['Value_Serif'] font-medium leading-tight mb-6 ${
+                  !cardFontColor ? 'text-[#0F2341]' : ''
                 }`}
                 style={cardFontColor ? { color: cardFontColor } : {}}
               >
                 {project.title}
               </h1>
               <p
-                className={`text-base leading-relaxed mb-0 ${
-                  !cardFontColor ? 'text-gray-700' : ''
+                className={`text-base leading-relaxed mb-0 font-['Value_Sans'] font-normal ${
+                  !cardFontColor ? 'text-[#0F2341]' : ''
                 }`}
                 style={
                   cardFontColor ? { color: cardFontColor, opacity: 0.9 } : {}
@@ -266,19 +292,27 @@ export default function ProjectPageClient({
               </p>
             </div>
 
-            {/* Tags */}
-            <div className="px-8 pt-4 pb-10 bg-white">
-              <ul className="space-y-2">
-                {project.tags.map((tag, tagIndex) => (
-                  <li
-                    key={tagIndex}
-                    className="flex items-center text-xs font-semibold text-gray-400 uppercase tracking-wide"
-                  >
-                    <span className="mr-2 text-[10px]">◉</span> {tag}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {/* Tags (Only if Client Name exists, otherwise they are shown above) */}
+            {project.clientName && (
+              <div
+                className="px-8 pt-4 pb-10 transition-colors duration-300"
+                style={{
+                  backgroundColor: cardBgColor || '#E5E5E5',
+                }}
+              >
+                <ul className="flex flex-wrap gap-x-4 gap-y-2">
+                  {project.tags.map((tag, tagIndex) => (
+                    <li
+                      key={tagIndex}
+                      className="flex items-center leading-none text-xs font-['Value_Sans'] font-normal text-[#B6B6B6] uppercase tracking-wide"
+                    >
+                      <div className="w-2 h-2 rounded-full bg-[#B6B6B6] mr-2 shrink-0 mb-0.5" />{' '}
+                      {tag}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* 2. Banner 2 (Full Width) */}
             {project.banners.length > 1 && (
@@ -320,7 +354,7 @@ export default function ProjectPageClient({
               {/* Optional: Repeat Title or just show Cast */}
               {project.cast && (
                 <div
-                  className="text-base text-gray-600 leading-relaxed whitespace-pre-line font-light"
+                  className="text-base text-[#0F2341] leading-relaxed whitespace-pre-line font-['Value_Sans'] font-normal"
                   dangerouslySetInnerHTML={{ __html: project.cast }}
                 />
               )}
@@ -332,7 +366,7 @@ export default function ProjectPageClient({
         <div className="hidden md:block w-full relative -mt-32 z-20 pointer-events-none">
           <div className="flex flex-col md:flex-row gap-0">
             {/* Left Column: White Box for Title & Cast */}
-            <div className="w-full md:w-1/2 bg-white pt-8 pb-8 pr-8 md:pt-16 md:pb-16 md:pr-16 pl-12 md:pl-24 shadow-lg pointer-events-auto rounded-r-3xl">
+            <div className="w-full md:w-[90%] bg-white pt-8 pb-8 pr-8 md:pt-16 md:pb-16 md:pr-16 pl-12 md:pl-24 shadow-lg pointer-events-auto rounded-r-3xl">
               <motion.div
                 initial={{ y: 50, opacity: 0 }}
                 whileInView={{ y: 0, opacity: 1 }}
@@ -342,31 +376,29 @@ export default function ProjectPageClient({
                 {project.clientName && (
                   <div className="mb-6">
                     <span className="text-sm font-semibold uppercase tracking-wider text-gray-500">
-                      CLIENT / {project.clientName}
+                      <span className="font-['Value_Sans'] font-normal">
+                        CLIENT /{' '}
+                      </span>
+                      <span className="font-['Value_Serif'] font-medium">
+                        {project.clientName}
+                      </span>
                     </span>
                   </div>
                 )}
-                <h1 className="text-5xl md:text-7xl font-serif text-gray-900 leading-tight mb-8">
+                <h1 className="text-5xl md:text-7xl font-['Value_Serif'] font-medium text-[#0F2341] leading-tight mb-8">
                   {project.title}
                 </h1>
 
                 {/* Casts */}
                 <div
-                  className="text-lg text-gray-600 leading-relaxed whitespace-pre-line font-light mb-12"
+                  className="text-lg text-[#0F2341] leading-relaxed whitespace-pre-line font-['Value_Sans'] font-normal mb-12"
                   dangerouslySetInnerHTML={{ __html: project.cast }}
                 />
-
-                {/* Description */}
-                <div className="mb-8">
-                  <p className="text-xl text-gray-700 leading-relaxed">
-                    {project.description}
-                  </p>
-                </div>
               </motion.div>
             </div>
 
             {/* Right Column: Spacer (Transparent) to show banner behind */}
-            <div className="hidden md:block w-full md:w-1/2 pointer-events-none"></div>
+            <div className="hidden md:block w-full md:w-[10%] pointer-events-none"></div>
           </div>
         </div>
 
@@ -450,7 +482,7 @@ export default function ProjectPageClient({
                         viewport={{ once: true }}
                         className="w-full pb-16 flex justify-start px-0 overflow-hidden"
                       >
-                        <p className="text-base text-gray-700 leading-relaxed max-w-full text-left font-light break-words whitespace-pre-wrap">
+                        <p className="text-base text-gray-700 leading-relaxed max-w-full text-left font-['Value_Sans'] font-medium wrap-break-word whitespace-pre-wrap">
                           {project.description_2}
                         </p>
                       </motion.div>
@@ -469,23 +501,23 @@ export default function ProjectPageClient({
               href={getRecommendedHref(recommendedProject.id)}
               scroll={false}
               onClick={handleNextProject}
-              className="block w-full bg-[#F2B45A] rounded-t-3xl p-12 md:p-24 hover:bg-[#c59556] transition-colors duration-300 group"
+              className="block w-full bg-[#F2B45A] rounded-t-3xl p-12 md:p-24 hover:bg-[#F5C270] transition-colors duration-300 group"
             >
               <div className="flex flex-col items-start">
                 <div className="flex items-center space-x-2 mb-6 opacity-80 group-hover:opacity-100 transition-opacity">
-                  <span className="text-xs font-bold tracking-widest text-[#ffffff] uppercase">
+                  <span className="text-sm tracking-widest text-[#ffffff] uppercase font-['Value_Sans'] font-normal">
                     Next Project
                   </span>
                   <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
+                    width="1em"
+                    height="1em"
+                    viewBox="0 0 15 15"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
-                    className="text-[#ffffff]"
+                    className="text-[#ffffff] w-[1em] h-[1em]"
                   >
                     <path
-                      d="M1 1L11 11M11 11V1M11 11H1"
+                      d="M3 3 L12 12 L12 5"
                       stroke="currentColor"
                       strokeWidth="1.5"
                       strokeLinecap="round"
@@ -493,7 +525,7 @@ export default function ProjectPageClient({
                     />
                   </svg>
                 </div>
-                <h3 className="text-4xl md:text-6xl font-serif text-[#2c2c2c] leading-tight max-w-4xl">
+                <h3 className="text-4xl md:text-6xl font-['Value_Serif'] font-medium text-[#0F2341] leading-tight max-w-4xl">
                   {recommendedProject.title}
                 </h3>
               </div>

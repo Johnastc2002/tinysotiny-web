@@ -240,24 +240,27 @@ function GalleryPageContent({
           (selectedProject.thumbnails && selectedProject.thumbnails.length > 0
             ? selectedProject.thumbnails[0]
             : undefined) || selectedProject.bubble_thumbnail,
-        topLabel: selectedProject.clientName
-          ? `CLIENT / ${selectedProject.clientName}`
-          : null,
+        topLabel: selectedProject.clientName ? (
+          <>
+            <span className="font-['Value_Sans'] font-normal">CLIENT / </span>
+            <span className="font-['Value_Serif'] font-medium">
+              {selectedProject.clientName}
+            </span>
+          </>
+        ) : null,
         bottomContent: (
-          <ul className="space-y-3">
+          <ul className="flex flex-wrap gap-x-4 gap-y-2 md:block md:space-y-3 m-0 p-0">
             {selectedProject.tags.map((tag, index) => (
               <li
                 key={index}
-                className={`flex items-center text-[10px] md:text-xs font-semibold uppercase tracking-wide transition-colors ${
-                  selectedProject.card_font_color ? '' : 'text-gray-400'
-                }`}
-                style={
+                className={`flex items-center leading-none text-[10px] md:text-xs font-['Value_Sans'] font-normal uppercase tracking-wide transition-colors ${
                   selectedProject.card_font_color
-                    ? { color: selectedProject.card_font_color, opacity: 0.8 }
-                    : {}
-                }
+                    ? 'text-current opacity-80 md:text-[#B6B6B6] md:opacity-100'
+                    : 'text-[#B6B6B6]'
+                }`}
               >
-                <span className="mr-2 text-[8px] md:text-[10px]">◉</span> {tag}
+                <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />
+                {tag}
               </li>
             ))}
           </ul>
@@ -550,7 +553,7 @@ function GalleryPageContent({
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2"
+                strokeWidth="1"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
@@ -576,7 +579,7 @@ function GalleryPageContent({
         className="fixed top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-2"
         style={{ right: '1.75rem' }}
       >
-        <span className="text-[10px] font-medium tracking-widest text-[#B6B6B6] uppercase">
+        <span className="text-[10px] font-['Value_Sans'] font-normal tracking-widest text-[#B6B6B6] uppercase">
           DOT
         </span>
 
@@ -609,7 +612,7 @@ function GalleryPageContent({
           />
         </button>
 
-        <span className="text-[10px] font-medium tracking-widest text-[#B6B6B6] uppercase">
+        <span className="text-[10px] font-['Value_Sans'] font-normal tracking-widest text-[#B6B6B6] uppercase">
           GRID
         </span>
       </div>
@@ -695,7 +698,7 @@ function GalleryPageContent({
                       e.stopPropagation();
                       toggleTag(tag.tag_id);
                     }}
-                    className={`px-6 py-2.5 rounded-full transition-colors duration-200 text-xs md:text-sm uppercase tracking-wide font-medium text-white ${
+                    className={`px-6 py-2.5 rounded-full transition-colors duration-200 text-xs md:text-sm uppercase tracking-wide font-['Value_Sans'] font-normal text-white ${
                       isSelected
                         ? 'bg-[#0F2341]/80'
                         : 'bg-[#B6B6B6]/60 hover:bg-[#B6B6B6]/80'
@@ -717,10 +720,21 @@ function GalleryPageContent({
                   aria-label="Close Filters"
                 >
                   {/* Cross Icon */}
-                  <div className="relative w-5 h-5 flex items-center justify-center">
-                    <div className="absolute w-5 h-px bg-white rounded-full rotate-45" />
-                    <div className="absolute w-5 h-px bg-white rounded-full -rotate-45" />
-                  </div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-white"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
                 </button>
 
                 {/* Reset Button */}
@@ -729,7 +743,7 @@ function GalleryPageContent({
                     e.stopPropagation();
                     setSelectedTags([]);
                   }}
-                  className="absolute left-full top-0 ml-4 h-12 px-6 rounded-full bg-[#3b3b3b]/80 text-white backdrop-blur-sm shadow-sm flex items-center gap-2 text-xs md:text-sm uppercase tracking-wide font-medium hover:bg-[#3b3b3b] transition-all border border-transparent whitespace-nowrap"
+                  className="absolute right-full top-0 mr-4 h-12 px-6 rounded-full bg-[#3b3b3b]/80 text-white backdrop-blur-sm shadow-sm flex items-center gap-2 text-xs md:text-sm uppercase tracking-wide font-['Value_Sans'] font-normal hover:bg-[#3b3b3b] transition-all border border-transparent whitespace-nowrap"
                 >
                   <svg
                     width="14"
@@ -862,8 +876,11 @@ function ProjectCard({ project }: { project: Project }) {
         {/* Client Overlay */}
         {project.clientName && (
           <div className="absolute top-2 left-3 right-3 md:top-4 md:left-4 md:right-4 z-10 pointer-events-none">
-            <span className="inline-block text-[10px] md:text-xs font-semibold uppercase tracking-wider text-white drop-shadow-md whitespace-normal wrap-break-word">
-              CLIENT / {project.clientName}
+            <span className="inline-block text-[10px] md:text-xs uppercase tracking-wider text-white drop-shadow-md whitespace-normal wrap-break-word">
+              <span className="font-['Value_Sans'] font-normal">CLIENT / </span>
+              <span className="font-['Value_Serif'] font-medium">
+                {project.clientName}
+              </span>
             </span>
           </div>
         )}
@@ -873,7 +890,7 @@ function ProjectCard({ project }: { project: Project }) {
           {project.tags.slice(0, 2).map((tag, i) => (
             <span
               key={i}
-              className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-white/20 backdrop-blur-sm text-[9px] md:text-[10px] uppercase tracking-wide font-medium text-white shadow-sm"
+              className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-white/20 backdrop-blur-sm text-[9px] md:text-[10px] uppercase tracking-wide font-['Value_Sans'] font-normal text-white shadow-sm"
             >
               {tag}
             </span>

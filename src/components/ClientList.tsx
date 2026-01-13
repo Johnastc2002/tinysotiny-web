@@ -119,10 +119,8 @@ const ClientImageOverlay = ({
             left = offset + index * overlap;
           }
 
-          // Generate random vertical offsets locally or pass them?
-          // We can generate them here deterministically based on index to avoid flicker on re-mount?
-          // Or generate once on mount.
-          const verticalOffset = Math.random() * 100 - 50;
+          // Deterministic offset based on index to avoid flicker on re-mount and impure function calls
+          const verticalOffset = ((index * 37) % 100) - 50;
 
           return (
             <div
@@ -219,7 +217,7 @@ export default function ClientList({ clients }: ClientListProps) {
   return (
     <div
       ref={containerRef}
-      className="relative flex flex-wrap justify-start items-center text-2xl md:text-4xl lg:text-5xl font-bold leading-normal tracking-wider text-gray-400"
+      className="relative flex flex-wrap justify-start items-center text-xl md:text-2xl lg:text-3xl font-bold leading-normal tracking-wider text-gray-400"
       onMouseMove={handleMouseMove}
     >
       {/* Overlay Component */}
@@ -247,7 +245,7 @@ export default function ClientList({ clients }: ClientListProps) {
           <div className="relative h-full flex items-center">
             {/* Invisible placeholder to reserve space for the bold/italic text */}
             <div
-              className="font-serif italic invisible opacity-0 px-1"
+              className="font-['Value_Serif'] font-medium invisible opacity-0 px-1"
               aria-hidden="true"
             >
               {client.clientName}
@@ -257,8 +255,8 @@ export default function ClientList({ clients }: ClientListProps) {
             <div
               className={`absolute inset-0 flex items-center justify-center transition-transform duration-200 cursor-default whitespace-nowrap px-1 text-[#B6B6B6] hover:text-[#B6B6B6] ${
                 hoveredClientId === client.id
-                  ? 'font-serif italic scale-105'
-                  : ''
+                  ? "font-['Value_Serif'] font-medium scale-105"
+                  : "font-['Value_Sans'] font-medium"
               }`}
             >
               {client.clientName}

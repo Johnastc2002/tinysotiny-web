@@ -75,6 +75,7 @@ export default function SmartMedia({
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const id = useId();
+  const maskId = `cc-mask-${id.replace(/:/g, '')}`;
   const { activeVideoId, playVideo, pauseVideo } = useVideoContext();
 
   // Helper to remove hover/transform effects when fullscreen
@@ -624,7 +625,7 @@ export default function SmartMedia({
           <>
             {(videoActivated || (shouldLoad && type === 'vimeo')) && (
               <div
-                className={`absolute inset-0 transition-opacity duration-[1500ms] ease-in-out ${activeClassName.replace(
+                className={`absolute inset-0 transition-opacity duration-1500 ease-in-out ${activeClassName.replace(
                   'hover:',
                   'group-hover:'
                 )} ${
@@ -663,7 +664,7 @@ export default function SmartMedia({
             {/* Fullscreen Custom Controls */}
             {isFullscreen && (
               <div
-                className={`fixed bottom-0 left-0 right-0 w-full z-50 px-4 md:px-8 py-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-center gap-4 transition-opacity duration-300 ${
+                className={`fixed bottom-0 left-0 right-0 w-full z-50 px-4 md:px-8 py-6 bg-linear-to-t from-black/80 via-black/40 to-transparent flex items-center gap-4 transition-opacity duration-300 ${
                   showControls
                     ? 'opacity-100 pointer-events-auto'
                     : 'opacity-0 pointer-events-none'
@@ -718,27 +719,69 @@ export default function SmartMedia({
 
                 {/* Captions */}
                 {hasCaptions && (
-                  <div className="flex items-center gap-4">
+                  <>
                     <button
                       onClick={toggleCaptions}
-                      className={`flex-none hover:text-gray-200 focus:outline-none transition-transform hover:scale-110 flex items-center justify-center ${
-                        captionsEnabled ? 'text-white' : 'text-white/60'
-                      }`}
+                      className={`flex-none focus:outline-none transition-transform hover:scale-110 flex items-center justify-center`}
                       aria-label="Toggle Captions"
                     >
                       <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="w-6 h-6"
+                        width="26"
+                        height="20"
+                        viewBox="0 0 26 20"
+                        className="block"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z"
-                        />
+                        {captionsEnabled ? (
+                          <>
+                            <defs>
+                              <mask id={maskId}>
+                                <rect width="26" height="20" fill="white" />
+                                <text
+                                  x="50%"
+                                  y="52%"
+                                  dominantBaseline="central"
+                                  textAnchor="middle"
+                                  className="font-['Value_Sans'] font-bold text-[9px] tracking-tight"
+                                  fill="black"
+                                >
+                                  CC
+                                </text>
+                              </mask>
+                            </defs>
+                            <rect
+                              width="26"
+                              height="20"
+                              rx="3"
+                              fill="white"
+                              mask={`url(#${maskId})`}
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <rect
+                              x="0.75"
+                              y="0.75"
+                              width="24.5"
+                              height="18.5"
+                              rx="2.25"
+                              stroke="white"
+                              strokeOpacity="0.6"
+                              strokeWidth="1.5"
+                              fill="none"
+                            />
+                            <text
+                              x="50%"
+                              y="52%"
+                              dominantBaseline="central"
+                              textAnchor="middle"
+                              className="font-['Value_Sans'] font-bold text-[9px] tracking-tight"
+                              fill="white"
+                              fillOpacity="0.6"
+                            >
+                              CC
+                            </text>
+                          </>
+                        )}
                       </svg>
                     </button>
 
@@ -808,7 +851,7 @@ export default function SmartMedia({
                         </div>
                       )}
                     </div>
-                  </div>
+                  </>
                 )}
 
                 {/* Exit Fullscreen */}
@@ -949,7 +992,7 @@ export default function SmartMedia({
             )}
 
             <div
-              className={`absolute inset-0 bg-gray-200 transition-opacity duration-[1500ms] ease-in-out pointer-events-none ${
+              className={`absolute inset-0 bg-gray-200 transition-opacity duration-1500 ease-in-out pointer-events-none ${
                 isLoaded || thumbnailUrl ? 'opacity-0' : 'opacity-100'
               }`}
             />
@@ -972,7 +1015,7 @@ export default function SmartMedia({
         <video
           ref={videoRef}
           src={videoSrc}
-          className={`w-full h-full object-cover transition-opacity duration-[1500ms] ease-in-out ${activeClassName.replace(
+          className={`w-full h-full object-cover transition-opacity duration-1500 ease-in-out ${activeClassName.replace(
             'hover:',
             'group-hover:'
           )} ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
@@ -1040,7 +1083,7 @@ export default function SmartMedia({
         </div>
 
         <div
-          className={`absolute inset-0 bg-gray-200 transition-opacity duration-[1500ms] ease-in-out pointer-events-none ${
+          className={`absolute inset-0 bg-gray-200 transition-opacity duration-1500 ease-in-out pointer-events-none ${
             isLoaded ? 'opacity-0' : 'opacity-100'
           }`}
         />
@@ -1058,7 +1101,7 @@ export default function SmartMedia({
         fill={fill}
         width={!fill ? width : undefined}
         height={!fill ? height : undefined}
-        className={`transition-opacity duration-[1500ms] ease-in-out ${
+        className={`transition-opacity duration-1500 ease-in-out ${
           isLoaded ? 'opacity-100' : 'opacity-0'
         } object-cover`}
         onLoad={setLoaded}
