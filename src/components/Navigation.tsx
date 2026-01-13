@@ -24,6 +24,7 @@ function NavigationItem({
   isActive,
   isHome,
   toggleMenu,
+  pathname,
 }: NavigationItemProps) {
   // Initialize expanded state to false to prevent auto-expansion
   const [isExpanded, setIsExpanded] = useState(false);
@@ -48,8 +49,14 @@ function NavigationItem({
           <button
             onClick={handleClick}
             className={`text-4xl font-bold tracking-wider text-[#0F2341] transition-colors hover:text-gray-500 md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl! ${
-              isActive ? 'font-serif italic' : ''
+              isActive ? 'font-serif' : ''
             }`}
+            style={{
+              fontFamily: isActive
+                ? "'Value Serif', serif"
+                : "'Value Sans', sans-serif",
+              fontWeight: 500, // Medium weight
+            }}
           >
             {item}
           </button>
@@ -57,9 +64,15 @@ function NavigationItem({
           <Link
             href={href}
             className={`text-4xl font-bold tracking-wider text-[#0F2341] transition-colors hover:text-gray-500 md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl! ${
-              isActive ? 'font-serif italic' : ''
+              isActive ? 'font-serif' : ''
             }`}
             onClick={toggleMenu}
+            style={{
+              fontFamily: isActive
+                ? "'Value Serif', serif"
+                : "'Value Sans', sans-serif",
+              fontWeight: 500, // Medium weight
+            }}
           >
             {item}
           </Link>
@@ -78,16 +91,27 @@ function NavigationItem({
               : 'max-h-0 opacity-0 mt-0 landscape:max-w-0 lg:[@media(min-height:720px)]:max-w-none landscape:max-h-20 lg:[@media(min-height:720px)]:max-h-0'
           }`}
         >
-          {['work', 'play'].map((subItem) => (
-            <Link
-              key={subItem}
-              href={`/${subItem}`}
-              onClick={toggleMenu}
-              className="text-2xl font-bold tracking-wider text-[#0F2341] transition-colors hover:text-gray-500 md:text-3xl landscape:text-xl lg:[@media(min-height:720px)]:text-3xl!"
-            >
-              {subItem}
-            </Link>
-          ))}
+          {['work', 'play'].map((subItem) => {
+            const isSubActive = pathname.startsWith(`/${subItem}`);
+            return (
+              <Link
+                key={subItem}
+                href={`/${subItem}`}
+                onClick={toggleMenu}
+                className={`text-2xl font-bold tracking-wider text-[#0F2341] transition-colors hover:text-gray-500 md:text-3xl landscape:text-xl lg:[@media(min-height:720px)]:text-3xl! ${
+                  isSubActive ? 'font-serif' : ''
+                }`}
+                style={{
+                  fontFamily: isSubActive
+                    ? "'Value Serif', serif"
+                    : "'Value Sans', sans-serif",
+                  fontWeight: 500,
+                }}
+              >
+                {subItem}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
@@ -97,12 +121,34 @@ function NavigationItem({
 export default function Navigation({ contact }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-  const isDarkPage = pathname === '/play';
+  const isDarkPage = pathname === '/play' || pathname?.startsWith('/play/');
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
   return (
     <>
+      {/* Logo */}
+      <Link
+        href="/"
+        className={`fixed z-[100] transition-all duration-300 ${
+          isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
+        style={{
+          top: 'calc(1.5rem + 5px)',
+          left: '1.5rem',
+        }}
+      >
+        <img
+          src="/logo.png"
+          alt="Logo"
+          style={{
+            height: '38px',
+            width: 'auto',
+            filter: isDarkPage ? 'brightness(0) invert(1)' : 'none',
+          }}
+        />
+      </Link>
+
       {/* Glass Hamburger Button */}
       <button
         onClick={toggleMenu}
@@ -164,14 +210,14 @@ export default function Navigation({ contact }: NavigationProps) {
               <path
                 d="M18 6L6 18"
                 stroke="#B6B6B6"
-                strokeWidth="2"
+                strokeWidth="1"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
               <path
                 d="M6 6L18 18"
                 stroke="#B6B6B6"
-                strokeWidth="2"
+                strokeWidth="1"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
@@ -214,6 +260,10 @@ export default function Navigation({ contact }: NavigationProps) {
               className="text-xs font-semibold tracking-widest text-[#B6B6B6] hover:text-[#0F2341] transition-colors uppercase landscape:absolute landscape:left-[40%] lg:[@media(min-height:720px)]:static lg:[@media(min-height:720px)]:ml-0 lg:[@media(min-height:720px)]:text-sm!"
               target="_blank"
               rel="noopener noreferrer"
+              style={{
+                fontFamily: "'Value Sans', sans-serif",
+                fontWeight: 500,
+              }}
             >
               INSTAGRAM
             </Link>
@@ -221,12 +271,20 @@ export default function Navigation({ contact }: NavigationProps) {
               <Link
                 href={`mailto:${contact?.email || 'hello@tinysotiny.com'}`}
                 className="text-xs font-semibold tracking-widest text-[#B6B6B6] hover:text-[#0F2341] transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!"
+                style={{
+                  fontFamily: "'Value Sans', sans-serif",
+                  fontWeight: 500,
+                }}
               >
                 EMAIL
               </Link>
               <Link
                 href={`tel:${contact?.phone || '+85212345678'}`}
                 className="text-xs font-semibold tracking-widest text-[#B6B6B6] hover:text-[#0F2341] transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!"
+                style={{
+                  fontFamily: "'Value Sans', sans-serif",
+                  fontWeight: 500,
+                }}
               >
                 PHONE
               </Link>

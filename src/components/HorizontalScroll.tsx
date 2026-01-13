@@ -3,7 +3,6 @@
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { DailyData } from '@/types/daily';
-import Link from 'next/link';
 import SmartMedia from '@/components/SmartMedia';
 
 interface HorizontalScrollProps {
@@ -84,16 +83,6 @@ export default function HorizontalScroll({
 
   return (
     <>
-      {/* Fixed Logo */}
-      <div className="fixed top-8 left-8 md:top-12 md:left-16 z-50 mix-blend-difference">
-        <Link
-          href="/daily"
-          className="text-4xl font-bold tracking-tighter text-[#0F2341] hover:text-gray-400 transition-colors"
-        >
-          t.
-        </Link>
-      </div>
-
       {/* Scroll Container - Height determines scroll length */}
       {/* Dynamic height based on content width to ensure enough scroll track */}
       {/* 1px horizontal scroll = 1px vertical scroll approximately */}

@@ -718,8 +718,8 @@ function GalleryPageContent({
                 >
                   {/* Cross Icon */}
                   <div className="relative w-5 h-5 flex items-center justify-center">
-                    <div className="absolute w-5 h-0.5 bg-white rounded-full rotate-45" />
-                    <div className="absolute w-5 h-0.5 bg-white rounded-full -rotate-45" />
+                    <div className="absolute w-5 h-px bg-white rounded-full rotate-45" />
+                    <div className="absolute w-5 h-px bg-white rounded-full -rotate-45" />
                   </div>
                 </button>
 

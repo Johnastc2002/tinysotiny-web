@@ -16,9 +16,11 @@ import {
   Text,
   Environment,
   Float,
+  Html,
 } from '@react-three/drei';
 import * as THREE from 'three';
 import { Project } from '@/types/project';
+import { InteractionCursor } from './BubbleActions';
 
 interface Shader {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -112,8 +114,8 @@ const generateBubbles = (
     // 1. Play Bubble (Blue, Gradient, Left side, Behind Work)
     temp.push({
       id: 0,
-      position: [-1.8, 1.2, 0], // Moved slightly closer to center to overlap more
-      scale: 3.5,
+      position: [-1.8, 1.8, 0.5], // Moved slightly closer to center to overlap more
+      scale: 3,
       color: BUBBLE_COLORS.PLAY,
       type: 'glass',
       link: '/play',
@@ -125,7 +127,7 @@ const generateBubbles = (
     // 2. Work Bubble (Dark, Solid, Right side, In Front)
     temp.push({
       id: 1,
-      position: [1.8, -0.8, 0.1], // Moved slightly closer to center
+      position: [1.8, -1.8, 0], // Moved slightly closer to center
       scale: 3.5,
       color: BUBBLE_COLORS.WORK, // Restored to user-defined Navy color
       type: 'solid',
@@ -366,6 +368,7 @@ const Bubble = ({
         textOffset={textOffset}
         isGradient={isGradient}
         enableBlur={enableBlur}
+        isHovered={isHovered}
       />
     </group>
   );
@@ -395,6 +398,9 @@ const ImageBubble = ({
   const textures = useTexture([imageUrl, imageHoverUrl || imageUrl]);
   const defaultTexture = textures[0];
   const hoverTexture = textures[1];
+  const [cursorPos, setCursorPos] = useState<[number, number, number] | null>(
+    null
+  );
 
   const { camera } = useThree();
   const meshRef = useRef<THREE.Mesh>(null);
@@ -518,6 +524,10 @@ const ImageBubble = ({
           onClick={onClick}
           onPointerOver={onPointerOver}
           onPointerOut={onPointerOut}
+          onPointerMove={(e) => {
+            const local = e.object.worldToLocal(e.point.clone());
+            setCursorPos([local.x, local.y, local.z]);
+          }}
         >
           <circleGeometry args={[scale, 32]} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} />
@@ -667,6 +677,26 @@ const ImageBubble = ({
             />
           </mesh>
         )}
+        {isHovered && (
+          <group
+            position={
+              cursorPos ? [cursorPos[0], cursorPos[1], cursorPos[2]] : [0, 0, 0]
+            }
+          >
+            <Html
+              position={[0, 0, 0]}
+              style={{
+                pointerEvents: 'none',
+                transform: 'translate(20px, 20px)',
+              }}
+              className="pointer-events-none"
+              pointerEvents="none"
+              zIndexRange={[100, 0]}
+            >
+              <InteractionCursor text={null} />
+            </Html>
+          </group>
+        )}
       </Billboard>
     </Float>
   );
@@ -685,6 +715,7 @@ const ColorBubble = ({
   textOffset,
   isGradient,
   enableBlur,
+  isHovered,
 }: {
   position: [number, number, number];
   scale: number;
@@ -698,9 +729,13 @@ const ColorBubble = ({
   textOffset?: [number, number, number];
   isGradient?: boolean;
   enableBlur?: boolean;
+  isHovered?: boolean;
 }) => {
   const [floatSpeed] = useState(() => 1.5 + Math.random());
   const [floatIntensity] = useState(() => 1 + Math.random());
+  const [cursorPos, setCursorPos] = useState<[number, number, number] | null>(
+    null
+  );
 
   const { camera } = useThree();
   const meshRef = useRef<THREE.Mesh>(null);
@@ -810,6 +845,10 @@ const ColorBubble = ({
           onClick={onClick}
           onPointerOver={onPointerOver}
           onPointerOut={onPointerOut}
+          onPointerMove={(e) => {
+            const local = e.object.worldToLocal(e.point.clone());
+            setCursorPos([local.x, local.y, local.z]);
+          }}
         >
           <circleGeometry args={[scale, 32]} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} />
@@ -866,10 +905,38 @@ const ColorBubble = ({
             color="white"
             anchorX="center"
             anchorY="middle"
-            fontWeight="bold"
+            font={
+              label === 'play'
+                ? '/fonts/value-serif-bold.otf'
+                : '/fonts/Value-Bold.ttf'
+            }
+            fontWeight="normal"
+            raycast={() => null} // Disable raycasting so it doesn't block hover on bubble
           >
             {label}
           </Text>
+        )}
+        {label === 'play' && isHovered && (
+          <group
+            position={
+              cursorPos
+                ? [cursorPos[0], cursorPos[1], cursorPos[2]]
+                : [0.6, 0, 0]
+            }
+          >
+            <Html
+              position={[0, 0, 0]}
+              style={{
+                pointerEvents: 'none',
+                transform: 'translate(20px, 20px)',
+              }}
+              className="pointer-events-none"
+              pointerEvents="none"
+              zIndexRange={[100, 0]}
+            >
+              <InteractionCursor text="game on!" />
+            </Html>
+          </group>
         )}
       </Billboard>
     </Float>

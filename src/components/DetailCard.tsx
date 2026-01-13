@@ -1,9 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { InteractionCursor } from './BubbleActions';
 
 export interface DetailCardData {
   id: string;
@@ -24,6 +26,61 @@ interface DetailCardProps {
   onCardClick?: (id: string) => void;
 }
 
+// Internal component for handling the cursor portal and movement
+const DetailCardCursor = ({ visible }: { visible: boolean }) => {
+  const cursorRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // Small delay to ensure body is ready and prevent synchronous update warning
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (cursorRef.current) {
+        cursorRef.current.style.transform = `translate3d(${e.clientX + 20}px, ${
+          e.clientY + 20
+        }px, 0)`;
+      }
+    };
+
+    // Always listen to movement to keep position updated
+    window.addEventListener('mousemove', handleMouseMove);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [mounted]);
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <div
+      ref={cursorRef}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        pointerEvents: 'none',
+        zIndex: 9999,
+        opacity: visible ? 1 : 0,
+        transition: 'opacity 0.2s ease-out',
+        willChange: 'transform, opacity',
+        // Initialize off-screen to prevent flash
+        transform: 'translate3d(-100px, -100px, 0)',
+      }}
+      aria-hidden="true"
+    >
+      <InteractionCursor text="open project" />
+    </div>,
+    document.body
+  );
+};
+
 export default function DetailCard({
   data,
   onClose,
@@ -32,6 +89,7 @@ export default function DetailCard({
   onCardClick,
 }: DetailCardProps) {
   const [isImageLoaded, setIsImageLoaded] = React.useState(false);
+  const [isHovering, setIsHovering] = useState(false);
   const router = useRouter();
 
   // Helper to ensure color has # if it's a hex code
@@ -86,13 +144,15 @@ export default function DetailCard({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              onMouseLeave={() => setIsHovering(false)}
+              onMouseEnter={() => setIsHovering(true)}
               className={`
                 relative flex flex-col md:flex-row 
                 w-full h-[85vh] md:w-[80vw] md:max-w-5xl md:h-[60vh]
                 overflow-hidden 
                 bg-white 
                 rounded-4xl md:rounded-4xl 
-                shadow-2xl cursor-auto
+                shadow-2xl cursor-none
               `}
               onClick={(e) => {
                 e.stopPropagation();
@@ -132,7 +192,7 @@ export default function DetailCard({
               </div>
 
               {/* Right Side - Content */}
-              <div className="flex w-full md:w-1/2 flex-col cursor-pointer hover:bg-gray-50 transition-colors flex-none md:flex-1 md:h-auto md:overflow-y-auto bg-white z-10">
+              <div className="flex w-full md:w-1/2 flex-col cursor-none hover:bg-gray-50 transition-colors flex-none md:flex-1 md:h-auto md:overflow-y-auto bg-white z-10">
                 {/* Top Section - Description */}
                 <div
                   className="flex-1 px-6 pt-3 pb-6 md:p-10 flex flex-col justify-start md:justify-center transition-colors duration-300 min-h-min"
@@ -188,6 +248,7 @@ export default function DetailCard({
                 </div>
               </div>
             </motion.div>
+            <DetailCardCursor visible={isHovering} />
           </div>
         </motion.div>
       )}

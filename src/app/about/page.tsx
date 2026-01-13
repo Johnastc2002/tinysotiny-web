@@ -10,15 +10,8 @@ export default async function About() {
 
   return (
     <div className="min-h-screen w-full bg-[#fcfcfc] px-8 py-8 md:px-16 md:py-12">
-      {/* Logo */}
-      <div className="mb-20">
-        <Link
-          href="/"
-          className="text-4xl font-bold tracking-tighter text-[#0F2341]"
-        >
-          t.
-        </Link>
-      </div>
+      {/* Logo Spacer */}
+      <div className="mb-20"></div>
 
       <main className="mx-auto max-w-7xl">
         {/* Header Label */}
