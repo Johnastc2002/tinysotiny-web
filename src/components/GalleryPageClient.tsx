@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, Suspense, useCallback } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Project, GridFilter } from '@/types/project';
@@ -19,12 +19,13 @@ import DetailCard, { DetailCardData } from './DetailCard';
 import ProjectPageClient from '@/components/ProjectPageClient';
 import { InteractionCursor } from './BubbleActions';
 
-// Global cursor for grid items to ensure performance and correct behavior
-const GridCursor = ({ visible }: { visible: boolean }) => {
+// Individual cursor component for each project card to match DetailCard implementation
+const ProjectCardCursor = ({ visible }: { visible: boolean }) => {
   const cursorRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // Small delay to ensure body is ready
     const timer = setTimeout(() => setMounted(true), 0);
     return () => clearTimeout(timer);
   }, []);
@@ -57,12 +58,13 @@ const GridCursor = ({ visible }: { visible: boolean }) => {
         left: 0,
         pointerEvents: 'none',
         zIndex: 9999,
-        willChange: 'transform',
         opacity: visible ? 1 : 0,
         transition: 'opacity 0.2s ease-out',
-        // Initialize off-screen
+        willChange: 'transform, opacity',
+        // Initialize off-screen to prevent flash
         transform: 'translate3d(-100px, -100px, 0)',
       }}
+      aria-hidden="true"
     >
       <InteractionCursor text={null} />
     </div>,
@@ -126,20 +128,6 @@ function GalleryPageContent({
     null
   );
   const [isBubblePaused, setIsBubblePaused] = useState(false);
-  const [hoveredItems, setHoveredItems] = useState<Set<string>>(new Set());
-  const isHoveringGrid = hoveredItems.size > 0;
-
-  const handleHoverChange = useCallback((id: string, active: boolean) => {
-    setHoveredItems((prev) => {
-      const next = new Set(prev);
-      if (active) {
-        next.add(id);
-      } else {
-        next.delete(id);
-      }
-      return next;
-    });
-  }, []);
 
   useEffect(() => {
     // Pause bubbles ONLY if full project overlay is open
@@ -577,7 +565,6 @@ function GalleryPageContent({
 
   return (
     <div className={`relative w-full min-h-screen ${bgClass}`}>
-      <GridCursor visible={isHoveringGrid} />
       <DetailCard
         isOpen={!!selectedProject && !searchParams.get('project')}
         onClose={handleCloseCard}
@@ -867,11 +854,7 @@ function GalleryPageContent({
           <div className="w-full min-h-full pt-24 px-2 md:px-12 pb-32">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
               {displayedProjects.map((project) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  onHoverChange={handleHoverChange}
-                />
+                <ProjectCard key={project.id} project={project} />
               ))}
             </div>
 
@@ -912,23 +895,11 @@ export default function GalleryPageClient(props: GalleryPageClientProps) {
   );
 }
 
-function ProjectCard({
-  project,
-  onHoverChange,
-}: {
-  project: Project;
-  onHoverChange?: (id: string, active: boolean) => void;
-}) {
+function ProjectCard({ project }: { project: Project }) {
   // Use bubble_thumbnail or first thumbnail
   const imageUrl = project.thumbnails?.[0] || project.bubble_thumbnail;
   const searchParams = useSearchParams();
-
-  // Handle cleanup on unmount to prevent stuck cursor
-  useEffect(() => {
-    return () => {
-      onHoverChange?.(project.id, false);
-    };
-  }, [project.id, onHoverChange]);
+  const [isHovering, setIsHovering] = useState(false);
 
   const getHref = () => {
     const params = new URLSearchParams(searchParams.toString());
@@ -937,52 +908,57 @@ function ProjectCard({
   };
 
   return (
-    <Link
-      href={getHref()}
-      scroll={false}
-      className="block group transition-all duration-300 cursor-none"
-      onMouseEnter={() => onHoverChange?.(project.id, true)}
-      onMouseLeave={() => onHoverChange?.(project.id, false)}
-    >
-      <div className="relative w-full aspect-square overflow-hidden bg-gray-200 rounded-3xl">
-        {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt={project.title}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            sizes="(max-width: 768px) 50vw, 33vw"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-            No Image
-          </div>
-        )}
+    <>
+      <ProjectCardCursor visible={isHovering} />
+      <Link
+        href={getHref()}
+        scroll={false}
+        className="block group transition-all duration-300 cursor-none"
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+      >
+        <div className="relative w-full aspect-square overflow-hidden bg-gray-200 rounded-3xl">
+          {imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={project.title}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              sizes="(max-width: 768px) 50vw, 33vw"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+              No Image
+            </div>
+          )}
 
-        {/* Client Overlay */}
-        {project.clientName && (
-          <div className="absolute top-2 left-3 right-3 md:top-4 md:left-4 md:right-4 z-10 pointer-events-none">
-            <span className="inline-block text-[10px] md:text-xs uppercase tracking-wider text-white drop-shadow-md whitespace-normal wrap-break-word">
-              <span className="font-['Value_Sans'] font-normal">CLIENT / </span>
-              <span className="font-['Value_Serif'] font-medium">
-                {project.clientName}
+          {/* Client Overlay */}
+          {project.clientName && (
+            <div className="absolute top-2 left-3 right-3 md:top-4 md:left-4 md:right-4 z-10 pointer-events-none">
+              <span className="inline-block text-[10px] md:text-xs uppercase tracking-wider text-white drop-shadow-md whitespace-normal wrap-break-word">
+                <span className="font-['Value_Sans'] font-normal">
+                  CLIENT /{' '}
+                </span>
+                <span className="font-['Value_Serif'] font-medium">
+                  {project.clientName}
+                </span>
               </span>
-            </span>
-          </div>
-        )}
+            </div>
+          )}
 
-        {/* Tags Overlay */}
-        <div className="absolute bottom-3 left-3 md:bottom-4 md:left-4 z-10 flex flex-col gap-1 md:gap-2 items-start">
-          {project.tags.slice(0, 2).map((tag, i) => (
-            <span
-              key={i}
-              className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-white/20 backdrop-blur-sm text-[9px] md:text-[10px] uppercase tracking-wide font-['Value_Sans'] font-normal text-white shadow-sm"
-            >
-              {tag}
-            </span>
-          ))}
+          {/* Tags Overlay */}
+          <div className="absolute bottom-3 left-3 md:bottom-4 md:left-4 z-10 flex flex-col gap-1 md:gap-2 items-start">
+            {project.tags.slice(0, 2).map((tag, i) => (
+              <span
+                key={i}
+                className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-white/20 backdrop-blur-sm text-[9px] md:text-[10px] uppercase tracking-wide font-['Value_Sans'] font-normal text-white shadow-sm"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+    </>
   );
 }
