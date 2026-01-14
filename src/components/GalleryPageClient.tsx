@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, Suspense } from 'react';
+import { useState, useRef, useEffect, Suspense, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Project, GridFilter } from '@/types/project';
@@ -126,7 +126,20 @@ function GalleryPageContent({
     null
   );
   const [isBubblePaused, setIsBubblePaused] = useState(false);
-  const [isHoveringGrid, setIsHoveringGrid] = useState(false);
+  const [hoveredItems, setHoveredItems] = useState<Set<string>>(new Set());
+  const isHoveringGrid = hoveredItems.size > 0;
+
+  const handleHoverChange = useCallback((id: string, active: boolean) => {
+    setHoveredItems((prev) => {
+      const next = new Set(prev);
+      if (active) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     // Pause bubbles ONLY if full project overlay is open
@@ -857,7 +870,7 @@ function GalleryPageContent({
                 <ProjectCard
                   key={project.id}
                   project={project}
-                  onHoverChange={setIsHoveringGrid}
+                  onHoverChange={handleHoverChange}
                 />
               ))}
             </div>
@@ -904,11 +917,18 @@ function ProjectCard({
   onHoverChange,
 }: {
   project: Project;
-  onHoverChange?: (hovering: boolean) => void;
+  onHoverChange?: (id: string, active: boolean) => void;
 }) {
   // Use bubble_thumbnail or first thumbnail
   const imageUrl = project.thumbnails?.[0] || project.bubble_thumbnail;
   const searchParams = useSearchParams();
+
+  // Handle cleanup on unmount to prevent stuck cursor
+  useEffect(() => {
+    return () => {
+      onHoverChange?.(project.id, false);
+    };
+  }, [project.id, onHoverChange]);
 
   const getHref = () => {
     const params = new URLSearchParams(searchParams.toString());
@@ -921,8 +941,8 @@ function ProjectCard({
       href={getHref()}
       scroll={false}
       className="block group transition-all duration-300 cursor-none"
-      onMouseEnter={() => onHoverChange?.(true)}
-      onMouseLeave={() => onHoverChange?.(false)}
+      onMouseEnter={() => onHoverChange?.(project.id, true)}
+      onMouseLeave={() => onHoverChange?.(project.id, false)}
     >
       <div className="relative w-full aspect-square overflow-hidden bg-gray-200 rounded-3xl">
         {imageUrl ? (
@@ -943,9 +963,7 @@ function ProjectCard({
         {project.clientName && (
           <div className="absolute top-2 left-3 right-3 md:top-4 md:left-4 md:right-4 z-10 pointer-events-none">
             <span className="inline-block text-[10px] md:text-xs uppercase tracking-wider text-white drop-shadow-md whitespace-normal wrap-break-word">
-              <span className="font-['Value_Sans'] font-normal">
-                CLIENT /{' '}
-              </span>
+              <span className="font-['Value_Sans'] font-normal">CLIENT / </span>
               <span className="font-['Value_Serif'] font-medium">
                 {project.clientName}
               </span>
