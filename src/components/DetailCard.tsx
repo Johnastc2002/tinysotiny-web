@@ -113,6 +113,10 @@ export default function DetailCard({
   const customFontStyle = fontColor
     ? ({ '--card-font-color': fontColor } as React.CSSProperties)
     : {};
+  
+  const customTagStyle = tagColor
+    ? ({ '--card-tag-color': tagColor } as React.CSSProperties)
+    : {};
 
   // Reset loading state when data changes
   React.useEffect(() => {
@@ -254,11 +258,13 @@ export default function DetailCard({
                       {/* Assuming bottomContent is structured for styling or we wrap it */}
                       <div
                         className={
-                          fontColor
-                            ? 'text-(--card-font-color) landscape:text-[#0F2341] lg:text-(--card-font-color)'
-                            : ''
+                          tagColor
+                            ? 'text-(--card-tag-color) landscape:text-[#0F2341] lg:text-(--card-tag-color)'
+                            : fontColor
+                              ? 'text-(--card-font-color) landscape:text-[#0F2341] lg:text-(--card-font-color)'
+                              : ''
                         }
-                        style={customFontStyle}
+                        style={{ ...customFontStyle, ...customTagStyle }}
                       >
                         {data.bottomContent}
                       </div>
