@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import Navigation from '@/components/Navigation';
@@ -35,7 +36,9 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <VideoProvider>
-          <Navigation contact={contact} />
+          <Suspense fallback={null}>
+            <Navigation contact={contact} />
+          </Suspense>
           {children}
         </VideoProvider>
       </body>
