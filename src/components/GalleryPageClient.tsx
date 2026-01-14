@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect, Suspense } from 'react';
-import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Project, GridFilter } from '@/types/project';
 import BubbleScene from '@/components/BubbleScene';
@@ -17,60 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import LoadingSpinner from './LoadingSpinner';
 import DetailCard, { DetailCardData } from './DetailCard';
 import ProjectPageClient from '@/components/ProjectPageClient';
-import { InteractionCursor } from './BubbleActions';
-
-// Individual cursor component for each project card to match DetailCard implementation
-const ProjectCardCursor = ({ visible }: { visible: boolean }) => {
-  const cursorRef = useRef<HTMLDivElement>(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    // Small delay to ensure body is ready
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (cursorRef.current) {
-        cursorRef.current.style.transform = `translate3d(${e.clientX + 20}px, ${
-          e.clientY + 20
-        }px, 0)`;
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-    };
-  }, [mounted]);
-
-  if (!mounted) return null;
-
-  return createPortal(
-    <div
-      ref={cursorRef}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        pointerEvents: 'none',
-        zIndex: 9999,
-        opacity: visible ? 1 : 0,
-        transition: 'opacity 0.2s ease-out',
-        willChange: 'transform, opacity',
-        // Initialize off-screen to prevent flash
-        transform: 'translate3d(-100px, -100px, 0)',
-      }}
-      aria-hidden="true"
-    >
-      <InteractionCursor text={null} />
-    </div>,
-    document.body
-  );
-};
+import { CursorPortal } from './CursorPortal';
 
 interface GalleryPageClientProps {
   initialFeaturedProjects: Project[];
@@ -909,7 +855,7 @@ function ProjectCard({ project }: { project: Project }) {
 
   return (
     <>
-      <ProjectCardCursor visible={isHovering} />
+      <CursorPortal visible={isHovering} text={null} />
       <Link
         href={getHref()}
         scroll={false}
@@ -918,46 +864,46 @@ function ProjectCard({ project }: { project: Project }) {
         onMouseLeave={() => setIsHovering(false)}
       >
         <div className="relative w-full aspect-square overflow-hidden bg-gray-200 rounded-3xl">
-            {imageUrl ? (
-              <Image
-                src={imageUrl}
-                alt={project.title}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                sizes="(max-width: 768px) 50vw, 33vw"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                No Image
-              </div>
-            )}
-
-            {/* Client Overlay */}
-            {project.clientName && (
-              <div className="absolute top-2 left-3 right-3 md:top-4 md:left-4 md:right-4 z-10 pointer-events-none">
-                <span className="inline-block text-[10px] md:text-xs uppercase tracking-wider text-white drop-shadow-md whitespace-normal wrap-break-word">
-                  <span className="font-['Value_Sans'] font-normal">
-                    CLIENT /{' '}
-                  </span>
-                  <span className="font-['Value_Serif'] font-medium">
-                    {project.clientName}
-                  </span>
-                </span>
-              </div>
-            )}
-
-            {/* Tags Overlay */}
-            <div className="absolute bottom-3 left-3 md:bottom-4 md:left-4 z-10 flex flex-col gap-1 md:gap-2 items-start">
-              {project.tags.slice(0, 2).map((tag, i) => (
-                <span
-                  key={i}
-                  className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-white/20 backdrop-blur-sm text-[9px] md:text-[10px] uppercase tracking-wide font-['Value_Sans'] font-normal text-white shadow-sm"
-                >
-                  {tag}
-                </span>
-              ))}
+          {imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={project.title}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              sizes="(max-width: 768px) 50vw, 33vw"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+              No Image
             </div>
+          )}
+
+          {/* Client Overlay */}
+          {project.clientName && (
+            <div className="absolute top-2 left-3 right-3 md:top-4 md:left-4 md:right-4 z-10 pointer-events-none">
+              <span className="inline-block text-[10px] md:text-xs uppercase tracking-wider text-white drop-shadow-md whitespace-normal wrap-break-word">
+                <span className="font-['Value_Sans'] font-normal">
+                  CLIENT /{' '}
+                </span>
+                <span className="font-['Value_Serif'] font-medium">
+                  {project.clientName}
+                </span>
+              </span>
+            </div>
+          )}
+
+          {/* Tags Overlay */}
+          <div className="absolute bottom-3 left-3 md:bottom-4 md:left-4 z-10 flex flex-col gap-1 md:gap-2 items-start">
+            {project.tags.slice(0, 2).map((tag, i) => (
+              <span
+                key={i}
+                className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-white/20 backdrop-blur-sm text-[9px] md:text-[10px] uppercase tracking-wide font-['Value_Sans'] font-normal text-white shadow-sm"
+              >
+                {tag}
+              </span>
+            ))}
           </div>
+        </div>
       </Link>
     </>
   );

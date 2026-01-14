@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { InteractionCursor } from './BubbleActions';
+import { CursorPortal } from './CursorPortal';
 
 export interface DetailCardData {
   id: string;
@@ -28,61 +27,6 @@ interface DetailCardProps {
   basePath: string;
   onCardClick?: (id: string) => void;
 }
-
-// Internal component for handling the cursor portal and movement
-const DetailCardCursor = ({ visible }: { visible: boolean }) => {
-  const cursorRef = useRef<HTMLDivElement>(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    // Small delay to ensure body is ready and prevent synchronous update warning
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (cursorRef.current) {
-        cursorRef.current.style.transform = `translate3d(${e.clientX + 20}px, ${
-          e.clientY + 20
-        }px, 0)`;
-      }
-    };
-
-    // Always listen to movement to keep position updated
-    window.addEventListener('mousemove', handleMouseMove);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-    };
-  }, [mounted]);
-
-  if (!mounted) return null;
-
-  return createPortal(
-    <div
-      ref={cursorRef}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        pointerEvents: 'none',
-        zIndex: 9999,
-        opacity: visible ? 1 : 0,
-        transition: 'opacity 0.2s ease-out',
-        willChange: 'transform, opacity',
-        // Initialize off-screen to prevent flash
-        transform: 'translate3d(-100px, -100px, 0)',
-      }}
-      aria-hidden="true"
-    >
-      <InteractionCursor text="open project" />
-    </div>,
-    document.body
-  );
-};
 
 export default function DetailCard({
   data,
@@ -313,7 +257,7 @@ export default function DetailCard({
                 </div>
               </div>
             </motion.div>
-            <DetailCardCursor visible={isHovering} />
+            <CursorPortal visible={isHovering} text="open project" />
           </div>
         </motion.div>
       )}
