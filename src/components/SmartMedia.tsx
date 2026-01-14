@@ -39,23 +39,30 @@ const VisitWebsiteButton = ({
     onClick={(e) => e.stopPropagation()}
     aria-label="Visit Website"
   >
-    <span className="text-xs font-['Value_Sans'] font-medium tracking-wider">
+    <span className="text-xs font-['Value_Sans'] font-medium tracking-wider leading-none pt-[1px]">
       VISIT WEBSITE
     </span>
     <svg
       width="12"
       height="12"
-      viewBox="0 0 12 12"
+      viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="transition-transform group-hover/visit:translate-x-0.5 group-hover/visit:-translate-y-0.5"
     >
       <path
-        d="M11 1L1 11M11 1H3M11 1V9"
+        d="M15 3H7a4 4 0 0 0-4 4v10a4 4 0 0 0 4 4h10a4 4 0 0 0 4-4v-8"
         stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+      <path
+        d="M10 14 21 3M21 3h-6M21 3v6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="transition-transform group-hover/visit:translate-x-0.5 group-hover/visit:-translate-y-0.5"
       />
     </svg>
   </a>
