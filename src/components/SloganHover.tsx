@@ -133,14 +133,16 @@ const SloganImageOverlay = ({
           return (
             <div
               key={index}
-              className="absolute transition-all duration-300 ease-out"
+              className="absolute transition-transform duration-300 ease-out"
               style={{
-                left: left,
-                top: verticalOffset,
-                transform: 'translate(0, -50%)',
+                left: 0,
+                top: 0,
+                transform: `translate3d(${left}px, ${verticalOffset}px, 0) translate(0, -50%)`,
                 width: width,
                 height: height,
                 zIndex: isRightSide ? 10 - index : index,
+                willChange: 'transform',
+                backfaceVisibility: 'hidden',
               }}
             >
               <div className="relative w-full h-full rounded-xl overflow-hidden shadow-2xl bg-white">
