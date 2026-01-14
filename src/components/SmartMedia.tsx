@@ -25,27 +25,49 @@ interface MediaItemProps {
   mediaClassName?: string;
 }
 
+interface VisitButtonConfig {
+  fontSize: number;
+  iconSize: number;
+  paddingX: number;
+  paddingY: number;
+  gap: number;
+}
+
 const VisitWebsiteButton = ({
   url,
   className = '',
+  config,
 }: {
   url: string;
   className?: string;
+  config?: VisitButtonConfig;
 }) => (
   <a
     href={url}
     target="_blank"
     rel="noopener noreferrer"
-    className={`flex-none text-[#b6b6b6] hover:text-white focus:outline-none transition-transform hover:scale-105 border border-[#b6b6b6] hover:border-white rounded-full px-4 py-1.5 flex items-center gap-2 group/visit bg-black/30 backdrop-blur-sm ${className}`}
+    className={`flex-none text-[#b6b6b6] hover:text-white focus:outline-none transition-transform hover:scale-105 border border-[#b6b6b6] hover:border-white rounded-full flex items-center group/visit bg-black/30 backdrop-blur-sm ${className}`}
+    style={{
+      paddingLeft: config ? `${config.paddingX}px` : undefined,
+      paddingRight: config ? `${config.paddingX}px` : undefined,
+      paddingTop: config ? `${config.paddingY}px` : undefined,
+      paddingBottom: config ? `${config.paddingY}px` : undefined,
+      gap: config ? `${config.gap}px` : undefined,
+    }}
     onClick={(e) => e.stopPropagation()}
     aria-label="Visit Website"
   >
-    <span className="text-xs font-['Value_Sans'] font-medium tracking-wider leading-none pt-px">
+    <span
+      className="font-['Value_Sans'] font-medium tracking-wider leading-none pt-px"
+      style={{
+        fontSize: config ? `${config.fontSize}px` : undefined,
+      }}
+    >
       VISIT WEBSITE
     </span>
     <svg
-      width="12"
-      height="12"
+      width={config ? config.iconSize : 12}
+      height={config ? config.iconSize : 12}
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -100,6 +122,13 @@ export default function SmartMedia({
     offset: 16,
     playButtonSize: 64, // default play button size
     playIconSize: 32, // default play icon size
+    visitButton: {
+      fontSize: 12,
+      iconSize: 12,
+      paddingX: 16,
+      paddingY: 6,
+      gap: 8,
+    },
   });
   const [shouldLoad, setShouldLoad] = useState(type !== 'vimeo'); // Default to load non-vimeo
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
@@ -631,6 +660,25 @@ export default function SmartMedia({
           const playButtonSize = Math.max(48, Math.min(96, minDim * 0.25));
           const playIconSize = playButtonSize * 0.5; // 50% of button size
 
+          // Interpolation for Visit Button
+          // Map size range [24, 48] to:
+          // fontSize: [9, 12]
+          // iconSize: [8, 12]
+          // paddingX: [8, 16]
+          // paddingY: [2, 6]
+          // gap: [4, 8]
+          const t = (size - 24) / (48 - 24); // 0 to 1
+          const lerp = (min: number, max: number, t: number) =>
+            min + (max - min) * t;
+
+          const visitButton = {
+            fontSize: lerp(9, 12, t),
+            iconSize: lerp(8, 12, t),
+            paddingX: lerp(8, 16, t),
+            paddingY: lerp(2, 6, t),
+            gap: lerp(4, 8, t),
+          };
+
           setButtonConfig({
             size,
             padding,
@@ -638,6 +686,7 @@ export default function SmartMedia({
             offset,
             playButtonSize,
             playIconSize,
+            visitButton,
           });
         }
 
@@ -1052,7 +1101,12 @@ export default function SmartMedia({
                   right: `${buttonConfig.offset}px`,
                 }}
               >
-                {externalUrl && <VisitWebsiteButton url={externalUrl} />}
+                {externalUrl && (
+                  <VisitWebsiteButton
+                    url={externalUrl}
+                    config={buttonConfig.visitButton}
+                  />
+                )}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1193,9 +1247,15 @@ export default function SmartMedia({
             style={{
               bottom: `${buttonConfig.offset}px`,
               right: `${buttonConfig.offset}px`,
+              height: `${buttonConfig.size}px`,
+              display: 'flex',
+              alignItems: 'center',
             }}
           >
-            <VisitWebsiteButton url={externalUrl} />
+            <VisitWebsiteButton
+              url={externalUrl}
+              config={buttonConfig.visitButton}
+            />
           </div>
         )}
       </div>
@@ -1235,9 +1295,15 @@ export default function SmartMedia({
           style={{
             bottom: `${buttonConfig.offset}px`,
             right: `${buttonConfig.offset}px`,
+            height: `${buttonConfig.size}px`,
+            display: 'flex',
+            alignItems: 'center',
           }}
         >
-          <VisitWebsiteButton url={externalUrl} />
+          <VisitWebsiteButton
+            url={externalUrl}
+            config={buttonConfig.visitButton}
+          />
         </div>
       )}
     </div>
