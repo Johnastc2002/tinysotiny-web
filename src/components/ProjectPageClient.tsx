@@ -133,7 +133,7 @@ export default function ProjectPageClient({
                   // Info Slide - Similar to ProjectCard
                   <div className="flex h-full w-full">
                     {/* Left Side - First Banner Image */}
-                    <div className="relative w-3/5 h-full bg-gray-100">
+                    <div className="relative w-3/5 h-full bg-[#f8f8f8]">
                       {project.banners.length > 0 && (
                         <SmartMedia
                           url={project.banners[0]}
@@ -285,7 +285,7 @@ export default function ProjectPageClient({
       {/* Content Section - Scrolls OVER the fixed banner */}
       <div className="relative z-10 bg-transparent min-h-screen">
         {/* Background Layer for the lower part */}
-        <div className="hidden md:block absolute top-[10vh] left-0 w-full bottom-0 bg-gray-100 -z-10" />
+        <div className="hidden md:block absolute top-[10vh] left-0 w-full bottom-0 bg-[#f8f8f8] -z-10" />
 
         {/* Mobile Layout */}
         <div className="md:hidden w-full pt-[70vh]">
@@ -383,7 +383,7 @@ export default function ProjectPageClient({
 
             {/* 2. Banner 2 (Full Width) */}
             {project.banners.length > 1 && (
-              <div className="w-full relative bg-gray-100">
+              <div className="w-full relative bg-[#f8f8f8]">
                 <SmartMedia
                   url={project.banners[1]}
                   type="image"
@@ -399,7 +399,7 @@ export default function ProjectPageClient({
             {project.banners.length > 2 && (
               <div className="flex flex-col">
                 {project.banners.slice(2).map((banner, index) => (
-                  <div key={index} className="w-full relative bg-gray-100">
+                  <div key={index} className="w-full relative bg-[#f8f8f8]">
                     <SmartMedia
                       url={banner}
                       type="image"
@@ -426,6 +426,44 @@ export default function ProjectPageClient({
                 />
               )}
             </div>
+
+            {/* Client & Services Section (Mobile) */}
+            <div className="px-8 pt-12 bg-[#f8f8f8]">
+              {/* Client Section */}
+              {project.clientName && (
+                <div className="mb-8">
+                  <span className="text-sm font-semibold uppercase tracking-wider text-[#B6B6B6] block mb-1">
+                    <span className="font-['Value_Sans'] font-normal">
+                      CLIENT
+                    </span>
+                  </span>
+                  <span className="text-xl font-['Value_Serif'] font-medium text-[#B6B6B6]">
+                    {project.clientName}
+                  </span>
+                </div>
+              )}
+
+              {/* Services Section - Only for 'work' */}
+              {project.projectType === 'work' &&
+                project.services &&
+                project.services.length > 0 && (
+                  <div className="mt-12 pl-[40vw]">
+                    <h4 className="text-sm font-['Value_Sans'] font-normal text-[#B6B6B6] uppercase tracking-widest mb-2">
+                      SERVICES
+                    </h4>
+                    <ul className="space-y-0.5">
+                      {project.services.map((service, index) => (
+                        <li
+                          key={index}
+                          className="text-lg text-[#B6B6B6] font-['Value_Sans'] font-normal leading-relaxed lowercase"
+                        >
+                          {service}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+            </div>
           </div>
         </div>
 
@@ -433,44 +471,72 @@ export default function ProjectPageClient({
         <div className="hidden md:block w-full relative -mt-32 z-20 pointer-events-none">
           <div className="flex flex-col md:flex-row gap-0">
             {/* Left Column: White Box for Title & Cast */}
-            <div className="w-full md:w-[90%] bg-white pt-8 pb-8 pr-8 md:pt-16 md:pb-16 md:pr-16 pl-12 md:pl-24 shadow-lg pointer-events-auto rounded-r-3xl">
+            <div className="w-full md:w-[60%] bg-white pt-8 pb-8 pr-8 md:pt-16 md:pb-16 md:pr-16 pl-12 md:pl-24 shadow-lg pointer-events-auto rounded-r-3xl">
               <motion.div
                 initial={{ y: 50, opacity: 0 }}
                 whileInView={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.8, ease: 'easeOut' }}
                 viewport={{ once: true }}
+                className="flex-1 pr-12"
               >
-                {project.clientName && (
-                  <div className="mb-6">
-                    <span className="text-sm font-semibold uppercase tracking-wider text-gray-500">
-                      <span className="font-['Value_Sans'] font-normal">
-                        CLIENT /{' '}
-                      </span>
-                      <span className="font-['Value_Serif'] font-medium">
-                        {project.clientName}
-                      </span>
-                    </span>
-                  </div>
-                )}
                 <h1 className="text-5xl md:text-7xl font-['Value_Serif'] font-medium text-[#0F2341] leading-tight mb-8">
                   {project.title}
                 </h1>
 
                 {/* Casts */}
                 <div
-                  className="text-lg text-[#0F2341] leading-relaxed whitespace-pre-line font-['Value_Sans'] font-normal mb-12"
+                  className="text-lg text-[#0F2341] leading-relaxed whitespace-pre-line font-['Value_Sans'] font-normal [&>p:last-child]:mb-0 [&>p]:mb-4"
                   dangerouslySetInnerHTML={{ __html: project.cast }}
                 />
               </motion.div>
             </div>
 
-            {/* Right Column: Spacer (Transparent) to show banner behind */}
-            <div className="hidden md:block w-full md:w-[10%] pointer-events-none"></div>
+            {/* Right Column: Client & Services Section (Desktop) - Outside the white box */}
+            <div className="w-full md:w-[40%] pt-16 pl-12 pb-0 pointer-events-auto flex flex-col justify-end">
+              {/* Client Section */}
+              {project.clientName && (
+                <div className="mb-8">
+                  <span className="text-sm font-semibold uppercase tracking-wider text-[#B6B6B6] block mb-1">
+                    <span className="font-['Value_Sans'] font-normal">
+                      CLIENT
+                    </span>
+                  </span>
+                  <span className="text-xl md:text-2xl font-['Value_Serif'] font-medium text-[#B6B6B6]">
+                    {project.clientName}
+                  </span>
+                </div>
+              )}
+
+              {/* Services Section - Only for 'work' */}
+              {project.projectType === 'work' &&
+                project.services &&
+                project.services.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-['Value_Sans'] font-normal text-[#B6B6B6] uppercase tracking-widest mb-2">
+                      SERVICES
+                    </h4>
+                    <ul className="space-y-0.5">
+                      {project.services.map((service, index) => (
+                        <li
+                          key={index}
+                          className="text-xl text-[#B6B6B6] font-['Value_Sans'] font-normal leading-relaxed lowercase"
+                        >
+                          {service}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+            </div>
           </div>
         </div>
 
         {/* Gray Background Section for Gallery */}
-        <div className="w-full pt-12 pb-24 px-8 md:pt-40 md:px-24 mt-0 md:-mt-24 z-10 relative bg-gray-100 md:bg-transparent">
+        <div
+          className={`w-full pt-12 px-8 md:pt-40 md:px-24 mt-0 md:-mt-24 z-10 relative bg-[#f8f8f8] md:bg-transparent ${
+            project.media_rows.length <= 3 ? 'pb-0' : 'pb-12 md:pb-20'
+          }`}
+        >
           <div className="">
             {/* Image Gallery */}
             <div className="flex flex-col gap-8">
@@ -516,7 +582,7 @@ export default function ProjectPageClient({
                       {mediasToShow.map((media, mediaIndex) => (
                         <div
                           key={mediaIndex}
-                          className={`relative w-full ${aspectRatioClass} overflow-hidden rounded-lg bg-gray-100 shadow-sm group`}
+                          className={`relative w-full ${aspectRatioClass} overflow-hidden rounded-lg bg-[#f8f8f8] shadow-sm group`}
                         >
                           <SmartMedia
                             url={media.url}
@@ -565,7 +631,7 @@ export default function ProjectPageClient({
 
         {/* Recommended Project Section */}
         {recommendedProject && (
-          <div className="w-full px-4 md:px-8 z-10 relative -mt-8 bg-gray-100 md:bg-transparent pb-0">
+          <div className="w-full px-4 md:px-8 z-10 relative mt-0 bg-[#f8f8f8] md:bg-transparent pb-0">
             <Link
               href={getRecommendedHref(recommendedProject.id)}
               scroll={false}

@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { getAboutUs, getContact } from '@/lib/contentful';
 import AboutSlideOver from '@/components/AboutSlideOver';
+import SloganHover from '@/components/SloganHover';
 
 export const revalidate = 3600; // Revalidate every hour
 
@@ -23,9 +24,10 @@ export default async function About() {
         <div className="grid gap-16 md:grid-cols-12 md:gap-8">
           {/* Main Title Section */}
           <div className="md:col-span-9">
-            <h1 className="mb-8 font-['Value_Serif'] font-medium text-6xl leading-tight text-[#0F2341] md:text-6xl lg:text-7xl">
-              {aboutUs?.slogan || 'tiny details matter.'}
-            </h1>
+            <SloganHover
+              slogan={aboutUs?.slogan || 'tiny details matter.'}
+              images={aboutUs?.sloganImages}
+            />
             <p className="max-w-xl text-lg leading-relaxed text-[#0F2341] md:text-xl font-['Value_Sans'] font-normal">
               {aboutUs?.firstParagraph ||
                 'tinysotiny is a creative studio based in Hong Kong, specializing in digital advertising production.'}

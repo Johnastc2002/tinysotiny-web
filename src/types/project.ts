@@ -3,11 +3,13 @@ export interface ContentfulMediaItem {
   type: 'image' | 'video';
   width: number;
   height: number;
+  external_url?: string;
 }
 
 export interface VimeoMediaItem {
   url: string;
   type: 'vimeo';
+  external_url?: string;
 }
 
 export type ProjectMediaItem = ContentfulMediaItem | VimeoMediaItem;
@@ -34,6 +36,7 @@ export interface Project {
   card_bg_color?: string;
   card_font_color?: string;
   card_tag_color?: string;
+  services?: string[];
 }
 
 export interface SearchTag {

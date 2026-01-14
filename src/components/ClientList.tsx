@@ -96,13 +96,25 @@ const ClientImageOverlay = ({
     return unsub;
   }, [x, bounds]);
 
+  const [randomOffsets, setRandomOffsets] = useState<number[]>([]);
+
+  useEffect(() => {
+    // Generate random offsets when the component mounts or when thumbnails change
+    if (hoveredClient.thumbnails) {
+      const offsets = hoveredClient.thumbnails.map(
+        () => Math.random() * 100 - 50
+      );
+      setRandomOffsets(offsets);
+    }
+  }, [hoveredClient]);
+
   return (
     <div className="pointer-events-none absolute inset-0 z-50 overflow-visible">
       <motion.div
         style={{ x: springX, y: springY }}
         className="absolute top-0 left-0"
       >
-        {hoveredClient.thumbnails?.map((src, index) => {
+        {hoveredClient.thumbnails?.map((img, index) => {
           // Logic from original component adapted
           const offset =
             typeof window !== 'undefined' && window.innerWidth < 768 ? 30 : 60;
@@ -119,8 +131,30 @@ const ClientImageOverlay = ({
             left = offset + index * overlap;
           }
 
-          // Deterministic offset based on index to avoid flicker on re-mount and impure function calls
-          const verticalOffset = ((index * 37) % 100) - 50;
+          // Use the pre-generated random offset, fallback to deterministic if not ready
+          const randomOffset =
+            randomOffsets[index] !== undefined
+              ? randomOffsets[index]
+              : ((index * 37) % 100) - 50;
+          const verticalOffset = randomOffset;
+
+          const aspectRatio = img.width / img.height;
+          const isLandscape = aspectRatio > 1;
+
+          const baseSize =
+            typeof window !== 'undefined' && window.innerWidth < 768
+              ? 150
+              : 200;
+
+          let width, height;
+
+          if (isLandscape) {
+            width = baseSize * 1.2; // slightly wider for landscape
+            height = width / aspectRatio;
+          } else {
+            height = baseSize * 1.25; // slightly taller for portrait
+            width = height * aspectRatio;
+          }
 
           return (
             <div
@@ -130,19 +164,20 @@ const ClientImageOverlay = ({
                 left: left,
                 top: verticalOffset, // utilizing the random offset
                 transform: 'translate(0, -50%)',
-                width: 'clamp(150px, 20vw, 200px)',
-                height: 'clamp(187px, 25vw, 250px)',
+                width: width,
+                height: height,
                 zIndex: isRightSide ? 10 - index : index,
               }}
             >
-              <div className="relative w-full h-full rounded-xl overflow-hidden shadow-2xl bg-gray-100">
+              <div className="relative w-full h-full rounded-xl overflow-hidden shadow-2xl bg-white">
                 <Image
-                  src={src}
+                  src={img.url}
                   alt={`${hoveredClient.clientName} thumbnail ${index + 1}`}
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 150px, 200px"
                   priority={index < 3}
+                  unoptimized
                 />
               </div>
             </div>

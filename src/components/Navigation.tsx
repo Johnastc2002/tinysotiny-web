@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { ContactData } from '@/types/about';
 
 interface NavigationProps {
@@ -121,7 +121,16 @@ function NavigationItem({
 export default function Navigation({ contact }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const isDarkPage = pathname === '/play' || pathname?.startsWith('/play/');
+
+  // If we are on a project detail page (has ?project=...), we should NOT be in dark mode
+  // The project detail page is always light/white background.
+  // The 'isDarkPage' check above catches /play/* routes, but if the detail page is rendered via query params
+  // on /play (e.g. /play?project=123), we need to override it.
+  // Assuming the project detail view is rendered when 'project' param is present.
+  const isProjectDetail = searchParams?.has('project');
+  const shouldBeDark = isDarkPage && !isProjectDetail;
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -144,7 +153,7 @@ export default function Navigation({ contact }: NavigationProps) {
           style={{
             height: '38px',
             width: 'auto',
-            filter: isDarkPage ? 'brightness(0) invert(1)' : 'none',
+            filter: shouldBeDark ? 'brightness(0) invert(1)' : 'none',
           }}
         />
       </Link>
@@ -166,12 +175,12 @@ export default function Navigation({ contact }: NavigationProps) {
         <div className="flex flex-col" style={{ gap: '4px' }}>
           <span
             className={`h-0.5 w-5 rounded-full transition-colors ${
-              isDarkPage ? 'bg-white' : 'bg-[#B6B6B6]'
+              shouldBeDark ? 'bg-white' : 'bg-[#B6B6B6]'
             }`}
           />
           <span
             className={`h-0.5 w-5 rounded-full transition-colors ${
-              isDarkPage ? 'bg-white' : 'bg-[#B6B6B6]'
+              shouldBeDark ? 'bg-white' : 'bg-[#B6B6B6]'
             }`}
           />
         </div>

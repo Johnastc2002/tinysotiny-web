@@ -2,7 +2,7 @@
 import { createClient } from 'contentful';
 import { Project, MediaRow, GridFilter, SearchTag } from '@/types/project';
 import { AboutUsData, ContactData } from '@/types/about';
-import { ClientData } from '@/types/client';
+import { ClientData, ImageMeta } from '@/types/client';
 import { DailyData } from '@/types/daily';
 import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
 import { Document } from '@contentful/rich-text-types';
@@ -141,6 +141,12 @@ const mapProject = (entry: any): Project => {
                   url: String(
                     entry.fields.vimeo_url || entry.fields.vimeoUrl || ''
                   ),
+                  external_url:
+                    entry.fields.external_url || entry.fields.externalUrl
+                      ? String(
+                          entry.fields.external_url || entry.fields.externalUrl
+                        )
+                      : undefined,
                 };
               }
 
@@ -153,6 +159,12 @@ const mapProject = (entry: any): Project => {
                 width: metadata.width,
                 height: metadata.height,
                 type: metadata.type, // 'image' or 'video'
+                external_url:
+                  entry.fields.external_url || entry.fields.externalUrl
+                    ? String(
+                        entry.fields.external_url || entry.fields.externalUrl
+                      )
+                    : undefined,
               };
             })
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -188,6 +200,7 @@ const mapProject = (entry: any): Project => {
     ),
     description_2: String(fields.description_2 || fields.description2 || ''),
     projectType: (fields.projectType as ProjectType) || 'work',
+    services: (fields.services || []).map(String),
   };
 };
 
@@ -206,6 +219,17 @@ const mapAboutUs = (entry: any): AboutUsData => {
   const fields = entry.fields;
   return {
     slogan: String(fields.slogan || ''),
+    sloganImages: (fields.slogan_images || fields.sloganImages || [])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((asset: any) => {
+        const meta = getAssetMetadata(asset);
+        return {
+          url: meta.url,
+          width: meta.width,
+          height: meta.height,
+        };
+      })
+      .filter((img: ImageMeta) => img.url),
     firstParagraph: String(
       fields.first_paragraph || fields.firstParagraph || ''
     ),
@@ -228,8 +252,16 @@ const mapClient = (entry: any): ClientData => {
     id: entry.sys.id,
     clientName: String(fields.client_name || fields.clientName || ''),
     thumbnails: (fields.thumbnails || [])
-      .map(getAssetUrl)
-      .filter((url: string) => url),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((asset: any) => {
+        const meta = getAssetMetadata(asset);
+        return {
+          url: meta.url,
+          width: meta.width,
+          height: meta.height,
+        };
+      })
+      .filter((img: ImageMeta) => img.url),
   };
 };
 
