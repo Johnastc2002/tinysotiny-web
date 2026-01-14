@@ -109,15 +109,6 @@ export default function DetailCard({
 
   const showSecondThumbnail = data?.thumbnails && data.thumbnails.length > 1;
 
-  // Custom Font Style Variable for CSS variables
-  const customFontStyle = fontColor
-    ? ({ '--card-font-color': fontColor } as React.CSSProperties)
-    : {};
-  
-  const customTagStyle = tagColor
-    ? ({ '--card-tag-color': tagColor } as React.CSSProperties)
-    : {};
-
   // Reset loading state when data changes
   React.useEffect(() => {
     if (isOpen) {
@@ -220,11 +211,11 @@ export default function DetailCard({
                       <div className="mb-2 md:mb-4">
                         <span
                           className={`text-[10px] md:text-sm font-semibold uppercase tracking-wider ${
-                            fontColor
-                              ? 'text-(--card-font-color) opacity-70 landscape:text-gray-500 landscape:opacity-100 lg:text-(--card-font-color) lg:opacity-70'
-                              : 'text-gray-500'
+                            !fontColor ? 'text-gray-500' : ''
                           }`}
-                          style={customFontStyle}
+                          style={
+                            fontColor ? { color: fontColor, opacity: 0.7 } : {}
+                          }
                         >
                           {data.topLabel}
                         </span>
@@ -232,21 +223,19 @@ export default function DetailCard({
                     )}
                     <h2
                       className={`mb-2 md:mb-4 text-2xl md:text-4xl font-['Value_Serif'] font-medium leading-tight ${
-                        fontColor
-                          ? 'text-(--card-font-color) landscape:text-[#0F2341] lg:text-(--card-font-color)'
-                          : 'text-[#0F2341]'
+                        !fontColor ? 'text-[#0F2341]' : ''
                       }`}
-                      style={customFontStyle}
+                      style={fontColor ? { color: fontColor } : {}}
                     >
                       {data.title}
                     </h2>
                     <p
                       className={`text-xs md:text-sm leading-relaxed max-w-md font-['Value_Sans'] font-normal line-clamp-5 md:line-clamp-6 text-ellipsis overflow-hidden ${
-                        fontColor
-                          ? 'text-(--card-font-color) opacity-90 landscape:text-[#0F2341] landscape:opacity-100 lg:text-(--card-font-color) lg:opacity-90'
-                          : 'text-[#0F2341]'
+                        !fontColor ? 'text-[#0F2341]' : ''
                       }`}
-                      style={customFontStyle}
+                      style={
+                        fontColor ? { color: fontColor, opacity: 0.9 } : {}
+                      }
                     >
                       {data.description}
                     </p>
@@ -257,14 +246,13 @@ export default function DetailCard({
                       {/* We need to apply font color to children if possible, but they are ReactNodes. */}
                       {/* Assuming bottomContent is structured for styling or we wrap it */}
                       <div
-                        className={
+                        style={
                           tagColor
-                            ? 'text-(--card-tag-color) landscape:text-[#0F2341] lg:text-(--card-tag-color)'
+                            ? { color: tagColor }
                             : fontColor
-                              ? 'text-(--card-font-color) landscape:text-[#0F2341] lg:text-(--card-font-color)'
-                              : ''
+                            ? { color: fontColor }
+                            : { color: '#0F2341' }
                         }
-                        style={{ ...customFontStyle, ...customTagStyle }}
                       >
                         {data.bottomContent}
                       </div>
@@ -278,17 +266,13 @@ export default function DetailCard({
                         <li
                           key={index}
                           className={`flex items-center leading-none text-xs font-['Value_Sans'] font-normal uppercase tracking-wide transition-colors ${
-                            !tagColor && !fontColor ? 'text-[#B6B6B6]' : ''
-                          } ${
-                            !tagColor && fontColor
-                              ? 'text-(--card-font-color) landscape:text-[#B6B6B6] lg:text-(--card-font-color)'
-                              : ''
+                            !tagColor && !fontColor ? 'text-[#B6B6B6]' : 'text-current'
                           }`}
                           style={
                             tagColor
                               ? { color: tagColor }
                               : fontColor
-                              ? customFontStyle
+                              ? { color: fontColor }
                               : {}
                           }
                         >
@@ -302,7 +286,7 @@ export default function DetailCard({
 
                 {/* Bottom Section - Tags/Points (Desktop Only) */}
                 <div
-                  className={`hidden landscape:flex md:flex bg-white ${
+                  className={`hidden landscape:flex md:flex bg-white text-[#B6B6B6] ${
                     showSecondThumbnail
                       ? 'relative p-0'
                       : 'px-10 flex-col justify-center'

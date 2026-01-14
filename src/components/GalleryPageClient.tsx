@@ -255,18 +255,7 @@ function GalleryPageContent({
             {selectedProject.tags.map((tag, index) => (
               <li
                 key={index}
-                className={`flex items-center leading-none text-[10px] md:text-xs font-['Value_Sans'] font-normal uppercase tracking-wide transition-colors ${
-                  selectedProject.card_tag_color
-                    ? 'text-current'
-                    : selectedProject.card_font_color
-                    ? 'text-current opacity-80 md:text-[#B6B6B6] md:opacity-100'
-                    : 'text-[#B6B6B6]'
-                }`}
-                style={
-                  selectedProject.card_tag_color
-                    ? { color: selectedProject.card_tag_color }
-                    : {}
-                }
+                className="flex items-center leading-none text-[10px] md:text-xs font-['Value_Sans'] font-normal uppercase tracking-wide transition-colors text-current"
               >
                 <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />
                 {tag}
