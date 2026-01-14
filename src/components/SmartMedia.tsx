@@ -769,7 +769,7 @@ export default function SmartMedia({
                   src={thumbnailUrl}
                   alt={alt}
                   fill
-                  className="object-cover"
+                  className={`object-cover ${activeMediaClassName || ''}`}
                 />
               </div>
             )}
@@ -836,14 +836,14 @@ export default function SmartMedia({
                     <VisitWebsiteButton
                       url={externalUrl}
                       config={buttonConfig.visitButton}
-                      className="bg-transparent! backdrop-blur-none! hover:border-white/60! text-white! border-white/60! h-[26px]! px-3! box-border"
+                      className="bg-transparent! backdrop-blur-none! hover:text-white! hover:border-white! text-white/60! border-white/60! h-[26px]! px-3! box-border"
                     />
                   )}
                   {hasCaptions && (
                     <>
                       <button
                         onClick={toggleCaptions}
-                        className={`flex-none focus:outline-none transition-transform hover:scale-110 flex items-center justify-center`}
+                        className={`flex-none focus:outline-none transition-all duration-200 hover:scale-110 flex items-center justify-center group/cc text-white/60 hover:text-white`}
                         aria-label="Toggle Captions"
                       >
                         <svg
@@ -885,8 +885,7 @@ export default function SmartMedia({
                                 width="24.5"
                                 height="18.5"
                                 rx="2.25"
-                                stroke="white"
-                                strokeOpacity="0.6"
+                                stroke="currentColor"
                                 strokeWidth="1.5"
                                 fill="none"
                               />
@@ -896,8 +895,7 @@ export default function SmartMedia({
                                 dominantBaseline="central"
                                 textAnchor="middle"
                                 className="font-['Value_Sans'] font-bold text-[9px] tracking-tight"
-                                fill="white"
-                                fillOpacity="0.6"
+                                fill="currentColor"
                               >
                                 CC
                               </text>
@@ -1081,14 +1079,14 @@ export default function SmartMedia({
                   right: `${buttonConfig.offset}px`,
                 }}
               >
-                {/* Visit Website Button Removed from here as it's already in the overlay or redundant if we only want it in one place */}
-                {/* {externalUrl && (
+                {/* RESTORED VISIT BUTTON FOR VIMEO (Non-Fullscreen) */}
+                {externalUrl && (
                   <VisitWebsiteButton
                     url={externalUrl}
                     config={buttonConfig.visitButton}
                     className="bg-black/30 backdrop-blur-sm"
                   />
-                )} */}
+                )}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1234,12 +1232,12 @@ export default function SmartMedia({
               alignItems: 'center',
             }}
           >
-            {/* REMOVED LARGE BUTTON FROM VIDEO TYPE (already in player controls) */}
-            {/* <VisitWebsiteButton
+            {/* RESTORED VISIT BUTTON FOR VIDEO */}
+            <VisitWebsiteButton
               url={externalUrl}
               config={buttonConfig.visitButton}
               className="bg-black/30 backdrop-blur-sm"
-            /> */}
+            />
           </div>
         )}
       </div>
