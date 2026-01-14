@@ -51,8 +51,7 @@ const optimizeUrl = (url: string, contentType?: string) => {
   if (
     contentType &&
     contentType.startsWith('image/') &&
-    !contentType.includes('svg') &&
-    !contentType.includes('gif')
+    !contentType.includes('svg')
   ) {
     const separator = url.includes('?') ? '&' : '?';
     return `${url}${separator}w=1920&q=80`;
