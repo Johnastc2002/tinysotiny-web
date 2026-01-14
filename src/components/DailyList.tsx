@@ -15,6 +15,7 @@ import { getDailyEntriesAction, getDailyEntryByIdAction } from '@/app/actions';
 import Image from 'next/image';
 import LoadingSpinner from './LoadingSpinner';
 import HorizontalScroll from '@/components/HorizontalScroll';
+import { CursorPortal } from '@/components/CursorPortal';
 
 interface DailyListProps {
   initialItems: DailyData[];
@@ -88,12 +89,12 @@ function DailyListContent({ initialItems }: DailyListProps) {
     }
   }, [selectedDaily, overlayContainer]);
 
-  const updateUrlWithDaily = (dailyId: string) => {
+  const updateUrlWithDaily = useCallback((dailyId: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('daily', dailyId);
     // Push to history so back button works
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  };
+  }, [pathname, router, searchParams]);
 
   const handleClose = () => {
     isManualClose.current = true;
@@ -195,40 +196,11 @@ function DailyListContent({ initialItems }: DailyListProps) {
       <div className="w-full max-w-2xl flex flex-col gap-16 md:gap-24 pb-20">
         <div className="h-6 md:h-8" /> {/* Spacer */}
         {items.map((item) => (
-          <div
+          <DailyCard
             key={item.id}
-            onClick={() => updateUrlWithDaily(item.id)}
-            className="flex flex-col items-center gap-3 cursor-pointer group"
-          >
-            {/* Image Container */}
-            {/* Use thumbnail as the main image in the list view */}
-            {item.thumbnail && item.thumbnail.url && (
-              <div
-                className="relative w-full rounded-3xl overflow-hidden shadow-sm"
-                style={{
-                  aspectRatio:
-                    item.thumbnail.width && item.thumbnail.height
-                      ? `${item.thumbnail.width}/${item.thumbnail.height}`
-                      : '4/5', // Default aspect ratio if dimensions missing
-                }}
-              >
-                <Image
-                  src={item.thumbnail.url}
-                  alt={item.title}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-              </div>
-            )}
-
-            {/* Caption */}
-            <div className="w-full text-left px-4">
-              <h2 className="text-lg md:text-xl font-['Value_Serif'] font-medium text-[#0F2341] mb-2 tracking-wide uppercase group-hover:text-gray-600 transition-colors">
-                {item.title}
-              </h2>
-            </div>
-          </div>
+            item={item}
+            onClick={updateUrlWithDaily}
+          />
         ))}
         {/* Loading Indicator */}
         {hasMore && (
@@ -236,6 +208,57 @@ function DailyListContent({ initialItems }: DailyListProps) {
             {isPending ? <LoadingSpinner size={24} /> : <div className="h-8" />}
           </div>
         )}
+      </div>
+    </>
+  );
+}
+
+function DailyCard({
+  item,
+  onClick,
+}: {
+  item: DailyData;
+  onClick: (id: string) => void;
+}) {
+  const [isHovering, setIsHovering] = useState(false);
+
+  return (
+    <>
+      <CursorPortal visible={isHovering} text={null} />
+      <div
+        onClick={() => onClick(item.id)}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+        className="flex flex-col items-center gap-3 cursor-pointer group w-full"
+      >
+        {/* Image Container */}
+        {/* Use thumbnail as the main image in the list view */}
+        {item.thumbnail && item.thumbnail.url && (
+          <div
+            className="relative w-full rounded-3xl overflow-hidden shadow-sm"
+            style={{
+              aspectRatio:
+                item.thumbnail.width && item.thumbnail.height
+                  ? `${item.thumbnail.width}/${item.thumbnail.height}`
+                  : '4/5', // Default aspect ratio if dimensions missing
+            }}
+          >
+            <Image
+              src={item.thumbnail.url}
+              alt={item.title}
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </div>
+        )}
+
+        {/* Caption */}
+        <div className="w-full text-left px-4">
+          <h2 className="text-lg md:text-xl font-['Value_Serif'] font-medium text-[#0F2341] mb-2 tracking-wide uppercase group-hover:text-gray-600 transition-colors">
+            {item.title}
+          </h2>
+        </div>
       </div>
     </>
   );
