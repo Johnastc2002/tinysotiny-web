@@ -163,7 +163,7 @@ function DailyListContent({ initialItems }: DailyListProps) {
             {/* Close Button */}
             <button
               onClick={handleClose}
-              className="fixed top-4 right-4 z-60 p-2 bg-white/50 backdrop-blur-md rounded-full shadow-md hover:bg-white transition-colors"
+              className="fixed top-8 right-6 z-60 p-2 bg-white/50 backdrop-blur-md rounded-full shadow-md hover:bg-white transition-colors flex items-center justify-center w-12 h-12"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -193,6 +193,7 @@ function DailyListContent({ initialItems }: DailyListProps) {
       </AnimatePresence>
 
       <div className="w-full max-w-2xl flex flex-col gap-16 md:gap-24 pb-20">
+        <div className="h-6 md:h-8" /> {/* Spacer */}
         {items.map((item) => (
           <div
             key={item.id}
@@ -229,7 +230,6 @@ function DailyListContent({ initialItems }: DailyListProps) {
             </div>
           </div>
         ))}
-
         {/* Loading Indicator */}
         {hasMore && (
           <div ref={loaderRef} className="flex justify-center p-8">

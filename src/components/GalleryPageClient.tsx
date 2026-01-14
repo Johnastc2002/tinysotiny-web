@@ -522,7 +522,7 @@ function GalleryPageContent({
   return (
     <div className={`relative w-full min-h-screen ${bgClass}`}>
       <DetailCard
-        isOpen={!!selectedProject}
+        isOpen={!!selectedProject && !searchParams.get('project')}
         onClose={handleCloseCard}
         data={cardData}
         basePath="/project"
@@ -554,7 +554,7 @@ function GalleryPageContent({
                 params.delete('project');
                 router.push(`${pathname}?${params.toString()}`);
               }}
-              className="fixed top-4 right-4 z-60 p-2 bg-white/50 backdrop-blur-md rounded-full shadow-md hover:bg-white transition-colors"
+              className="fixed top-8 right-6 z-60 p-2 bg-white/50 backdrop-blur-md rounded-full shadow-md hover:bg-white transition-colors flex items-center justify-center w-12 h-12"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

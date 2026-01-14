@@ -387,15 +387,6 @@ export default function HorizontalScroll({
           </motion.div>
         </div>
       </div>
-
-      {/* Scroll Progress Indicator (Optional) */}
-      <motion.div
-        className="fixed bottom-0 left-0 right-0 h-2 bg-[#0F2341] origin-left z-50 hidden md:block"
-        style={{
-          scaleX: scrollYProgress,
-          backgroundColor: cardBgColor || '#0F2341',
-        }}
-      />
     </>
   );
 }

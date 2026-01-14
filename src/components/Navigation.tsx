@@ -143,8 +143,11 @@ export default function Navigation({ contact }: NavigationProps) {
           isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
         style={{
-          top: 'calc(1.5rem + 5px)',
+          top: '2rem',
           left: '1.5rem',
+          height: '3rem',
+          display: 'flex',
+          alignItems: 'center',
         }}
       >
         <img
@@ -162,7 +165,7 @@ export default function Navigation({ contact }: NavigationProps) {
       <button
         onClick={toggleMenu}
         style={{
-          top: '1.5rem',
+          top: '2rem',
           right: '1.5rem',
           height: '3rem',
           width: '3rem',
@@ -200,12 +203,16 @@ export default function Navigation({ contact }: NavigationProps) {
         {/* Close Button - Fixed relative to card */}
         <div
           className="absolute z-50 flex items-center justify-center 
-          top-4 right-4
-          lg:[@media(min-height:720px)]:top-6! lg:[@media(min-height:720px)]:right-6!"
+          top-8 right-6
+          lg:[@media(min-height:720px)]:top-8! lg:[@media(min-height:720px)]:right-6!"
         >
           <button
             onClick={toggleMenu}
-            className="flex h-12 w-12 items-center justify-center rounded-full hover:bg-gray-100 transition-colors lg:[@media(min-height:720px)]:h-16! lg:[@media(min-height:720px)]:w-16!"
+            style={{
+              height: '3rem',
+              width: '3rem',
+            }}
+            className="flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors lg:[@media(min-height:720px)]:h-12! lg:[@media(min-height:720px)]:w-12!"
             aria-label="Close Menu"
           >
             <svg

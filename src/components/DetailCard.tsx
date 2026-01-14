@@ -143,7 +143,7 @@ export default function DetailCard({
           }}
           onClick={onClose}
         >
-          <div className="min-h-full flex items-center justify-center p-12 md:p-0">
+          <div className="min-h-full flex items-center justify-center p-12 landscape:p-4 md:p-0">
             <motion.div
               key={data.id} // Add key to force proper AnimatePresence behavior on ID change
               initial={{ scale: 0.9, opacity: 0 }}
@@ -153,8 +153,8 @@ export default function DetailCard({
               onMouseLeave={() => setIsHovering(false)}
               onMouseEnter={() => setIsHovering(true)}
               className={`
-                relative flex flex-col md:flex-row 
-                w-full h-[85vh] md:w-[80vw] md:max-w-5xl md:h-[60vh]
+                relative flex flex-col landscape:flex-row md:flex-row 
+                w-full h-[85vh] landscape:w-[90vw] landscape:h-[90vh] md:w-[80vw] md:max-w-5xl md:h-[60vh]
                 overflow-hidden 
                 bg-white 
                 rounded-4xl md:rounded-4xl 
@@ -166,7 +166,7 @@ export default function DetailCard({
               }}
             >
               {/* Left Side - Image */}
-              <div className="relative w-full md:w-1/2 flex-1 min-h-0 md:h-full bg-gray-100 group overflow-hidden">
+              <div className="relative w-full landscape:w-1/2 md:w-1/2 flex-1 landscape:flex-none md:flex-none min-h-0 landscape:h-full md:h-full bg-gray-100 group overflow-hidden">
                 {data.imageUrl ? (
                   <>
                     <Image
@@ -198,10 +198,10 @@ export default function DetailCard({
               </div>
 
               {/* Right Side - Content */}
-              <div className="flex w-full md:w-1/2 flex-col cursor-pointer hover:bg-gray-50 transition-colors flex-none md:flex-1 md:h-full md:overflow-y-auto bg-white z-10">
+              <div className="flex w-full landscape:w-1/2 md:w-1/2 flex-col cursor-pointer hover:bg-gray-50 transition-colors flex-none landscape:flex-none md:flex-none landscape:h-full md:h-full landscape:overflow-y-auto md:overflow-y-auto bg-white z-10">
                 {/* Top Section - Description */}
                 <div
-                  className="flex-1 px-6 pt-3 pb-6 md:p-10 flex flex-col transition-colors duration-300 min-h-min relative"
+                  className="flex-1 px-6 pt-3 pb-6 landscape:p-6 md:p-10 flex flex-col transition-colors duration-300 min-h-min relative"
                   style={{
                     backgroundColor: bgColor || '#E5E5E5',
                   }}
@@ -241,7 +241,7 @@ export default function DetailCard({
                     </p>
 
                     {/* Mobile: Tags moved here under description */}
-                    <div className="mt-4 md:hidden">
+                    <div className="mt-4 md:hidden landscape:hidden">
                       {/* Clone bottomContent but style it differently if needed, or assume it's just content */}
                       {/* We need to apply font color to children if possible, but they are ReactNodes. */}
                       {/* Assuming bottomContent is structured for styling or we wrap it */}
@@ -253,7 +253,7 @@ export default function DetailCard({
 
                   {/* Desktop: Tags moved here if showing second thumbnail */}
                   {showSecondThumbnail && data.tags && (
-                    <ul className="hidden md:flex flex-wrap gap-x-4 gap-y-2 mt-8 md:mt-0 pt-4 p-0 list-none shrink-0">
+                    <ul className="hidden landscape:flex md:flex flex-wrap gap-x-4 gap-y-2 mt-8 md:mt-0 pt-4 p-0 list-none shrink-0">
                       {data.tags.map((tag, index) => (
                         <li
                           key={index}
@@ -278,7 +278,7 @@ export default function DetailCard({
 
                 {/* Bottom Section - Tags/Points (Desktop Only) */}
                 <div
-                  className={`hidden md:flex bg-white ${
+                  className={`hidden landscape:flex md:flex bg-white ${
                     showSecondThumbnail
                       ? 'relative p-0'
                       : 'px-10 flex-col justify-center'

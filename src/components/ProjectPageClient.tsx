@@ -431,7 +431,7 @@ export default function ProjectPageClient({
             <div className="px-8 pt-12 bg-[#f8f8f8]">
               {/* Client Section */}
               {project.clientName && (
-                <div className="mb-8">
+                <div>
                   <span className="text-sm font-semibold uppercase tracking-wider text-[#B6B6B6] block mb-1">
                     <span className="font-['Value_Sans'] font-normal">
                       CLIENT
@@ -447,20 +447,22 @@ export default function ProjectPageClient({
               {project.projectType === 'work' &&
                 project.services &&
                 project.services.length > 0 && (
-                  <div className="mt-12 pl-[30vw] md:pl-[40vw]">
-                    <h4 className="text-sm font-['Value_Sans'] font-normal text-[#B6B6B6] uppercase tracking-widest mb-2">
-                      SERVICES
-                    </h4>
-                    <ul className="space-y-0.5">
-                      {project.services.map((service, index) => (
-                        <li
-                          key={index}
-                          className="text-lg text-[#B6B6B6] font-['Value_Sans'] font-normal leading-relaxed lowercase"
-                        >
-                          {service}
-                        </li>
-                      ))}
-                    </ul>
+                  <div className="mt-12 flex flex-col items-end text-left">
+                    <div className="text-left">
+                      <h4 className="text-sm font-['Value_Sans'] font-normal text-[#B6B6B6] uppercase tracking-widest mb-2">
+                        SERVICES
+                      </h4>
+                      <ul className="space-y-0.5">
+                        {project.services.map((service, index) => (
+                          <li
+                            key={index}
+                            className="text-lg text-[#B6B6B6] font-['Value_Sans'] font-normal leading-relaxed lowercase"
+                          >
+                            {service}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                 )}
             </div>
