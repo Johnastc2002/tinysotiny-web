@@ -328,6 +328,32 @@ const Bubble = ({
     isGradient ? 'play_gradient' : type === 'glass' ? 'glass' : 'solid'
   );
 
+  const isGif = (url?: string) => url?.toLowerCase().includes('.gif');
+
+  // Dispatch to GifBubble if it's a GIF
+  if (
+    type === 'image' &&
+    imageUrl &&
+    (isGif(imageUrl) || isGif(imageHoverUrl))
+  ) {
+    console.log('Rendering GifBubble for:', imageUrl);
+    return (
+      <group ref={groupRef} position={enableExplosion ? undefined : position}>
+        <GifBubble
+          position={[0, 0, 0]} // Relative to group
+          scale={scale}
+          imageUrl={imageUrl}
+          imageHoverUrl={imageHoverUrl}
+          onClick={handleClick}
+          onPointerOver={handlePointerOver}
+          onPointerOut={handlePointerOut}
+          enableBlur={enableBlur}
+          isHovered={isHovered}
+        />
+      </group>
+    );
+  }
+
   // Conditionally call useTexture only if type is 'image' and imageUrl is present
   // ... (comments retained)
 
@@ -371,6 +397,189 @@ const Bubble = ({
         isHovered={isHovered}
       />
     </group>
+  );
+};
+
+const GifBubble = ({
+  position,
+  scale,
+  imageUrl,
+  imageHoverUrl,
+  onClick,
+  onPointerOver,
+  onPointerOut,
+  enableBlur,
+  isHovered,
+}: {
+  position: [number, number, number];
+  scale: number;
+  imageUrl: string;
+  imageHoverUrl?: string;
+  onClick: (e: ThreeEvent<PointerEvent>) => void;
+  onPointerOver: (e: ThreeEvent<PointerEvent>) => void;
+  onPointerOut: (e: ThreeEvent<PointerEvent>) => void;
+  enableBlur?: boolean;
+  isHovered: boolean;
+}) => {
+  const [cursorPos, setCursorPos] = useState<[number, number, number] | null>(
+    null
+  );
+  const [hovered, setHovered] = useState(false);
+  const [floatSpeed] = useState(() => 1.5 + Math.random());
+  const [floatIntensity] = useState(() => 1 + Math.random());
+
+  const { camera } = useThree();
+  const meshRef = useRef<THREE.Mesh>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const worldPos = useMemo(() => new THREE.Vector3(), []);
+  const camDir = useMemo(() => new THREE.Vector3(), []);
+
+  // Sync local hover state with parent-controlled isHovered
+  useEffect(() => {
+    setHovered(isHovered);
+  }, [isHovered]);
+
+  useFrame(() => {
+    if (enableBlur && meshRef.current && containerRef.current) {
+      meshRef.current.getWorldPosition(worldPos);
+      worldPos.normalize();
+
+      camDir.copy(camera.position).normalize();
+
+      const dot = camDir.dot(worldPos);
+      const blurFactor = THREE.MathUtils.clamp(-dot, 0, 1);
+
+      // Apply blur effect
+      containerRef.current.style.filter = `blur(${blurFactor * 8}px)`;
+
+      // Zoom Effect
+      const maxZoom = 1.2;
+      const targetScale = 1.0 - blurFactor * (1.0 - 1.0 / maxZoom);
+      // Apply scaling to the image container
+      containerRef.current.style.transform = `translate(-50%, -50%) scale(${targetScale})`;
+    }
+  });
+
+  const currentSrc = hovered && imageHoverUrl ? imageHoverUrl : imageUrl;
+
+  // Render size for the GIF (higher resolution for quality)
+  // const PIXEL_SIZE = 512;
+  // Calculate scale factor to match 3D scale
+  // Diameter in 3D = 2 * scale
+  // We want PIXEL_SIZE to map to (2 * scale) units
+  // The scale prop in Html scales the content. If we want content to be size 2*scale in world units,
+  // and content is PIXEL_SIZE pixels, we need scale factor such that:
+  // PIXEL_SIZE * factor = 2 * scale
+  // factor = (2 * scale) / PIXEL_SIZE
+  // Note: Html scales differently based on distance if transform is true.
+  // Standard Drei Html with transform: wrapper is at position, scaled by camera distance.
+  // But we want it to match the mesh size in the scene.
+  // Testing: The factor needs to be adjusted.
+  // Usually, 1 unit in Three.js ~ 100 pixels at z=0? No.
+  // Html with `transform` creates a CSS 3D object.
+  // The content size in pixels is treated as units in the 3D scene scaled by a factor.
+  // By default, 1 pixel = 1 unit? No, usually scaled down.
+  // Let's use a standard factor: 1 px = 0.1 units?
+  // Let's rely on visual matching or calculated factor.
+  // If we set width/height in px, and apply scale:
+  // The billboard mesh has diameter `2 * scale`.
+  // The div has `PIXEL_SIZE`.
+  // We need `PIXEL_SIZE * scaleFactor = 2 * scale`.
+  // So scaleFactor = (2 * scale) / PIXEL_SIZE.
+  // const scaleFactor = (2 * scale) / PIXEL_SIZE;
+
+  return (
+    <Float
+      speed={floatSpeed}
+      rotationIntensity={0}
+      floatIntensity={floatIntensity}
+      floatingRange={[-0.2, 0.2]}
+    >
+      <Billboard
+        position={position}
+        follow={true}
+        lockX={false}
+        lockY={false}
+        lockZ={false}
+      >
+        {/* Interaction Mesh - exact size */}
+        <mesh
+          ref={meshRef}
+          onClick={onClick}
+          onPointerOver={onPointerOver}
+          onPointerOut={onPointerOut}
+          onPointerMove={(e) => {
+            const local = e.object.worldToLocal(e.point.clone());
+            setCursorPos([local.x, local.y, local.z]);
+          }}
+        >
+          <circleGeometry args={[scale, 32]} />
+          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+        </mesh>
+
+        <Html
+          transform
+          scale={1} // DEBUG: Force scale 1 to check 3D visibility
+          position={[0, 0, 0.1]}
+          style={{
+            pointerEvents: 'none',
+          }}
+          as="div"
+          zIndexRange={[100, 0]}
+        >
+          <div
+            ref={containerRef}
+            style={{
+              width: '100px', // DEBUG: Fixed pixels
+              height: '100px',
+              borderRadius: '50%',
+              overflow: 'hidden',
+              transform: 'translate(-50%, -50%)',
+              transition: 'opacity 0.2s',
+              backgroundColor: 'green', // DEBUG: Green bg
+              // maskImage: ... // Removed mask for debug
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={currentSrc}
+              alt="bubble"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+                pointerEvents: 'none',
+              }}
+              onError={(e) =>
+                console.error('Error loading GIF:', currentSrc, e)
+              }
+            />
+          </div>
+        </Html>
+
+        {isHovered && (
+          <group
+            position={
+              cursorPos ? [cursorPos[0], cursorPos[1], cursorPos[2]] : [0, 0, 0]
+            }
+          >
+            <Html
+              position={[0, 0, 0]}
+              style={{
+                pointerEvents: 'none',
+                transform: 'translate(20px, 20px)',
+              }}
+              className="pointer-events-none"
+              pointerEvents="none"
+              zIndexRange={[100, 0]}
+            >
+              <InteractionCursor text={null} />
+            </Html>
+          </group>
+        )}
+      </Billboard>
+    </Float>
   );
 };
 
