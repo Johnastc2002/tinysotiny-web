@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, Suspense } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Project, GridFilter } from '@/types/project';
 import BubbleScene from '@/components/BubbleScene';
@@ -16,6 +17,58 @@ import { motion, AnimatePresence } from 'framer-motion';
 import LoadingSpinner from './LoadingSpinner';
 import DetailCard, { DetailCardData } from './DetailCard';
 import ProjectPageClient from '@/components/ProjectPageClient';
+import { InteractionCursor } from './BubbleActions';
+
+// Global cursor for grid items to ensure performance and correct behavior
+const GridCursor = ({ visible }: { visible: boolean }) => {
+  const cursorRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (cursorRef.current) {
+        cursorRef.current.style.transform = `translate3d(${e.clientX + 20}px, ${
+          e.clientY + 20
+        }px, 0)`;
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [mounted]);
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <div
+      ref={cursorRef}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        pointerEvents: 'none',
+        zIndex: 9999,
+        willChange: 'transform',
+        opacity: visible ? 1 : 0,
+        transition: 'opacity 0.2s ease-out',
+        // Initialize off-screen
+        transform: 'translate3d(-100px, -100px, 0)',
+      }}
+    >
+      <InteractionCursor text={null} />
+    </div>,
+    document.body
+  );
+};
 
 interface GalleryPageClientProps {
   initialFeaturedProjects: Project[];
@@ -73,10 +126,11 @@ function GalleryPageContent({
     null
   );
   const [isBubblePaused, setIsBubblePaused] = useState(false);
+  const [isHoveringGrid, setIsHoveringGrid] = useState(false);
 
   useEffect(() => {
     // Pause bubbles ONLY if full project overlay is open
-    // Allow bubbles to keep moving when Detail Card (selectedProject) is open
+    // Allow bubbles to keep moving when DetailCard (selectedProject) is open
     if (fullProject) {
       // Delay pause to ensure any layout shifts (scrollbars) are handled by a few frames
       // Matches transition duration (300ms) + buffer
@@ -510,6 +564,7 @@ function GalleryPageContent({
 
   return (
     <div className={`relative w-full min-h-screen ${bgClass}`}>
+      <GridCursor visible={isHoveringGrid} />
       <DetailCard
         isOpen={!!selectedProject && !searchParams.get('project')}
         onClose={handleCloseCard}
@@ -799,7 +854,11 @@ function GalleryPageContent({
           <div className="w-full min-h-full pt-24 px-2 md:px-12 pb-32">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
               {displayedProjects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  onHoverChange={setIsHoveringGrid}
+                />
               ))}
             </div>
 
@@ -840,7 +899,13 @@ export default function GalleryPageClient(props: GalleryPageClientProps) {
   );
 }
 
-function ProjectCard({ project }: { project: Project }) {
+function ProjectCard({
+  project,
+  onHoverChange,
+}: {
+  project: Project;
+  onHoverChange?: (hovering: boolean) => void;
+}) {
   // Use bubble_thumbnail or first thumbnail
   const imageUrl = project.thumbnails?.[0] || project.bubble_thumbnail;
   const searchParams = useSearchParams();
@@ -855,7 +920,9 @@ function ProjectCard({ project }: { project: Project }) {
     <Link
       href={getHref()}
       scroll={false}
-      className="block group transition-all duration-300"
+      className="block group transition-all duration-300 cursor-none"
+      onMouseEnter={() => onHoverChange?.(true)}
+      onMouseLeave={() => onHoverChange?.(false)}
     >
       <div className="relative w-full aspect-square overflow-hidden bg-gray-200 rounded-3xl">
         {imageUrl ? (
@@ -876,7 +943,9 @@ function ProjectCard({ project }: { project: Project }) {
         {project.clientName && (
           <div className="absolute top-2 left-3 right-3 md:top-4 md:left-4 md:right-4 z-10 pointer-events-none">
             <span className="inline-block text-[10px] md:text-xs uppercase tracking-wider text-white drop-shadow-md whitespace-normal wrap-break-word">
-              <span className="font-['Value_Sans'] font-normal">CLIENT / </span>
+              <span className="font-['Value_Sans'] font-normal">
+                CLIENT /{' '}
+              </span>
               <span className="font-['Value_Serif'] font-medium">
                 {project.clientName}
               </span>
