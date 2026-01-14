@@ -51,16 +51,16 @@ const VisitWebsiteButton = ({
       xmlns="http://www.w3.org/2000/svg"
     >
       <path
-        d="M15 3H7a4 4 0 0 0-4 4v10a4 4 0 0 0 4 4h10a4 4 0 0 0 4-4v-8"
+        d="M12 5H8a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-4"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M10 14 21 3M21 3h-6M21 3v6"
+        d="M12 12 20 4M20 4H14M20 4V10"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
         className="transition-transform group-hover/visit:translate-x-0.5 group-hover/visit:-translate-y-0.5"
@@ -1112,7 +1112,9 @@ export default function SmartMedia({
           className={`w-full h-full object-cover transition-opacity duration-1500 ease-in-out ${activeClassName.replace(
             'hover:',
             'group-hover:'
-          )} ${activeMediaClassName || ''} ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+          )} ${activeMediaClassName || ''} ${
+            isLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
           style={{ objectFit: 'cover' }}
           loop
           playsInline
