@@ -23,6 +23,7 @@ interface MediaItemProps {
   sizes?: string;
   externalUrl?: string;
   mediaClassName?: string;
+  layout?: string;
 }
 
 interface VisitButtonConfig {
@@ -46,7 +47,7 @@ const VisitWebsiteButton = ({
     href={url}
     target="_blank"
     rel="noopener noreferrer"
-    className={`flex-none text-[#b6b6b6] hover:text-white focus:outline-none transition-transform hover:scale-105 border border-[#b6b6b6] hover:border-white rounded-full flex items-center group/visit bg-black/30 backdrop-blur-sm ${className}`}
+    className={`flex-none text-[#b6b6b6] hover:text-white focus:outline-none transition-transform hover:scale-105 border border-[#b6b6b6] hover:border-white rounded-full flex items-center group/visit bg-black/30 backdrop-blur-sm box-border ${className}`}
     style={{
       paddingLeft: config ? `${config.paddingX}px` : undefined,
       paddingRight: config ? `${config.paddingX}px` : undefined,
@@ -103,6 +104,7 @@ export default function SmartMedia({
   sizes,
   externalUrl,
   mediaClassName,
+  layout,
 }: MediaItemProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -649,8 +651,8 @@ export default function SmartMedia({
           const minDim = Math.min(width, height);
 
           // Proportional calculation for Fullscreen Button: 15% of the shortest side
-          // Clamped between 24px (small) and 48px (large)
-          const size = Math.max(24, Math.min(48, minDim * 0.15));
+          // Clamped between 16px (small) and 48px (large)
+          const size = Math.max(16, Math.min(48, minDim * 0.15));
           const padding = size * 0.25; // 25% of size
           const iconSize = size * 0.5; // 50% of size
           const offset = size * 0.25; // Offset from edge
@@ -661,22 +663,23 @@ export default function SmartMedia({
           const playIconSize = playButtonSize * 0.5; // 50% of button size
 
           // Interpolation for Visit Button
-          // Map size range [24, 48] to:
-          // fontSize: [9, 12]
-          // iconSize: [8, 12]
-          // paddingX: [8, 16]
-          // paddingY: [2, 6]
-          // gap: [4, 8]
-          const t = (size - 24) / (48 - 24); // 0 to 1
+          // Map size range [16, 48] to:
+          // fontSize: [7, 12]
+          // iconSize: [6, 12]
+          // paddingX: [6, 16]
+          // paddingY: [1, 6]
+          // gap: [2, 8]
+          const t = (size - 16) / (48 - 16); // 0 to 1
           const lerp = (min: number, max: number, t: number) =>
             min + (max - min) * t;
 
+          const isV3 = layout === 'V-3';
           const visitButton = {
-            fontSize: lerp(9, 12, t),
-            iconSize: lerp(8, 12, t),
-            paddingX: lerp(8, 16, t),
-            paddingY: lerp(2, 6, t),
-            gap: lerp(4, 8, t),
+            fontSize: isV3 ? lerp(5, 9, t) : lerp(7, 12, t),
+            iconSize: isV3 ? lerp(4, 8, t) : lerp(6, 12, t),
+            paddingX: isV3 ? lerp(4, 10, t) : lerp(6, 16, t),
+            paddingY: isV3 ? lerp(1, 4, t) : lerp(1, 6, t),
+            gap: isV3 ? lerp(1, 4, t) : lerp(2, 8, t),
           };
 
           setButtonConfig({
@@ -707,7 +710,7 @@ export default function SmartMedia({
 
       return () => resizeObserver.disconnect();
     }
-  }, [type, isFullscreen, updateIframeDimensions, setLoaded]); // Add isFullscreen dependency
+  }, [type, isFullscreen, updateIframeDimensions, setLoaded, layout]); // Add isFullscreen dependency
 
   if (type === 'vimeo') {
     // Assuming url is a full vimeo url like https://vimeo.com/123456
@@ -827,196 +830,173 @@ export default function SmartMedia({
                   className="grow min-w-0 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-white hover:bg-white/50 transition-colors"
                 />
 
-                {/* Captions */}
-                {hasCaptions && (
-                  <>
-                    <button
-                      onClick={toggleCaptions}
-                      className={`flex-none focus:outline-none transition-transform hover:scale-110 flex items-center justify-center`}
-                      aria-label="Toggle Captions"
-                    >
-                      <svg
-                        width="26"
-                        height="20"
-                        viewBox="0 0 26 20"
-                        className="block"
-                      >
-                        {captionsEnabled ? (
-                          <>
-                            <defs>
-                              <mask id={maskId}>
-                                <rect width="26" height="20" fill="white" />
-                                <text
-                                  x="50%"
-                                  y="52%"
-                                  dominantBaseline="central"
-                                  textAnchor="middle"
-                                  className="font-['Value_Sans'] font-bold text-[9px] tracking-tight"
-                                  fill="black"
-                                >
-                                  CC
-                                </text>
-                              </mask>
-                            </defs>
-                            <rect
-                              width="26"
-                              height="20"
-                              rx="3"
-                              fill="white"
-                              mask={`url(#${maskId})`}
-                            />
-                          </>
-                        ) : (
-                          <>
-                            <rect
-                              x="0.75"
-                              y="0.75"
-                              width="24.5"
-                              height="18.5"
-                              rx="2.25"
-                              stroke="white"
-                              strokeOpacity="0.6"
-                              strokeWidth="1.5"
-                              fill="none"
-                            />
-                            <text
-                              x="50%"
-                              y="52%"
-                              dominantBaseline="central"
-                              textAnchor="middle"
-                              className="font-['Value_Sans'] font-bold text-[9px] tracking-tight"
-                              fill="white"
-                              fillOpacity="0.6"
-                            >
-                              CC
-                            </text>
-                          </>
-                        )}
-                      </svg>
-                    </button>
-
-                    <div className="relative flex items-center">
+                {/* Captions & Right Controls */}
+                <div className="flex items-center gap-4">
+                  {externalUrl && (
+                    <VisitWebsiteButton
+                      url={externalUrl}
+                      config={buttonConfig.visitButton}
+                      className="bg-transparent! backdrop-blur-none! hover:border-white/60! text-white! border-white/60! h-[26px]! px-3! box-border"
+                    />
+                  )}
+                  {hasCaptions && (
+                    <>
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowSubtitleMenu(!showSubtitleMenu);
-                          showControlsTemporary();
-                        }}
-                        className={`flex-none hover:text-gray-200 focus:outline-none transition-transform hover:scale-110 flex items-center justify-center ${
-                          showSubtitleMenu ? 'text-white' : 'text-white/60'
-                        }`}
-                        aria-label="Subtitle Language"
+                        onClick={toggleCaptions}
+                        className={`flex-none focus:outline-none transition-transform hover:scale-110 flex items-center justify-center`}
+                        aria-label="Toggle Captions"
                       >
                         <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                          className="w-6 h-6"
+                          width="26"
+                          height="20"
+                          viewBox="0 0 26 20"
+                          className="block"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S12 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S12 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418"
-                          />
+                          {captionsEnabled ? (
+                            <>
+                              <defs>
+                                <mask id={maskId}>
+                                  <rect width="26" height="20" fill="white" />
+                                  <text
+                                    x="50%"
+                                    y="52%"
+                                    dominantBaseline="central"
+                                    textAnchor="middle"
+                                    className="font-['Value_Sans'] font-bold text-[9px] tracking-tight"
+                                    fill="black"
+                                  >
+                                    CC
+                                  </text>
+                                </mask>
+                              </defs>
+                              <rect
+                                width="26"
+                                height="20"
+                                rx="3"
+                                fill="white"
+                                mask={`url(#${maskId})`}
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <rect
+                                x="0.75"
+                                y="0.75"
+                                width="24.5"
+                                height="18.5"
+                                rx="2.25"
+                                stroke="white"
+                                strokeOpacity="0.6"
+                                strokeWidth="1.5"
+                                fill="none"
+                              />
+                              <text
+                                x="50%"
+                                y="52%"
+                                dominantBaseline="central"
+                                textAnchor="middle"
+                                className="font-['Value_Sans'] font-bold text-[9px] tracking-tight"
+                                fill="white"
+                                fillOpacity="0.6"
+                              >
+                                CC
+                              </text>
+                            </>
+                          )}
                         </svg>
                       </button>
-                      {showSubtitleMenu && (
-                        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md rounded-lg p-2 min-w-[120px] flex flex-col gap-1 max-h-48 overflow-y-auto">
-                          {textTracks.map((track, i) => (
+
+                      <div className="relative flex items-center">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowSubtitleMenu(!showSubtitleMenu);
+                            showControlsTemporary();
+                          }}
+                          className={`flex-none hover:text-gray-200 focus:outline-none transition-transform hover:scale-110 flex items-center justify-center ${
+                            showSubtitleMenu ? 'text-white' : 'text-white/60'
+                          }`}
+                          aria-label="Subtitle Language"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="w-6 h-6"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S12 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S12 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418"
+                            />
+                          </svg>
+                        </button>
+                        {showSubtitleMenu && (
+                          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md rounded-lg p-2 min-w-[120px] flex flex-col gap-1 max-h-48 overflow-y-auto">
+                            {textTracks.map((track, i) => (
+                              <button
+                                key={i}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (vimeoPlayerRef.current) {
+                                    vimeoPlayerRef.current.enableTextTrack(
+                                      track.language,
+                                      track.kind
+                                    );
+                                    setCaptionsEnabled(true);
+                                  }
+                                  setShowSubtitleMenu(false);
+                                  showControlsTemporary();
+                                }}
+                                className="text-white/80 hover:text-white text-sm py-1 px-2 text-left rounded hover:bg-white/10 whitespace-nowrap block w-full"
+                              >
+                                {track.label}
+                              </button>
+                            ))}
                             <button
-                              key={i}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 if (vimeoPlayerRef.current) {
-                                  vimeoPlayerRef.current.enableTextTrack(
-                                    track.language,
-                                    track.kind
-                                  );
-                                  setCaptionsEnabled(true);
+                                  vimeoPlayerRef.current.disableTextTrack();
+                                  setCaptionsEnabled(false);
                                 }
                                 setShowSubtitleMenu(false);
                                 showControlsTemporary();
                               }}
-                              className="text-white/80 hover:text-white text-sm py-1 px-2 text-left rounded hover:bg-white/10 whitespace-nowrap block w-full"
+                              className="text-white/60 hover:text-white text-sm py-1 px-2 text-left rounded hover:bg-white/10 border-t border-white/10 mt-1 pt-2 block w-full"
                             >
-                              {track.label}
+                              Off
                             </button>
-                          ))}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (vimeoPlayerRef.current) {
-                                vimeoPlayerRef.current.disableTextTrack();
-                                setCaptionsEnabled(false);
-                              }
-                              setShowSubtitleMenu(false);
-                              showControlsTemporary();
-                            }}
-                            className="text-white/60 hover:text-white text-sm py-1 px-2 text-left rounded hover:bg-white/10 border-t border-white/10 mt-1 pt-2 block w-full"
-                          >
-                            Off
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
 
-                {/* Visit Website Button */}
-                {externalUrl && (
-                  <a
-                    href={externalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-none text-white hover:text-gray-200 focus:outline-none transition-transform hover:scale-105 border border-white/60 rounded-full px-4 py-1.5 flex items-center gap-2 group/visit"
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label="Visit Website"
+                  {/* Exit Fullscreen (Moved inside right group for consistent spacing) */}
+                  <button
+                    onClick={handleFullscreen}
+                    className="flex-none text-white/60 hover:text-white focus:outline-none transition-transform hover:scale-110"
+                    aria-label="Exit Fullscreen"
                   >
-                    <span className="text-xs font-['Value_Sans'] font-medium tracking-wider">
-                      VISIT WEBSITE
-                    </span>
                     <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 12 12"
-                      fill="none"
                       xmlns="http://www.w3.org/2000/svg"
-                      className="transition-transform group-hover/visit:translate-x-0.5 group-hover/visit:-translate-y-0.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="w-6 h-6"
                     >
                       <path
-                        d="M11 1L1 11M11 1H3M11 1V9"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
+                        d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5M15 15l5.25 5.25"
                       />
                     </svg>
-                  </a>
-                )}
-
-                {/* Exit Fullscreen */}
-                <button
-                  onClick={handleFullscreen}
-                  className="flex-none text-white hover:text-gray-200 focus:outline-none transition-transform hover:scale-110"
-                  aria-label="Exit Fullscreen"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-6 h-6"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5M15 15l5.25 5.25"
-                    />
-                  </svg>
-                </button>
+                  </button>
+                </div>
               </div>
             )}
 
@@ -1101,12 +1081,14 @@ export default function SmartMedia({
                   right: `${buttonConfig.offset}px`,
                 }}
               >
-                {externalUrl && (
+                {/* Visit Website Button Removed from here as it's already in the overlay or redundant if we only want it in one place */}
+                {/* {externalUrl && (
                   <VisitWebsiteButton
                     url={externalUrl}
                     config={buttonConfig.visitButton}
+                    className="bg-black/30 backdrop-blur-sm"
                   />
-                )}
+                )} */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1252,10 +1234,12 @@ export default function SmartMedia({
               alignItems: 'center',
             }}
           >
-            <VisitWebsiteButton
+            {/* REMOVED LARGE BUTTON FROM VIDEO TYPE (already in player controls) */}
+            {/* <VisitWebsiteButton
               url={externalUrl}
               config={buttonConfig.visitButton}
-            />
+              className="bg-black/30 backdrop-blur-sm"
+            /> */}
           </div>
         )}
       </div>
@@ -1300,9 +1284,11 @@ export default function SmartMedia({
             alignItems: 'center',
           }}
         >
+          {/* Keep button for Image type as it has no player controls */}
           <VisitWebsiteButton
             url={externalUrl}
             config={buttonConfig.visitButton}
+            className="bg-black/30 backdrop-blur-sm"
           />
         </div>
       )}

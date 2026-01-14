@@ -447,7 +447,7 @@ export default function ProjectPageClient({
               {project.projectType === 'work' &&
                 project.services &&
                 project.services.length > 0 && (
-                  <div className="mt-12 pl-[40vw]">
+                  <div className="mt-12 pl-[30vw] md:pl-[40vw]">
                     <h4 className="text-sm font-['Value_Sans'] font-normal text-[#B6B6B6] uppercase tracking-widest mb-2">
                       SERVICES
                     </h4>
@@ -595,6 +595,7 @@ export default function ProjectPageClient({
                               100 / count
                             )}vw`}
                             externalUrl={media.external_url}
+                            layout={row.row_layout}
                           />
                         </div>
                       ))}
