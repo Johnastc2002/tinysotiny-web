@@ -523,10 +523,12 @@ export default function ProjectPageClient({
                             type={media.type}
                             alt={`Gallery image ${rowIndex}-${mediaIndex}`}
                             fill
-                            className="object-cover hover:scale-105 transition-transform duration-700"
+                            className="object-cover"
+                            mediaClassName="group-hover:scale-105 transition-transform duration-700"
                             sizes={`(max-width: 768px) 100vw, ${Math.floor(
                               100 / count
                             )}vw`}
+                            externalUrl={media.external_url}
                           />
                         </div>
                       ))}

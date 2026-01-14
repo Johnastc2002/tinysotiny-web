@@ -22,6 +22,7 @@ interface MediaItemProps {
   priority?: boolean;
   sizes?: string;
   externalUrl?: string;
+  mediaClassName?: string;
 }
 
 const VisitWebsiteButton = ({
@@ -39,7 +40,7 @@ const VisitWebsiteButton = ({
     onClick={(e) => e.stopPropagation()}
     aria-label="Visit Website"
   >
-    <span className="text-xs font-['Value_Sans'] font-medium tracking-wider leading-none pt-[1px]">
+    <span className="text-xs font-['Value_Sans'] font-medium tracking-wider leading-none pt-px">
       VISIT WEBSITE
     </span>
     <svg
@@ -79,6 +80,7 @@ export default function SmartMedia({
   priority = false,
   sizes,
   externalUrl,
+  mediaClassName,
 }: MediaItemProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -137,6 +139,19 @@ export default function SmartMedia({
         )
         .join(' ')
     : className;
+
+  const activeMediaClassName = isFullscreen
+    ? mediaClassName
+        ?.split(' ')
+        .filter(
+          (c) =>
+            !c.includes('hover:') &&
+            !c.includes('transition') &&
+            !c.includes('duration') &&
+            !c.includes('transform')
+        )
+        .join(' ')
+    : mediaClassName;
 
   useEffect(() => {
     // If not vimeo, ensure loaded immediately (in effect to avoid hydration mismatch if state differed)
@@ -674,7 +689,7 @@ export default function SmartMedia({
                 className={`absolute inset-0 transition-opacity duration-1500 ease-in-out ${activeClassName.replace(
                   'hover:',
                   'group-hover:'
-                )} ${
+                )} ${activeMediaClassName || ''} ${
                   isLoaded && videoActivated ? 'opacity-100' : 'opacity-0'
                 } pointer-events-none`}
               >
@@ -1097,7 +1112,7 @@ export default function SmartMedia({
           className={`w-full h-full object-cover transition-opacity duration-1500 ease-in-out ${activeClassName.replace(
             'hover:',
             'group-hover:'
-          )} ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+          )} ${activeMediaClassName || ''} ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
           style={{ objectFit: 'cover' }}
           loop
           playsInline
@@ -1200,7 +1215,7 @@ export default function SmartMedia({
         height={!fill ? height : undefined}
         className={`transition-opacity duration-1500 ease-in-out ${
           isLoaded ? 'opacity-100' : 'opacity-0'
-        } object-cover`}
+        } ${activeMediaClassName || ''} object-cover`}
         onLoad={setLoaded}
         priority={priority}
         sizes={sizes}
