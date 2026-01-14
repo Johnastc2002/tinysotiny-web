@@ -266,7 +266,9 @@ export default function DetailCard({
                         <li
                           key={index}
                           className={`flex items-center leading-none text-xs font-['Value_Sans'] font-normal uppercase tracking-wide transition-colors ${
-                            !tagColor && !fontColor ? 'text-[#B6B6B6]' : 'text-current'
+                            !tagColor && !fontColor
+                              ? 'text-[#B6B6B6]'
+                              : 'text-current'
                           }`}
                           style={
                             tagColor

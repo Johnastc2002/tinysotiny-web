@@ -224,9 +224,9 @@ export default function HorizontalScroll({
             >
               <div className="flex items-stretch h-full relative z-10 gap-1 md:gap-2">
                 {/* Text Container */}
-                <div className="flex flex-col justify-center space-y-6 w-[40vw] min-w-[300px] pl-8 md:pl-16 shrink-0 z-20">
+                <div className="flex flex-col justify-center space-y-6 w-[40vw] min-w-[300px] pl-8 md:pl-16 pr-8 md:pr-12 shrink-0 z-20">
                   <h1
-                    className="text-5xl md:text-7xl font-['Value_Serif'] font-medium leading-tight"
+                    className="text-5xl md:text-7xl font-['Value_Serif'] font-medium leading-tight wrap-break-word"
                     style={{ color: cardFontColor }}
                   >
                     {daily.title}
@@ -267,7 +267,7 @@ export default function HorizontalScroll({
 
                 {/* Padding for overlap transition */}
                 <div
-                  className="w-32 md:w-64 bg-[#0F2341] shrink-0"
+                  className="w-32 md:w-32 bg-[#0F2341] shrink-0"
                   style={{ backgroundColor: cardBgColor || '#0F2341' }}
                 />
               </div>
@@ -280,14 +280,14 @@ export default function HorizontalScroll({
             {/* Removed overflow-hidden to allow image to overlap previous section */}
             {/* Added z-20 to ensure it (and its negative margin image) sits on top of Section 1 */}
             <section className="relative flex h-screen w-auto shrink-0 items-center justify-center bg-white z-20">
-              <div className="flex gap-8 md:gap-16 items-center px-8 md:px-16 h-full bg-white">
+              <div className="flex gap-8 md:gap-8 items-center px-8 md:px-8 h-full bg-white">
                 {/* Map through first few medias or placeholders */}
                 {daily.medias &&
                   daily.medias.slice(0, 3).map((media, idx) => (
                     <div
                       key={idx}
-                      className={`relative h-[50vh] md:h-[70vh] rounded-4xl overflow-hidden shadow-lg shrink-0 ${
-                        idx === 0 ? '-ml-20 md:-ml-32' : ''
+                      className={`relative h-[50vh] md:h-[50vh] rounded-4xl overflow-hidden shadow-lg shrink-0 ${
+                        idx === 0 ? '-ml-20 md:-ml-24' : ''
                       }`}
                       style={{
                         aspectRatio:
@@ -302,7 +302,7 @@ export default function HorizontalScroll({
                         alt={`Gallery ${idx}`}
                         fill
                         className="object-cover"
-                        sizes="(max-height: 70vh) auto, 33vw"
+                        sizes="(max-height: 50vh) auto, 33vw"
                       />
                     </div>
                   ))}
@@ -318,7 +318,7 @@ export default function HorizontalScroll({
             {/* Reduced width to 60vw to bring next section closer */}
             {/* Added z-10 to allow Section 4 to overlap it if needed */}
             <section className="relative flex h-screen w-auto shrink-0 items-center justify-center bg-white z-10">
-              <div className="flex flex-col md:flex-row items-center gap-20 pl-12 pr-64 wrap-break-word">
+              <div className="flex flex-col md:flex-row items-center gap-10 pl-12 pr-32 wrap-break-word">
                 <div className="flex flex-col space-y-6 max-w-xl">
                   <p className="text-gray-600 leading-loose wrap-break-word whitespace-pre-wrap font-['Value_Sans'] font-medium">
                     {daily.description2 ||
@@ -349,13 +349,13 @@ export default function HorizontalScroll({
             {/* Changed min-w-screen to w-auto to allow Section 5 to come closer */}
             {/* Added z-20 to stack on top of Section 5 */}
             <section className="relative flex h-screen w-auto shrink-0 items-center bg-white text-[#0F2341] z-20">
-              <div className="w-full h-full flex items-center px-16 gap-8 overflow-visible">
+              <div className="w-full h-full flex items-center px-8 gap-8 overflow-visible">
                 {/* Remaining medias */}
                 {daily.medias &&
                   daily.medias.slice(3).map((media, idx, arr) => (
                     <div
                       key={idx}
-                      className={`relative h-[50vh] md:h-[70vh] rounded-4xl overflow-hidden shadow-2xl shrink-0 ${
+                      className={`relative h-[50vh] md:h-[50vh] rounded-4xl overflow-hidden shadow-2xl shrink-0 ${
                         idx === 0 ? '-ml-20 md:-ml-32' : ''
                       } ${idx === arr.length - 1 ? '-mr-32 md:-mr-64' : ''}`}
                       style={{
@@ -371,7 +371,7 @@ export default function HorizontalScroll({
                         alt={`Gallery ${idx + 3}`}
                         fill
                         className="object-cover"
-                        sizes="(max-height: 70vh) auto, 50vw"
+                        sizes="(max-height: 50vh) auto, 50vw"
                       />
                     </div>
                   ))}
@@ -381,7 +381,7 @@ export default function HorizontalScroll({
             {/* Section 5: Fin (Navy) */}
             {/* Added z-10 to stay under Section 4's last image */}
             <section
-              className="relative flex h-screen w-[30vw] shrink-0 items-center justify-center bg-[#0F2341] text-white z-10"
+              className="relative flex h-screen w-[15vw] shrink-0 items-center justify-center bg-[#0F2341] text-white z-10"
               style={{ backgroundColor: cardBgColor || '#0F2341' }}
             />
           </motion.div>

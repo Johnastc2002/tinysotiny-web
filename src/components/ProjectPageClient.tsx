@@ -89,7 +89,7 @@ export default function ProjectPageClient({
     project.thumbnails && project.thumbnails.length > 1;
 
   return (
-    <div className="bg-white">
+    <div className="">
       {/* Mobile Fixed Banner 1 */}
       <div className="sticky top-0 left-0 w-full h-screen z-0 md:hidden -mb-[100vh]">
         {project.banners.length > 0 && (
@@ -133,7 +133,7 @@ export default function ProjectPageClient({
                   // Info Slide - Similar to ProjectCard
                   <div className="flex h-full w-full">
                     {/* Left Side - First Banner Image */}
-                    <div className="relative w-3/5 h-full bg-[#f8f8f8]">
+                    <div className="relative w-3/5 h-full bg-[#b6b6b6]">
                       {project.banners.length > 0 && (
                         <SmartMedia
                           url={project.banners[0]}
@@ -283,7 +283,7 @@ export default function ProjectPageClient({
       </div>
 
       {/* Content Section - Scrolls OVER the fixed banner */}
-      <div className="relative z-10 bg-transparent min-h-screen">
+      <div className="relative z-10 bg-transparent">
         {/* Background Layer for the lower part */}
         <div className="hidden md:block absolute top-[10vh] left-0 w-full bottom-0 bg-[#f8f8f8] -z-10" />
 
@@ -534,107 +534,109 @@ export default function ProjectPageClient({
         </div>
 
         {/* Gray Background Section for Gallery */}
-        <div
-          className={`w-full pt-12 px-8 md:pt-40 md:px-24 mt-0 md:-mt-24 z-10 relative bg-[#f8f8f8] md:bg-transparent ${
-            project.media_rows.length <= 3 ? 'pb-0' : 'pb-12 md:pb-20'
-          }`}
-        >
-          <div className="">
-            {/* Image Gallery */}
-            <div className="flex flex-col gap-8">
-              {project.media_rows?.map((row, rowIndex) => {
-                const parts = row.row_layout.split('-');
-                const orientation = parts[0];
-                const count = parseInt(parts[1], 10) || 1;
+        {project.media_rows.length > 0 && (
+          <div
+            className={`w-full pt-12 px-8 md:pt-40 md:px-24 mt-0 md:-mt-24 z-10 relative bg-[#f8f8f8] md:bg-transparent ${
+              project.media_rows.length <= 3 ? 'pb-0' : 'pb-12 md:pb-20'
+            }`}
+          >
+            <div className="">
+              {/* Image Gallery */}
+              <div className="flex flex-col gap-8">
+                {project.media_rows?.map((row, rowIndex) => {
+                  const parts = row.row_layout.split('-');
+                  const orientation = parts[0];
+                  const count = parseInt(parts[1], 10) || 1;
 
-                // Aspect ratio: V = 2:3, H = 3:2
-                const aspectRatioClass =
-                  orientation === 'V' ? 'aspect-[2/3]' : 'aspect-[3/2]';
+                  // Aspect ratio: V = 2:3, H = 3:2
+                  const aspectRatioClass =
+                    orientation === 'V' ? 'aspect-[2/3]' : 'aspect-[3/2]';
 
-                // Grid columns class
-                const gridColsClass =
-                  count === 1
-                    ? 'grid-cols-1'
-                    : count === 2
-                    ? 'grid-cols-2'
-                    : 'grid-cols-3';
+                  // Grid columns class
+                  const gridColsClass =
+                    count === 1
+                      ? 'grid-cols-1'
+                      : count === 2
+                      ? 'grid-cols-2'
+                      : 'grid-cols-3';
 
-                const mediasToShow = row.medias.slice(0, count);
-                const placeHoldersCount = Math.max(
-                  0,
-                  count - mediasToShow.length
-                );
+                  const mediasToShow = row.medias.slice(0, count);
+                  const placeHoldersCount = Math.max(
+                    0,
+                    count - mediasToShow.length
+                  );
 
-                const isLastRow = rowIndex === project.media_rows.length - 1;
-                const showDescription2 =
-                  (rowIndex === 2 && project.description_2) ||
-                  (isLastRow &&
-                    project.description_2 &&
-                    project.media_rows.length < 3);
+                  const isLastRow = rowIndex === project.media_rows.length - 1;
+                  const showDescription2 =
+                    (rowIndex === 2 && project.description_2) ||
+                    (isLastRow &&
+                      project.description_2 &&
+                      project.media_rows.length < 3);
 
-                return (
-                  <React.Fragment key={rowIndex}>
-                    <motion.div
-                      initial={{ opacity: 0, y: 50 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.6, delay: rowIndex * 0.1 }}
-                      viewport={{ once: true, margin: '-10%' }}
-                      className={`grid ${gridColsClass} gap-4 w-full`}
-                    >
-                      {mediasToShow.map((media, mediaIndex) => (
-                        <div
-                          key={mediaIndex}
-                          className={`relative w-full ${aspectRatioClass} overflow-hidden rounded-lg bg-[#f8f8f8] shadow-sm group`}
-                        >
-                          <SmartMedia
-                            url={media.url}
-                            type={media.type}
-                            alt={`Gallery image ${rowIndex}-${mediaIndex}`}
-                            fill
-                            className="object-cover"
-                            mediaClassName="group-hover:scale-105 transition-transform duration-700"
-                            sizes={`(max-width: 768px) 100vw, ${Math.floor(
-                              100 / count
-                            )}vw`}
-                            externalUrl={media.external_url}
-                            layout={row.row_layout}
-                          />
-                        </div>
-                      ))}
-                      {Array.from({ length: placeHoldersCount }).map(
-                        (_, pIndex) => (
-                          <div
-                            key={`placeholder-${pIndex}`}
-                            className={`relative w-full ${aspectRatioClass} overflow-hidden rounded-lg bg-gray-50`}
-                          />
-                        )
-                      )}
-                    </motion.div>
-
-                    {/* Description 2 Section */}
-                    {showDescription2 && (
+                  return (
+                    <React.Fragment key={rowIndex}>
                       <motion.div
-                        initial={{ opacity: 0, y: 30 }}
+                        initial={{ opacity: 0, y: 50 }}
                         whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                        viewport={{ once: true }}
-                        className="w-full pb-16 flex justify-start px-0 overflow-hidden"
+                        transition={{ duration: 0.6, delay: rowIndex * 0.1 }}
+                        viewport={{ once: true, margin: '-10%' }}
+                        className={`grid ${gridColsClass} gap-4 w-full`}
                       >
-                        <p className="text-base text-gray-700 leading-relaxed max-w-full text-left font-['Value_Sans'] font-medium wrap-break-word whitespace-pre-wrap">
-                          {project.description_2}
-                        </p>
+                        {mediasToShow.map((media, mediaIndex) => (
+                          <div
+                            key={mediaIndex}
+                            className={`relative w-full ${aspectRatioClass} overflow-hidden rounded-lg bg-[#f8f8f8] shadow-sm group`}
+                          >
+                            <SmartMedia
+                              url={media.url}
+                              type={media.type}
+                              alt={`Gallery image ${rowIndex}-${mediaIndex}`}
+                              fill
+                              className="object-cover"
+                              mediaClassName="group-hover:scale-105 transition-transform duration-700"
+                              sizes={`(max-width: 768px) 100vw, ${Math.floor(
+                                100 / count
+                              )}vw`}
+                              externalUrl={media.external_url}
+                              layout={row.row_layout}
+                            />
+                          </div>
+                        ))}
+                        {Array.from({ length: placeHoldersCount }).map(
+                          (_, pIndex) => (
+                            <div
+                              key={`placeholder-${pIndex}`}
+                              className={`relative w-full ${aspectRatioClass} overflow-hidden rounded-lg bg-gray-50`}
+                            />
+                          )
+                        )}
                       </motion.div>
-                    )}
-                  </React.Fragment>
-                );
-              })}
+
+                      {/* Description 2 Section */}
+                      {showDescription2 && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 30 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.6, delay: 0.2 }}
+                          viewport={{ once: true }}
+                          className="w-full pb-16 flex justify-start px-0 overflow-hidden"
+                        >
+                          <p className="text-base text-gray-700 leading-relaxed max-w-full text-left font-['Value_Sans'] font-medium wrap-break-word whitespace-pre-wrap">
+                            {project.description_2}
+                          </p>
+                        </motion.div>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Recommended Project Section */}
         {recommendedProject && (
-          <div className="w-full px-4 md:px-8 z-10 relative mt-0 bg-[#f8f8f8] md:bg-transparent pb-0">
+          <div className="w-full px-4 pt-8 md:px-8 z-10 relative mt-0 bg-[#f8f8f8] md:bg-transparent pb-0">
             <Link
               href={getRecommendedHref(recommendedProject.id)}
               scroll={false}

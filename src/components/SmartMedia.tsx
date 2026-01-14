@@ -726,14 +726,14 @@ export default function SmartMedia({
     return (
       <div
         ref={containerRef}
-        className={`${wrapperClasses} bg-gray-100 overflow-hidden group cursor-pointer`}
+        className={`${wrapperClasses} bg-[#b6b6b6] overflow-hidden group cursor-pointer`}
         onClick={handleContainerClick}
         onMouseMove={handleActivity}
         onTouchStart={handleActivity}
         style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
       >
         {!shouldLoad ? (
-          <div className="absolute inset-0 bg-gray-200" />
+          <div className="absolute inset-0 bg-[#b6b6b6]" />
         ) : (
           <>
             {(videoActivated || (shouldLoad && type === 'vimeo')) && (
@@ -1137,7 +1137,7 @@ export default function SmartMedia({
     return (
       <div
         ref={containerRef} // Add ref here so handleFullscreen works for video type
-        className={`${wrapperClasses} bg-gray-100 overflow-hidden cursor-pointer group`}
+        className={`${wrapperClasses} bg-[#b6b6b6] overflow-hidden cursor-pointer group`}
         onClick={toggleVideo}
       >
         <video
@@ -1213,7 +1213,7 @@ export default function SmartMedia({
         </div>
 
         <div
-          className={`absolute inset-0 bg-gray-200 transition-opacity duration-1500 ease-in-out pointer-events-none ${
+          className={`absolute inset-0 bg-[#b6b6b6] transition-opacity duration-1500 ease-in-out pointer-events-none ${
             isLoaded ? 'opacity-0' : 'opacity-100'
           }`}
         />
@@ -1249,7 +1249,7 @@ export default function SmartMedia({
   return (
     <div
       ref={containerRef}
-      className={`${wrapperClasses} bg-gray-100 overflow-hidden group`}
+      className={`${wrapperClasses} bg-[#b6b6b6] overflow-hidden group`}
     >
       <Image
         src={url}
@@ -1265,7 +1265,7 @@ export default function SmartMedia({
         sizes={sizes}
       />
       {!isLoaded && (
-        <div className={`absolute inset-0 bg-gray-200 animate-pulse`} />
+        <div className={`absolute inset-0 bg-[#b6b6b6] animate-pulse`} />
       )}
 
       {/* Visit Website Button for Image */}
