@@ -41,15 +41,11 @@ const ProjectCardCursor = ({ visible }: { visible: boolean }) => {
       }
     };
 
-    // Optimize: Only listen when visible to prevent performance issues with multiple cards
-    if (visible) {
-      window.addEventListener('mousemove', handleMouseMove);
-    }
-    
+    window.addEventListener('mousemove', handleMouseMove);
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [mounted, visible]);
+  }, [mounted]);
 
   if (!mounted) return null;
 
@@ -61,7 +57,7 @@ const ProjectCardCursor = ({ visible }: { visible: boolean }) => {
         top: 0,
         left: 0,
         pointerEvents: 'none',
-        zIndex: visible ? 10000 : 9999, // Ensure visible cursor is on top
+        zIndex: visible ? 10000 : 9999,
         opacity: visible ? 1 : 0,
         transition: 'opacity 0.2s ease-out',
         willChange: 'transform, opacity',
@@ -915,55 +911,55 @@ function ProjectCard({ project }: { project: Project }) {
     <>
       <ProjectCardCursor visible={isHovering} />
       <div
-        className="relative"
+        className="relative block w-full h-full"
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >
         <Link
           href={getHref()}
           scroll={false}
-          className="block group transition-all duration-300 cursor-none"
+          className="block group transition-all duration-300 cursor-none w-full h-full"
         >
           <div className="relative w-full aspect-square overflow-hidden bg-gray-200 rounded-3xl">
-          {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={project.title}
-              fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-              sizes="(max-width: 768px) 50vw, 33vw"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-              No Image
-            </div>
-          )}
+            {imageUrl ? (
+              <Image
+                src={imageUrl}
+                alt={project.title}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                sizes="(max-width: 768px) 50vw, 33vw"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                No Image
+              </div>
+            )}
 
-          {/* Client Overlay */}
-          {project.clientName && (
-            <div className="absolute top-2 left-3 right-3 md:top-4 md:left-4 md:right-4 z-10 pointer-events-none">
-              <span className="inline-block text-[10px] md:text-xs uppercase tracking-wider text-white drop-shadow-md whitespace-normal wrap-break-word">
-                <span className="font-['Value_Sans'] font-normal">
-                  CLIENT /{' '}
+            {/* Client Overlay */}
+            {project.clientName && (
+              <div className="absolute top-2 left-3 right-3 md:top-4 md:left-4 md:right-4 z-10 pointer-events-none">
+                <span className="inline-block text-[10px] md:text-xs uppercase tracking-wider text-white drop-shadow-md whitespace-normal wrap-break-word">
+                  <span className="font-['Value_Sans'] font-normal">
+                    CLIENT /{' '}
+                  </span>
+                  <span className="font-['Value_Serif'] font-medium">
+                    {project.clientName}
+                  </span>
                 </span>
-                <span className="font-['Value_Serif'] font-medium">
-                  {project.clientName}
-                </span>
-              </span>
-            </div>
-          )}
+              </div>
+            )}
 
-          {/* Tags Overlay */}
-          <div className="absolute bottom-3 left-3 md:bottom-4 md:left-4 z-10 flex flex-col gap-1 md:gap-2 items-start">
-            {project.tags.slice(0, 2).map((tag, i) => (
-              <span
-                key={i}
-                className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-white/20 backdrop-blur-sm text-[9px] md:text-[10px] uppercase tracking-wide font-['Value_Sans'] font-normal text-white shadow-sm"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
+            {/* Tags Overlay */}
+            <div className="absolute bottom-3 left-3 md:bottom-4 md:left-4 z-10 flex flex-col gap-1 md:gap-2 items-start">
+              {project.tags.slice(0, 2).map((tag, i) => (
+                <span
+                  key={i}
+                  className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-white/20 backdrop-blur-sm text-[9px] md:text-[10px] uppercase tracking-wide font-['Value_Sans'] font-normal text-white shadow-sm"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
         </Link>
       </div>
