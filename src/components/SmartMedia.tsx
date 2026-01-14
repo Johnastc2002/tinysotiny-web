@@ -21,7 +21,45 @@ interface MediaItemProps {
   className?: string;
   priority?: boolean;
   sizes?: string;
+  externalUrl?: string;
 }
+
+const VisitWebsiteButton = ({
+  url,
+  className = '',
+}: {
+  url: string;
+  className?: string;
+}) => (
+  <a
+    href={url}
+    target="_blank"
+    rel="noopener noreferrer"
+    className={`flex-none text-white hover:text-gray-200 focus:outline-none transition-transform hover:scale-105 border border-white/60 rounded-full px-4 py-1.5 flex items-center gap-2 group/visit bg-black/30 backdrop-blur-sm ${className}`}
+    onClick={(e) => e.stopPropagation()}
+    aria-label="Visit Website"
+  >
+    <span className="text-xs font-['Value_Sans'] font-medium tracking-wider">
+      VISIT WEBSITE
+    </span>
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="transition-transform group-hover/visit:translate-x-0.5 group-hover/visit:-translate-y-0.5"
+    >
+      <path
+        d="M11 1L1 11M11 1H3M11 1V9"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  </a>
+);
 
 export default function SmartMedia({
   url,
@@ -33,6 +71,7 @@ export default function SmartMedia({
   className = '',
   priority = false,
   sizes,
+  externalUrl,
 }: MediaItemProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -549,7 +588,7 @@ export default function SmartMedia({
   // Resize observer to update dimensions on window resize
   useEffect(() => {
     // Only needed for video types that use buttonConfig or iframe resizing
-    if (type === 'image') return;
+    // if (type === 'image') return;
 
     if (containerRef.current) {
       const update = () => {
@@ -854,6 +893,38 @@ export default function SmartMedia({
                   </>
                 )}
 
+                {/* Visit Website Button */}
+                {externalUrl && (
+                  <a
+                    href={externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-none text-white hover:text-gray-200 focus:outline-none transition-transform hover:scale-105 border border-white/60 rounded-full px-4 py-1.5 flex items-center gap-2 group/visit"
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label="Visit Website"
+                  >
+                    <span className="text-xs font-['Value_Sans'] font-medium tracking-wider">
+                      VISIT WEBSITE
+                    </span>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 12 12"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="transition-transform group-hover/visit:translate-x-0.5 group-hover/visit:-translate-y-0.5"
+                    >
+                      <path
+                        d="M11 1L1 11M11 1H3M11 1V9"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </a>
+                )}
+
                 {/* Exit Fullscreen */}
                 <button
                   onClick={handleFullscreen}
@@ -953,12 +1024,13 @@ export default function SmartMedia({
               <div
                 className={`absolute z-30 transition-opacity duration-300 ${
                   isLoaded ? 'opacity-100' : 'opacity-0'
-                }`}
+                } flex items-center gap-2`}
                 style={{
                   bottom: `${buttonConfig.offset}px`,
                   right: `${buttonConfig.offset}px`,
                 }}
               >
+                {externalUrl && <VisitWebsiteButton url={externalUrl} />}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1087,6 +1159,21 @@ export default function SmartMedia({
             isLoaded ? 'opacity-0' : 'opacity-100'
           }`}
         />
+
+        {/* Visit Website Button for Video */}
+        {externalUrl && (
+          <div
+            className={`absolute z-30 transition-opacity duration-300 ${
+              isLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{
+              bottom: `${buttonConfig.offset}px`,
+              right: `${buttonConfig.offset}px`,
+            }}
+          >
+            <VisitWebsiteButton url={externalUrl} />
+          </div>
+        )}
       </div>
     );
   }
@@ -1094,7 +1181,10 @@ export default function SmartMedia({
   // Image handling with Fade-in effect
   const wrapperClasses = `relative ${className} ${fill ? 'w-full h-full' : ''}`;
   return (
-    <div className={`${wrapperClasses} bg-gray-100 overflow-hidden`}>
+    <div
+      ref={containerRef}
+      className={`${wrapperClasses} bg-gray-100 overflow-hidden group`}
+    >
       <Image
         src={url}
         alt={alt}
@@ -1110,6 +1200,21 @@ export default function SmartMedia({
       />
       {!isLoaded && (
         <div className={`absolute inset-0 bg-gray-200 animate-pulse`} />
+      )}
+
+      {/* Visit Website Button for Image */}
+      {externalUrl && (
+        <div
+          className={`absolute z-30 transition-opacity duration-300 ${
+            isLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          style={{
+            bottom: `${buttonConfig.offset}px`,
+            right: `${buttonConfig.offset}px`,
+          }}
+        >
+          <VisitWebsiteButton url={externalUrl} />
+        </div>
       )}
     </div>
   );
