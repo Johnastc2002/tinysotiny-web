@@ -36,7 +36,7 @@ const VisitWebsiteButton = ({
     href={url}
     target="_blank"
     rel="noopener noreferrer"
-    className={`flex-none text-white hover:text-gray-200 focus:outline-none transition-transform hover:scale-105 border border-white/60 rounded-full px-4 py-1.5 flex items-center gap-2 group/visit bg-black/30 backdrop-blur-sm ${className}`}
+    className={`flex-none text-[#b6b6b6] hover:text-white focus:outline-none transition-transform hover:scale-105 border border-[#b6b6b6] hover:border-white rounded-full px-4 py-1.5 flex items-center gap-2 group/visit bg-black/30 backdrop-blur-sm ${className}`}
     onClick={(e) => e.stopPropagation()}
     aria-label="Visit Website"
   >
