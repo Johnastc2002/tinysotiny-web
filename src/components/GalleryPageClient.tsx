@@ -41,11 +41,15 @@ const ProjectCardCursor = ({ visible }: { visible: boolean }) => {
       }
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    // Optimize: Only listen when visible to prevent performance issues with multiple cards
+    if (visible) {
+      window.addEventListener('mousemove', handleMouseMove);
+    }
+    
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [mounted]);
+  }, [mounted, visible]);
 
   if (!mounted) return null;
 
@@ -57,7 +61,7 @@ const ProjectCardCursor = ({ visible }: { visible: boolean }) => {
         top: 0,
         left: 0,
         pointerEvents: 'none',
-        zIndex: 9999,
+        zIndex: visible ? 10000 : 9999, // Ensure visible cursor is on top
         opacity: visible ? 1 : 0,
         transition: 'opacity 0.2s ease-out',
         willChange: 'transform, opacity',
@@ -910,14 +914,17 @@ function ProjectCard({ project }: { project: Project }) {
   return (
     <>
       <ProjectCardCursor visible={isHovering} />
-      <Link
-        href={getHref()}
-        scroll={false}
-        className="block group transition-all duration-300 cursor-none"
+      <div
+        className="relative"
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >
-        <div className="relative w-full aspect-square overflow-hidden bg-gray-200 rounded-3xl">
+        <Link
+          href={getHref()}
+          scroll={false}
+          className="block group transition-all duration-300 cursor-none"
+        >
+          <div className="relative w-full aspect-square overflow-hidden bg-gray-200 rounded-3xl">
           {imageUrl ? (
             <Image
               src={imageUrl}
@@ -957,8 +964,9 @@ function ProjectCard({ project }: { project: Project }) {
               </span>
             ))}
           </div>
-        </div>
-      </Link>
+          </div>
+        </Link>
+      </div>
     </>
   );
 }
