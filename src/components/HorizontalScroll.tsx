@@ -317,8 +317,8 @@ export default function HorizontalScroll({
             {/* Section 3: Text & Elements (Light Grey) */}
             {/* Reduced width to 60vw to bring next section closer */}
             {/* Added z-10 to allow Section 4 to overlap it if needed */}
-            <section className="relative flex h-screen w-[60vw] shrink-0 items-center justify-center bg-white z-10">
-              <div className="flex flex-col md:flex-row items-center gap-20 px-12 wrap-break-word">
+            <section className="relative flex h-screen w-auto shrink-0 items-center justify-center bg-white z-10">
+              <div className="flex flex-col md:flex-row items-center gap-20 pl-12 pr-64 wrap-break-word">
                 <div className="flex flex-col space-y-6 max-w-xl">
                   <p className="text-gray-600 leading-loose wrap-break-word whitespace-pre-wrap font-['Value_Sans'] font-medium">
                     {daily.description2 ||

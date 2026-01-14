@@ -34,7 +34,7 @@ export default function AboutSlideOver({
             md:fixed md:top-1/2 md:right-0 md:-translate-y-1/2 z-40
             relative mt-16 md:mt-0
             w-full md:max-w-6xl h-auto md:h-[85vh]
-            bg-white rounded-3xl md:rounded-l-3xl md:rounded-r-none shadow-lg overflow-hidden
+            bg-white rounded-3xl shadow-lg overflow-hidden
             flex flex-col md:flex-row
             transition-transform duration-700 ease-in-out
             cursor-default
