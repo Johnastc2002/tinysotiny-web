@@ -109,6 +109,11 @@ export default function DetailCard({
 
   const showSecondThumbnail = data?.thumbnails && data.thumbnails.length > 1;
 
+  // Custom Font Style Variable for CSS variables
+  const customFontStyle = fontColor
+    ? ({ '--card-font-color': fontColor } as React.CSSProperties)
+    : {};
+
   // Reset loading state when data changes
   React.useEffect(() => {
     if (isOpen) {
@@ -211,11 +216,11 @@ export default function DetailCard({
                       <div className="mb-2 md:mb-4">
                         <span
                           className={`text-[10px] md:text-sm font-semibold uppercase tracking-wider ${
-                            !fontColor ? 'text-gray-500' : ''
+                            fontColor
+                              ? 'text-(--card-font-color) opacity-70 landscape:text-gray-500 landscape:opacity-100 lg:text-(--card-font-color) lg:opacity-70'
+                              : 'text-gray-500'
                           }`}
-                          style={
-                            fontColor ? { color: fontColor, opacity: 0.7 } : {}
-                          }
+                          style={customFontStyle}
                         >
                           {data.topLabel}
                         </span>
@@ -223,19 +228,21 @@ export default function DetailCard({
                     )}
                     <h2
                       className={`mb-2 md:mb-4 text-2xl md:text-4xl font-['Value_Serif'] font-medium leading-tight ${
-                        !fontColor ? 'text-[#0F2341]' : ''
+                        fontColor
+                          ? 'text-(--card-font-color) landscape:text-[#0F2341] lg:text-(--card-font-color)'
+                          : 'text-[#0F2341]'
                       }`}
-                      style={fontColor ? { color: fontColor } : {}}
+                      style={customFontStyle}
                     >
                       {data.title}
                     </h2>
                     <p
                       className={`text-xs md:text-sm leading-relaxed max-w-md font-['Value_Sans'] font-normal line-clamp-5 md:line-clamp-6 text-ellipsis overflow-hidden ${
-                        !fontColor ? 'text-[#0F2341]' : ''
+                        fontColor
+                          ? 'text-(--card-font-color) opacity-90 landscape:text-[#0F2341] landscape:opacity-100 lg:text-(--card-font-color) lg:opacity-90'
+                          : 'text-[#0F2341]'
                       }`}
-                      style={
-                        fontColor ? { color: fontColor, opacity: 0.9 } : {}
-                      }
+                      style={customFontStyle}
                     >
                       {data.description}
                     </p>
@@ -245,7 +252,14 @@ export default function DetailCard({
                       {/* Clone bottomContent but style it differently if needed, or assume it's just content */}
                       {/* We need to apply font color to children if possible, but they are ReactNodes. */}
                       {/* Assuming bottomContent is structured for styling or we wrap it */}
-                      <div style={fontColor ? { color: fontColor } : {}}>
+                      <div
+                        className={
+                          fontColor
+                            ? 'text-(--card-font-color) landscape:text-[#0F2341] lg:text-(--card-font-color)'
+                            : ''
+                        }
+                        style={customFontStyle}
+                      >
                         {data.bottomContent}
                       </div>
                     </div>
@@ -259,12 +273,16 @@ export default function DetailCard({
                           key={index}
                           className={`flex items-center leading-none text-xs font-['Value_Sans'] font-normal uppercase tracking-wide transition-colors ${
                             !tagColor && !fontColor ? 'text-[#B6B6B6]' : ''
+                          } ${
+                            !tagColor && fontColor
+                              ? 'text-(--card-font-color) landscape:text-[#B6B6B6] lg:text-(--card-font-color)'
+                              : ''
                           }`}
                           style={
                             tagColor
                               ? { color: tagColor }
                               : fontColor
-                              ? { color: fontColor }
+                              ? customFontStyle
                               : {}
                           }
                         >
