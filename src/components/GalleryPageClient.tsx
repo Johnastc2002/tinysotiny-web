@@ -19,8 +19,14 @@ import DetailCard, { DetailCardData } from './DetailCard';
 import ProjectPageClient from '@/components/ProjectPageClient';
 import { InteractionCursor } from './BubbleActions';
 
-// Individual cursor component for each project card to match DetailCard implementation
-const ProjectCardCursor = ({ visible }: { visible: boolean }) => {
+// Individual cursor component for each project card
+const ProjectCardCursor = ({
+  visible,
+  mousePosRef,
+}: {
+  visible: boolean;
+  mousePosRef: React.MutableRefObject<{ x: number; y: number } | null>;
+}) => {
   const cursorRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -31,7 +37,14 @@ const ProjectCardCursor = ({ visible }: { visible: boolean }) => {
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || !cursorRef.current) return;
+
+    // Initialize position immediately if available
+    if (mousePosRef.current) {
+      cursorRef.current.style.transform = `translate3d(${
+        mousePosRef.current.x + 20
+      }px, ${mousePosRef.current.y + 20}px, 0)`;
+    }
 
     const handleMouseMove = (e: MouseEvent) => {
       if (cursorRef.current) {
@@ -45,7 +58,7 @@ const ProjectCardCursor = ({ visible }: { visible: boolean }) => {
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [mounted]);
+  }, [mounted, mousePosRef]);
 
   if (!mounted) return null;
 
@@ -61,12 +74,12 @@ const ProjectCardCursor = ({ visible }: { visible: boolean }) => {
         opacity: visible ? 1 : 0,
         transition: 'opacity 0.2s ease-out',
         willChange: 'transform, opacity',
-        // Initialize off-screen to prevent flash
+        // Initialize off-screen to prevent flash, but effect will update it immediately if ref exists
         transform: 'translate3d(-100px, -100px, 0)',
       }}
       aria-hidden="true"
     >
-      <InteractionCursor text={null} />
+      <InteractionCursor text={undefined} />
     </div>,
     document.body
   );
@@ -128,6 +141,16 @@ function GalleryPageContent({
     null
   );
   const [isBubblePaused, setIsBubblePaused] = useState(false);
+
+  // Global mouse tracker for initialization
+  const mousePosRef = useRef<{ x: number; y: number } | null>(null);
+  useEffect(() => {
+    const updateMousePos = (e: MouseEvent) => {
+      mousePosRef.current = { x: e.clientX, y: e.clientY };
+    };
+    window.addEventListener('mousemove', updateMousePos);
+    return () => window.removeEventListener('mousemove', updateMousePos);
+  }, []);
 
   useEffect(() => {
     // Pause bubbles ONLY if full project overlay is open
@@ -854,7 +877,11 @@ function GalleryPageContent({
           <div className="w-full min-h-full pt-24 px-2 md:px-12 pb-32">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
               {displayedProjects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  mousePosRef={mousePosRef}
+                />
               ))}
             </div>
 
@@ -895,7 +922,13 @@ export default function GalleryPageClient(props: GalleryPageClientProps) {
   );
 }
 
-function ProjectCard({ project }: { project: Project }) {
+function ProjectCard({
+  project,
+  mousePosRef,
+}: {
+  project: Project;
+  mousePosRef: React.MutableRefObject<{ x: number; y: number } | null>;
+}) {
   // Use bubble_thumbnail or first thumbnail
   const imageUrl = project.thumbnails?.[0] || project.bubble_thumbnail;
   const searchParams = useSearchParams();
@@ -909,7 +942,7 @@ function ProjectCard({ project }: { project: Project }) {
 
   return (
     <>
-      <ProjectCardCursor visible={isHovering} />
+      <ProjectCardCursor visible={isHovering} mousePosRef={mousePosRef} />
       <div
         className="relative block w-full h-full"
         onMouseEnter={() => setIsHovering(true)}
