@@ -581,11 +581,28 @@ const ImageBubble = ({
                 vec2 scaledUv = centeredUv * uScaleFactor * uZoom + 0.5;
                 
                 #ifdef USE_MAP
-                  // Sample texture with scaled UVs and Mipmap Bias for Blur
-                  vec4 sampledDiffuseColor = texture2D( map, scaledUv, uBlur );
-                  
-                  // Optional: Mix with white to simulate frosted glass look as it gets blurry
-                  // sampledDiffuseColor.rgb = mix(sampledDiffuseColor.rgb, vec3(1.0), min(uBlur * 0.1, 0.5));
+                  vec4 sampledDiffuseColor = vec4(0.0);
+                  // Use multi-tap sampling for smoother blur (Poisson-disc-like pattern)
+                  if (uBlur > 0.1) {
+                      float r = uBlur * 0.004; // Radius scale
+                      float b = uBlur * 0.5; // Reduced mipmap bias for higher res details
+                      
+                      sampledDiffuseColor += texture2D(map, scaledUv + vec2(-0.32, -0.40)*r, b);
+                      sampledDiffuseColor += texture2D(map, scaledUv + vec2(-0.84, -0.07)*r, b);
+                      sampledDiffuseColor += texture2D(map, scaledUv + vec2(-0.69, 0.45)*r, b);
+                      sampledDiffuseColor += texture2D(map, scaledUv + vec2(-0.20, 0.62)*r, b);
+                      sampledDiffuseColor += texture2D(map, scaledUv + vec2(0.96, -0.19)*r, b);
+                      sampledDiffuseColor += texture2D(map, scaledUv + vec2(0.47, -0.48)*r, b);
+                      sampledDiffuseColor += texture2D(map, scaledUv + vec2(0.51, 0.76)*r, b);
+                      sampledDiffuseColor += texture2D(map, scaledUv + vec2(0.18, -0.89)*r, b);
+                      sampledDiffuseColor += texture2D(map, scaledUv + vec2(0.50, 0.06)*r, b);
+                      sampledDiffuseColor += texture2D(map, scaledUv + vec2(0.89, 0.41)*r, b);
+                      sampledDiffuseColor += texture2D(map, scaledUv + vec2(-0.32, -0.93)*r, b);
+                      sampledDiffuseColor += texture2D(map, scaledUv + vec2(-0.79, -0.59)*r, b);
+                      sampledDiffuseColor /= 12.0;
+                  } else {
+                      sampledDiffuseColor = texture2D(map, scaledUv);
+                  }
                   
                   diffuseColor *= sampledDiffuseColor;
                 #endif
