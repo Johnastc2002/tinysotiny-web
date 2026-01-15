@@ -110,11 +110,14 @@ export default function HorizontalScroll({
               />
             </div>
           )}
+          <div className="absolute bottom-4 left-4 z-10 text-[10px] md:text-xs font-['Value_Serif'] font-medium text-[#0F2341]">
+            © tinysotiny.co. All rights reserved.
+          </div>
         </div>
 
         {/* Title Card */}
         <div
-          className="relative z-20 mx-0 -mt-20 bg-[#0F2341] p-8 shadow-2xl rounded-tr-3xl rounded-br-3xl mr-8"
+          className="relative z-20 mx-0 -mt-20 bg-[#0F2341] p-8 rounded-tr-3xl rounded-br-3xl mr-8"
           style={{ backgroundColor: cardBgColor || '#0F2341' }}
         >
           <h1
@@ -136,7 +139,7 @@ export default function HorizontalScroll({
           {daily.medias?.slice(0, 3).map((media, idx) => (
             <div
               key={`m-media-1-${idx}`}
-              className="relative w-full aspect-4/5 rounded-2xl overflow-hidden shadow-lg"
+              className="relative w-full aspect-4/5 rounded-2xl overflow-hidden"
             >
               <SmartMedia
                 url={media.url}
@@ -181,7 +184,7 @@ export default function HorizontalScroll({
             {daily.medias?.slice(3).map((media, idx) => (
               <div
                 key={`m-media-2-${idx}`}
-                className="relative w-full aspect-4/5 rounded-2xl overflow-hidden shadow-xl bg-white"
+                className="relative w-full aspect-4/5 rounded-2xl overflow-hidden bg-white"
               >
                 <SmartMedia
                   url={media.url}
@@ -265,11 +268,14 @@ export default function HorizontalScroll({
                       />
                     </div>
                   )}
+                  <div className="absolute bottom-4 left-4 z-20 text-[10px] md:text-xs font-['Value_Serif'] font-medium text-[#0F2341]">
+                    © tinysotiny.co. All rights reserved.
+                  </div>
                 </div>
 
                 {/* Padding for overlap transition */}
                 <div
-                  className="w-32 md:w-32 bg-[#0F2341] shrink-0"
+                  className="w-80 md:w-80 bg-[#0F2341] shrink-0"
                   style={{ backgroundColor: cardBgColor || '#0F2341' }}
                 />
               </div>
@@ -288,14 +294,20 @@ export default function HorizontalScroll({
                   daily.medias.slice(0, 3).map((media, idx) => (
                     <div
                       key={idx}
-                      className={`relative h-[50vh] md:h-[50vh] rounded-4xl overflow-hidden shadow-lg shrink-0 ${
-                        idx === 0 ? '-ml-20 md:-ml-24' : ''
-                      }`}
+                      className="relative h-[50vh] md:h-[50vh] rounded-4xl overflow-hidden shrink-0"
                       style={{
                         aspectRatio:
                           media.width && media.height
                             ? `${media.width}/${media.height}`
                             : 'auto',
+                        marginLeft:
+                          idx === 0
+                            ? `calc(-1 * (50vh * ${
+                                media.width && media.height
+                                  ? media.width / media.height
+                                  : 1
+                              }) * 0.5)`
+                            : '0px',
                       }}
                     >
                       <SmartMedia
@@ -359,7 +371,7 @@ export default function HorizontalScroll({
                   daily.medias.slice(3).map((media, idx, arr) => (
                     <div
                       key={idx}
-                      className={`relative h-[50vh] md:h-[50vh] rounded-4xl overflow-hidden shadow-2xl shrink-0 ${
+                      className={`relative h-[50vh] md:h-[50vh] rounded-4xl overflow-hidden shrink-0 ${
                         idx === 0 ? '-ml-20 md:-ml-32' : ''
                       } ${idx === arr.length - 1 ? '-mr-32 md:-mr-64' : ''}`}
                       style={{
@@ -385,7 +397,7 @@ export default function HorizontalScroll({
             {/* Section 5: Fin (Navy) */}
             {/* Added z-10 to stay under Section 4's last image */}
             <section
-              className="relative flex h-screen w-[15vw] shrink-0 items-center justify-center bg-[#0F2341] text-white z-10"
+              className="relative flex h-screen w-[25vw] shrink-0 items-center justify-center bg-[#0F2341] text-white z-10"
               style={{ backgroundColor: cardBgColor || '#0F2341' }}
             />
           </motion.div>

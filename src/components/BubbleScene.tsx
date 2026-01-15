@@ -16,12 +16,11 @@ import {
   Text,
   Environment,
   Float,
-  Html,
 } from '@react-three/drei';
 import * as THREE from 'three';
 import { Project } from '@/types/project';
 import { useCursor } from '@/context/CursorContext';
-import { InteractionCursor } from './BubbleActions';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface Shader {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -232,6 +231,7 @@ const Bubble = ({
   enableBlur,
   isHovered,
   setHoveredId,
+  isMobile,
 }: {
   id: number;
   position: [number, number, number];
@@ -251,6 +251,7 @@ const Bubble = ({
   enableBlur?: boolean;
   isHovered: boolean;
   setHoveredId: (id: number | null) => void;
+  isMobile: boolean;
 }) => {
   const router = useRouter();
   const groupRef = useRef<THREE.Group>(null);
@@ -309,12 +310,15 @@ const Bubble = ({
   };
 
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
+    if (isMobile) return;
     e.stopPropagation(); // Stop propagation to bubbles behind
     setHoveredId(id);
-    if (link) {
-      setCursor('label');
+    if (label === 'work') {
+      setCursor('label', "let's roll!");
     } else if (label === 'play') {
       setCursor('label', 'game on!');
+    } else if (link) {
+      setCursor('label');
     } else if (onOpenCard && project) {
       setCursor('label');
     }
@@ -402,9 +406,6 @@ const ImageBubble = ({
   const textures = useTexture([imageUrl, imageHoverUrl || imageUrl]);
   const defaultTexture = textures[0];
   const hoverTexture = textures[1];
-  const [cursorPos, setCursorPos] = useState<[number, number, number] | null>(
-    null
-  );
 
   const { camera } = useThree();
   const meshRef = useRef<THREE.Mesh>(null);
@@ -528,10 +529,6 @@ const ImageBubble = ({
           onClick={onClick}
           onPointerOver={onPointerOver}
           onPointerOut={onPointerOut}
-          onPointerMove={(e) => {
-            const local = e.object.worldToLocal(e.point.clone());
-            setCursorPos([local.x, local.y, local.z]);
-          }}
         >
           <circleGeometry args={[scale, 32]} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} />
@@ -681,15 +678,6 @@ const ImageBubble = ({
             />
           </mesh>
         )}
-        {isHovered && (
-          <group
-            position={
-              cursorPos ? [cursorPos[0], cursorPos[1], cursorPos[2]] : [0, 0, 0]
-            }
-          >
-            {/* Removed Html cursor as we use global cursor now */}
-          </group>
-        )}
       </Billboard>
     </Float>
   );
@@ -708,7 +696,6 @@ const ColorBubble = ({
   textOffset,
   isGradient,
   enableBlur,
-  isHovered,
 }: {
   position: [number, number, number];
   scale: number;
@@ -726,9 +713,6 @@ const ColorBubble = ({
 }) => {
   const [floatSpeed] = useState(() => 1.5 + Math.random());
   const [floatIntensity] = useState(() => 1 + Math.random());
-  const [cursorPos, setCursorPos] = useState<[number, number, number] | null>(
-    null
-  );
 
   const { camera } = useThree();
   const meshRef = useRef<THREE.Mesh>(null);
@@ -838,10 +822,6 @@ const ColorBubble = ({
           onClick={onClick}
           onPointerOver={onPointerOver}
           onPointerOut={onPointerOut}
-          onPointerMove={(e) => {
-            const local = e.object.worldToLocal(e.point.clone());
-            setCursorPos([local.x, local.y, local.z]);
-          }}
         >
           <circleGeometry args={[scale, 32]} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} />
@@ -946,6 +926,7 @@ const Bubbles = ({
   enableExplosion,
   explosionDelay,
   enableBlur,
+  isMobile,
 }: {
   mode: 'home' | 'gallery';
   projects?: Project[];
@@ -953,6 +934,7 @@ const Bubbles = ({
   enableExplosion?: boolean;
   explosionDelay?: number;
   enableBlur?: boolean;
+  isMobile: boolean;
 }) => {
   // Pass projects to generateBubbles
   const [bubbles] = useState(() => {
@@ -1027,6 +1009,7 @@ const Bubbles = ({
           enableBlur={enableBlur}
           isHovered={hoveredId === bubble.id}
           setHoveredId={setHoveredId}
+          isMobile={isMobile}
         />
       ))}
     </>
@@ -1113,6 +1096,8 @@ export default function BubbleScene({
   onOpenCard,
   enableBlur = false,
   paused = false,
+  welcomeVideo,
+  showPlayGrid,
 }: {
   mode?: 'home' | 'gallery';
   projects?: Project[];
@@ -1122,11 +1107,21 @@ export default function BubbleScene({
   onOpenCard?: (project: Project) => void;
   enableBlur?: boolean;
   paused?: boolean;
+  welcomeVideo?: string;
+  showPlayGrid?: boolean;
 }) {
-  console.log('BubbleScene render. Mode:', mode, 'Projects:', projects?.length);
+  console.log(
+    'BubbleScene render. Mode:',
+    mode,
+    'Projects:',
+    projects?.length,
+    'Config:',
+    { welcomeVideo, showPlayGrid }
+  );
 
   const bgClass = transparent ? 'bg-transparent' : 'bg-[#F0F2F5]';
   const userInteractionRef = useRef(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!paused) {
@@ -1160,6 +1155,7 @@ export default function BubbleScene({
               enableExplosion={enableExplosion}
               explosionDelay={explosionDelay}
               enableBlur={enableBlur}
+              isMobile={isMobile}
             />
           </RotatingGroup>
         </React.Suspense>

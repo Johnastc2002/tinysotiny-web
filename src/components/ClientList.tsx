@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ClientData } from '@/types/client';
 import Image from 'next/image';
 import { motion, useMotionValue, useSpring, MotionValue } from 'framer-motion';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface ClientListProps {
   clients: ClientData[];
@@ -167,7 +168,7 @@ const ClientImageOverlay = ({
                 backfaceVisibility: 'hidden',
               }}
             >
-              <div className="relative w-full h-full rounded-xl overflow-hidden shadow-2xl bg-white">
+              <div className="relative w-full h-full rounded-xl overflow-hidden bg-white">
                 <Image
                   src={img.url}
                   alt={`${hoveredClient.clientName} thumbnail ${index + 1}`}
@@ -189,6 +190,7 @@ const ClientImageOverlay = ({
 export default function ClientList({ clients }: ClientListProps) {
   const [hoveredClientId, setHoveredClientId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   // Shared mouse values (relative to container)
   const mouseX = useMotionValue(0);
@@ -210,6 +212,7 @@ export default function ClientList({ clients }: ClientListProps) {
   };
 
   const handleMouseEnterClient = (e: React.MouseEvent, clientId: string) => {
+    if (isMobile) return;
     if (containerRef.current) {
       const containerRect = containerRef.current.getBoundingClientRect();
       const itemRect = e.currentTarget.getBoundingClientRect();
@@ -250,7 +253,7 @@ export default function ClientList({ clients }: ClientListProps) {
   return (
     <div
       ref={containerRef}
-      className="relative flex flex-wrap justify-start items-center text-xl md:text-2xl lg:text-3xl font-bold leading-normal tracking-wider text-gray-400"
+      className="relative flex flex-wrap justify-start items-baseline text-xl md:text-2xl lg:text-3xl font-bold leading-normal tracking-wider text-gray-400"
       onMouseMove={handleMouseMove}
     >
       {/* Overlay Component */}
@@ -270,25 +273,25 @@ export default function ClientList({ clients }: ClientListProps) {
       {clients.map((client) => (
         <div
           key={client.id}
-          className="flex items-center relative z-20 h-[1.5em]"
+          className="flex items-baseline relative z-20"
           onMouseEnter={(e) => handleMouseEnterClient(e, client.id)}
           onMouseLeave={() => setHoveredClientId(null)}
         >
           {/* Container to prevent layout shift */}
-          <div className="relative h-full flex items-center">
+          <div className="relative grid grid-cols-1 grid-rows-1 items-baseline">
             {/* Invisible placeholder to reserve space for the bold/italic text */}
             <div
-              className="font-['Value_Serif'] font-medium invisible opacity-0 px-1"
+              className="col-start-1 row-start-1 font-['Value_Serif'] font-medium invisible opacity-0 px-1"
               aria-hidden="true"
             >
               {client.clientName}
             </div>
 
-            {/* Visible text positioned absolutely over the placeholder */}
+            {/* Visible text */}
             <div
-              className={`absolute inset-0 flex items-center justify-center transition-transform duration-200 whitespace-nowrap px-1 text-[#B6B6B6] hover:text-[#B6B6B6] ${
+              className={`col-start-1 row-start-1 flex items-baseline justify-center transition-transform duration-200 whitespace-nowrap text-[#B6B6B6] hover:text-[#B6B6B6] ${
                 hoveredClientId === client.id
-                  ? "font-['Value_Serif'] font-medium scale-105"
+                  ? "font-['Value_Serif'] font-medium"
                   : "font-['Value_Sans'] font-medium"
               }`}
             >
@@ -298,8 +301,10 @@ export default function ClientList({ clients }: ClientListProps) {
           <div className="mx-1 md:mx-2 text-[#B6B6B6] font-bold">.</div>
         </div>
       ))}
-      <div className="flex items-center z-20">
-        <div className="text-[#B6B6B6]">ETC...</div>
+      <div className="flex items-baseline z-20 mx-1 md:mx-2">
+        <div className="text-[#B6B6B6] font-['Value_Sans'] font-medium">
+          ETC...
+        </div>
       </div>
     </div>
   );

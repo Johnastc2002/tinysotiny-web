@@ -12,7 +12,7 @@ export const InteractionCursor = ({
   return (
     <div className={`flex items-center gap-2 pointer-events-none ${className}`}>
       {/* Arrow Button */}
-      <div className="flex items-center justify-center w-[28px] h-[28px] rounded-full bg-[#3B3B3B]/80 backdrop-blur-sm border border-white/20 text-white shadow-lg">
+      <div className="flex items-center justify-center w-[28px] h-[28px] rounded-full bg-[#3B3B3B]/80 backdrop-blur-sm border border-white/20 text-white">
         <svg
           width="14"
           height="14"
@@ -32,7 +32,7 @@ export const InteractionCursor = ({
       {/* Text Pill - Only render if text exists */}
       {text && (
         <div
-          className="flex items-center justify-center h-[28px] px-4 rounded-full bg-[#3B3B3B]/80 backdrop-blur-sm border border-white/20 text-white shadow-lg whitespace-nowrap"
+          className="flex items-center justify-center h-[28px] px-4 rounded-full bg-[#3B3B3B]/80 backdrop-blur-sm border border-white/20 text-white whitespace-nowrap"
           style={{
             fontFamily: 'Value Sans',
             fontWeight: 500,

@@ -17,6 +17,7 @@ import LoadingSpinner from './LoadingSpinner';
 import DetailCard, { DetailCardData } from './DetailCard';
 import ProjectPageClient from '@/components/ProjectPageClient';
 import { useCursor } from '@/context/CursorContext';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface GalleryPageClientProps {
   initialFeaturedProjects: Project[];
@@ -25,6 +26,7 @@ interface GalleryPageClientProps {
   projectType: 'work' | 'play';
   enableExplosion?: boolean;
   explosionDelay?: number;
+  showPlayGrid?: boolean;
 }
 
 function GalleryPageContent({
@@ -34,6 +36,7 @@ function GalleryPageContent({
   projectType = 'work',
   enableExplosion = false,
   explosionDelay = 0,
+  showPlayGrid = true,
 }: GalleryPageClientProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -74,6 +77,7 @@ function GalleryPageContent({
     null
   );
   const [isBubblePaused, setIsBubblePaused] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Pause bubbles ONLY if full project overlay is open
@@ -95,10 +99,15 @@ function GalleryPageContent({
     }
   }, [fullProject, overlayContainer]);
 
+  // Enforce view mode based on config
   useEffect(() => {
-    // Simple check for iOS devices
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    const isMobile = /iphone|ipad|ipod/.test(userAgent);
+    if (!showPlayGrid && viewMode === 'grid') {
+      setViewMode('dot');
+    }
+  }, [showPlayGrid, viewMode]);
+
+  useEffect(() => {
+    // Simple check for iOS devices replaced by useIsMobile hook
     setIsIOS(isMobile);
 
     // Restore state from URL
@@ -106,7 +115,7 @@ function GalleryPageContent({
     const tags = searchParams.get('tags');
     // project (full detail) is handled in separate effect
 
-    if (view === 'grid') {
+    if (view === 'grid' && showPlayGrid) {
       setViewMode('grid');
     }
 
@@ -536,7 +545,7 @@ function GalleryPageContent({
             style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
           >
             {/* Close Button */}
-            <button
+            {/* <button
               onClick={() => {
                 isManualClose.current = true;
                 // Clear 'project' param but keep view/tags/page state
@@ -544,7 +553,7 @@ function GalleryPageContent({
                 params.delete('project');
                 router.push(`${pathname}?${params.toString()}`);
               }}
-              className="fixed top-8 right-6 z-60 p-2 bg-white/50 backdrop-blur-md rounded-full shadow-md hover:bg-white transition-colors flex items-center justify-center w-12 h-12"
+              className="fixed top-8 right-6 z-60 p-2 bg-white/50 backdrop-blur-md rounded-full hover:bg-white transition-colors flex items-center justify-center w-12 h-12"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -560,7 +569,7 @@ function GalleryPageContent({
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
-            </button>
+            </button> */}
 
             {overlayContainer && (
               <ProjectPageClient
@@ -575,54 +584,56 @@ function GalleryPageContent({
       </AnimatePresence>
 
       {/* Toggle Button */}
-      <div
-        className="fixed top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-2"
-        style={{ right: '1.75rem' }}
-      >
-        <span className="text-[10px] font-['Value_Sans'] font-normal tracking-widest text-[#B6B6B6] uppercase">
-          DOT
-        </span>
-
-        {/* Glass Switch */}
-        <button
-          onClick={() =>
-            setViewMode((prev) => (prev === 'dot' ? 'grid' : 'dot'))
-          }
-          className="w-8 h-20 rounded-full border border-white/40 bg-white/10 backdrop-blur-sm shadow-[inset_2px_3px_8px_rgba(150,150,150,0.2),inset_-1px_-2px_4px_rgba(255,255,255,0.8)] relative overflow-hidden active:scale-95 flex flex-col justify-between p-1"
-          aria-label="Toggle View"
+      {showPlayGrid && (
+        <div
+          className="fixed top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-2"
+          style={{ right: '1.75rem' }}
         >
-          {/* Distorted Reflection Overlay */}
-          <div
-            className="absolute inset-0 bg-linear-to-br from-white/20 via-white/5 to-transparent opacity-70 pointer-events-none"
-            style={{ filter: 'blur(1px)' }}
-          />
+          <span className="text-[10px] font-['Value_Sans'] font-normal tracking-widest text-[#B6B6B6] uppercase">
+            DOT
+          </span>
 
-          {/* Active White Indicator */}
-          <motion.div
-            className="absolute w-5 h-5 rounded-full bg-white z-10 left-[5px]"
-            initial={false}
-            animate={{
-              top: viewMode === 'dot' ? '7px' : 'calc(100% - 27px)',
-            }}
-            transition={{
-              type: 'spring',
-              stiffness: 400,
-              damping: 25,
-            }}
-          />
-        </button>
+          {/* Glass Switch */}
+          <button
+            onClick={() =>
+              setViewMode((prev) => (prev === 'dot' ? 'grid' : 'dot'))
+            }
+            className="w-8 h-20 rounded-full border border-white/40 bg-white/10 backdrop-blur-sm shadow-[inset_2px_3px_8px_rgba(150,150,150,0.2),inset_-1px_-2px_4px_rgba(255,255,255,0.8)] relative overflow-hidden active:scale-95 flex flex-col justify-between p-1"
+            aria-label="Toggle View"
+          >
+            {/* Distorted Reflection Overlay */}
+            <div
+              className="absolute inset-0 bg-linear-to-br from-white/20 via-white/5 to-transparent opacity-70 pointer-events-none"
+              style={{ filter: 'blur(1px)' }}
+            />
 
-        <span className="text-[10px] font-['Value_Sans'] font-normal tracking-widest text-[#B6B6B6] uppercase">
-          GRID
-        </span>
-      </div>
+            {/* Active White Indicator */}
+            <motion.div
+              className="absolute w-5 h-5 rounded-full bg-white z-10 left-[5px]"
+              initial={false}
+              animate={{
+                top: viewMode === 'dot' ? '7px' : 'calc(100% - 27px)',
+              }}
+              transition={{
+                type: 'spring',
+                stiffness: 400,
+                damping: 25,
+              }}
+            />
+          </button>
+
+          <span className="text-[10px] font-['Value_Sans'] font-normal tracking-widest text-[#B6B6B6] uppercase">
+            GRID
+          </span>
+        </div>
+      )}
 
       {/* Filter Button */}
       {viewMode === 'grid' && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40">
           <button
             onClick={() => setIsFilterOpen(true)}
-            className="group flex items-center justify-center w-12 h-12 rounded-full border border-white/40 bg-white/10 backdrop-blur-sm transition-all hover:bg-white/20 shadow-lg relative"
+            className="group flex items-center justify-center w-12 h-12 rounded-full border border-white/40 bg-white/10 backdrop-blur-sm transition-all hover:bg-white/20 relative"
             aria-label="Filters"
           >
             {/* Icon */}
@@ -716,7 +727,7 @@ function GalleryPageContent({
                 {/* Close Button */}
                 <button
                   onClick={handleCloseFilter}
-                  className="group flex items-center justify-center w-12 h-12 rounded-full border border-white/40 bg-white/10 backdrop-blur-sm transition-all hover:bg-white/20 shadow-lg relative"
+                  className="group flex items-center justify-center w-12 h-12 rounded-full border border-white/40 bg-white/10 backdrop-blur-sm transition-all hover:bg-white/20 relative"
                   aria-label="Close Filters"
                 >
                   {/* Cross Icon */}
@@ -743,7 +754,7 @@ function GalleryPageContent({
                     e.stopPropagation();
                     setSelectedTags([]);
                   }}
-                  className="absolute right-full top-0 mr-4 h-12 px-6 rounded-full bg-[#3b3b3b]/80 text-white backdrop-blur-sm shadow-sm flex items-center gap-2 text-xs md:text-sm uppercase tracking-wide font-['Value_Sans'] font-normal hover:bg-[#3b3b3b] transition-all border border-transparent whitespace-nowrap"
+                  className="absolute right-full top-0 mr-4 h-12 px-6 rounded-full bg-[#3b3b3b]/80 text-white backdrop-blur-sm flex items-center gap-2 text-xs md:text-sm uppercase tracking-wide font-['Value_Sans'] font-normal hover:bg-[#3b3b3b] transition-all border border-transparent whitespace-nowrap"
                 >
                   <svg
                     width="14"
@@ -880,7 +891,7 @@ function ProjectCard({ project }: { project: Project }) {
           {/* Client Overlay */}
           {project.clientName && (
             <div className="absolute top-2 left-3 right-3 md:top-4 md:left-4 md:right-4 z-10 pointer-events-none">
-              <span className="inline-block text-[10px] md:text-xs uppercase tracking-wider text-white drop-shadow-md whitespace-normal wrap-break-word">
+              <span className="inline-block text-[10px] md:text-xs uppercase tracking-wider text-white whitespace-normal wrap-break-word">
                 <span className="font-['Value_Sans'] font-normal">
                   CLIENT /{' '}
                 </span>
@@ -896,7 +907,7 @@ function ProjectCard({ project }: { project: Project }) {
             {project.tags.slice(0, 2).map((tag, i) => (
               <span
                 key={i}
-                className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-white/20 backdrop-blur-sm text-[9px] md:text-[10px] uppercase tracking-wide font-['Value_Sans'] font-normal text-white shadow-sm"
+                className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-white/20 backdrop-blur-sm text-[9px] md:text-[10px] uppercase tracking-wide font-['Value_Sans'] font-normal text-white"
               >
                 {tag}
               </span>

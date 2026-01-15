@@ -244,12 +244,12 @@ export default function WorkPageClient({
           onClick={() =>
             setViewMode((prev) => (prev === 'dot' ? 'grid' : 'dot'))
           }
-          className="w-10 h-24 rounded-full border border-white/40 bg-white/10 backdrop-blur-xl transition-all hover:bg-white/20 shadow-lg relative overflow-hidden active:scale-95 flex flex-col justify-between p-1"
+          className="w-10 h-24 rounded-full border border-white/40 bg-white/10 backdrop-blur-xl transition-all hover:bg-white/2 relative overflow-hidden active:scale-95 flex flex-col justify-between p-1"
           aria-label="Toggle View"
         >
           {/* Active White Indicator */}
           <motion.div
-            className="absolute w-8 h-8 rounded-full bg-white shadow-md z-10 left-1"
+            className="absolute w-8 h-8 rounded-full bg-white z-10 left-1"
             initial={false}
             animate={{
               top: viewMode === 'dot' ? '4px' : 'calc(100% - 36px)',
@@ -272,7 +272,7 @@ export default function WorkPageClient({
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
           <button
             onClick={() => setIsFilterOpen(true)}
-            className="px-6 py-3 rounded-full bg-white/30 backdrop-blur-xl border border-white/40 shadow-lg text-[#0F2341] font-medium text-xs hover:bg-white/50 transition-all uppercase tracking-widest hover:scale-105"
+            className="px-6 py-3 rounded-full bg-white/30 backdrop-blur-xl border border-white/40 text-[#0F2341] font-medium text-xs hover:bg-white/50 transition-all uppercase tracking-widest hover:scale-105"
           >
             Filters
             {appliedTags.length > 0 && (
@@ -310,7 +310,7 @@ export default function WorkPageClient({
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.03 * index }}
                     onClick={() => toggleTag(tag.tag_id)}
-                    className={`px-6 py-2.5 rounded-full border transition-all text-xs md:text-sm uppercase tracking-wide font-medium shadow-sm ${
+                    className={`px-6 py-2.5 rounded-full border transition-all text-xs md:text-sm uppercase tracking-wide font-medium ${
                       isSelected
                         ? 'border-[#E32619] bg-[#E32619] text-white'
                         : 'border-gray-300 bg-white/80 backdrop-blur-sm text-gray-600 hover:border-[#E32619] hover:text-[#E32619] hover:bg-white'

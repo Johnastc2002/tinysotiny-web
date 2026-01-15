@@ -4,18 +4,22 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCursor } from '@/context/CursorContext';
 import { InteractionCursor } from './BubbleActions';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export default function GlobalCursor() {
   const { cursorState } = useCursor();
   const cursorRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(false); // Track if mouse moved
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
+    if (isMobile) return;
+
     const handleMouseMove = (e: MouseEvent) => {
       if (!isVisible) setIsVisible(true);
       if (cursorRef.current) {
@@ -36,14 +40,18 @@ export default function GlobalCursor() {
       document.removeEventListener('mouseleave', handleMouseLeave);
       document.removeEventListener('mouseenter', handleMouseEnter);
     };
-  }, [isVisible]);
+  }, [isVisible, isMobile]);
 
-  if (!mounted) return null;
+  if (!mounted || isMobile) return null;
 
   return (
     <div
       ref={cursorRef}
-      className="fixed top-0 left-0 pointer-events-none z-[99999] mix-blend-difference"
+      className={`fixed top-0 left-0 pointer-events-none z-[99999] ${
+        cursorState.type === 'default'
+          ? 'mix-blend-difference'
+          : 'mix-blend-normal'
+      }`}
       style={{
         opacity: isVisible && cursorState.type !== 'hidden' ? 1 : 0,
         transition: 'opacity 0.2s ease-out',

@@ -101,11 +101,10 @@ export default function DetailCard({
                   onMouseEnter={() => setCursor('label', 'open project')}
                   className={`
                 relative flex flex-col landscape:flex-row md:flex-row 
-                w-full h-[85vh] landscape:w-[90vw] landscape:h-[90vh] md:w-[80vw] md:max-w-5xl md:h-[60vh]
+                w-[60vw] h-[60vh] md:max-w-5xl
                 overflow-hidden 
                 bg-white 
                 rounded-4xl md:rounded-4xl 
-                shadow-2xl
                 cursor-none
               `}
                   onClick={(e) => {
@@ -143,6 +142,9 @@ export default function DetailCard({
                         <span className="text-gray-400">No Image</span>
                       </div>
                     )}
+                    <div className="absolute bottom-4 left-4 z-30 text-[10px] md:text-xs font-['Value_Serif'] font-medium text-[#0F2341]">
+                      © tinysotiny.co. All rights reserved.
+                    </div>
                   </div>
 
                   {/* Right Side - Content */}

@@ -1,6 +1,7 @@
 // ... existing imports
 import { createClient } from 'contentful';
 import { Project, MediaRow, GridFilter, SearchTag } from '@/types/project';
+import { AppConfig } from '@/types/app-config';
 import { AboutUsData, ContactData } from '@/types/about';
 import { ClientData, ImageMeta } from '@/types/client';
 import { DailyData } from '@/types/daily';
@@ -566,6 +567,43 @@ export async function getGridFilter(
     return null;
   } catch (error) {
     console.error('Error fetching grid filter:', error);
+    return null;
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mapAppConfig = (entry: any): AppConfig => {
+  const fields = entry.fields;
+  const welcomeVideoAsset = fields.welcome_video || fields.welcomeVideo;
+
+  let welcome_video;
+  if (welcomeVideoAsset) {
+    const meta = getAssetMetadata(welcomeVideoAsset);
+    welcome_video = {
+      url: meta.url,
+      width: meta.width,
+      height: meta.height,
+      type: meta.type,
+    };
+  }
+
+  return {
+    welcome_video,
+    show_play_grid: Boolean(
+      fields.show_play_grid || fields.showPlayGrid || false
+    ),
+  };
+};
+
+export async function getAppConfig(): Promise<AppConfig | null> {
+  try {
+    const entries = await getEntries('appConfig', { limit: 1 });
+    if (entries.items.length > 0) {
+      return mapAppConfig(entries.items[0]);
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching app config:', error);
     return null;
   }
 }

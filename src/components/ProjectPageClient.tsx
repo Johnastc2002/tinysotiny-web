@@ -104,6 +104,9 @@ export default function ProjectPageClient({
             priority
           />
         )}
+        <div className="absolute bottom-4 left-4 z-10 text-[10px] md:text-xs font-['Value_Serif'] font-medium text-[#0F2341]">
+          © tinysotiny.co. All rights reserved.
+        </div>
       </div>
 
       {/* Horizontal Scroll Section - Fixed Banner (Desktop Only) */}
@@ -146,6 +149,9 @@ export default function ProjectPageClient({
                           priority
                         />
                       )}
+                      <div className="absolute bottom-4 left-4 z-10 text-[10px] md:text-xs font-['Value_Serif'] font-medium text-[#0F2341]">
+                        © tinysotiny.co. All rights reserved.
+                      </div>
                     </div>
 
                     {/* Right Side - Content */}
@@ -475,7 +481,7 @@ export default function ProjectPageClient({
         <div className="hidden md:block w-full relative -mt-32 z-20 pointer-events-none">
           <div className="flex flex-col md:flex-row gap-0">
             {/* Left Column: White Box for Title & Cast */}
-            <div className="w-full md:w-[60%] bg-white pt-8 pb-8 pr-8 md:pt-16 md:pb-16 md:pr-16 pl-12 md:pl-24 shadow-lg pointer-events-auto rounded-r-3xl">
+            <div className="w-full md:w-[60%] bg-white pt-8 pb-8 pr-8 md:pt-16 md:pb-16 md:pr-16 pl-12 md:pl-24 pointer-events-auto rounded-r-3xl">
               <motion.div
                 initial={{ y: 50, opacity: 0 }}
                 whileInView={{ y: 0, opacity: 1 }}
@@ -587,7 +593,7 @@ export default function ProjectPageClient({
                         {mediasToShow.map((media, mediaIndex) => (
                           <div
                             key={mediaIndex}
-                            className={`relative w-full ${aspectRatioClass} overflow-hidden rounded-lg bg-[#f8f8f8] shadow-sm group`}
+                            className={`relative w-full ${aspectRatioClass} overflow-hidden rounded-lg bg-[#f8f8f8] group`}
                           >
                             <SmartMedia
                               url={media.url}

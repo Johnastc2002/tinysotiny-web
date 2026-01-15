@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { motion, useMotionValue, useSpring, MotionValue } from 'framer-motion';
 import { ImageMeta } from '@/types/client';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface SloganHoverProps {
   slogan: string;
@@ -149,7 +150,7 @@ const SloganImageOverlay = ({
                 backfaceVisibility: 'hidden',
               }}
             >
-              <div className="relative w-full h-full rounded-xl overflow-hidden shadow-2xl bg-white">
+              <div className="relative w-full h-full rounded-xl overflow-hidden bg-white">
                 <Image
                   src={img.url}
                   alt={`Slogan image ${index + 1}`}
@@ -171,6 +172,7 @@ const SloganImageOverlay = ({
 export default function SloganHover({ slogan, images }: SloganHoverProps) {
   const [isHovered, setIsHovered] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   // Shared mouse values (relative to container)
   const mouseX = useMotionValue(0);
@@ -191,6 +193,7 @@ export default function SloganHover({ slogan, images }: SloganHoverProps) {
   };
 
   const handleMouseEnter = (e: React.MouseEvent) => {
+    if (isMobile) return;
     if (containerRef.current) {
       const containerRect = containerRef.current.getBoundingClientRect();
       const relX = e.clientX - containerRect.left;

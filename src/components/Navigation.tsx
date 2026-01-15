@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { ContactData } from '@/types/about';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface NavigationProps {
   contact?: ContactData | null;
@@ -15,7 +16,42 @@ interface NavigationItemProps {
   isActive: boolean;
   isHome: boolean;
   toggleMenu: () => void;
-  pathname: string;
+  isMobile: boolean;
+}
+
+interface NavigationSubItemProps {
+  subItem: string;
+  toggleMenu: () => void;
+  isMobile: boolean;
+}
+
+function NavigationSubItem({
+  subItem,
+  toggleMenu,
+  isMobile,
+}: NavigationSubItemProps) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <Link
+      href={`/${subItem}`}
+      onClick={toggleMenu}
+      onMouseEnter={() => !isMobile && setIsHovered(true)}
+      onMouseLeave={() => !isMobile && setIsHovered(false)}
+      className={`text-2xl font-bold tracking-wider text-[#0F2341] transition-colors ${
+        !isMobile ? 'hover:text-gray-500' : ''
+      } md:text-3xl landscape:text-xl lg:[@media(min-height:720px)]:text-3xl!`}
+      style={{
+        fontFamily: isHovered
+          ? "'Value Serif', serif"
+          : "'Value Sans', sans-serif",
+        fontWeight: 500,
+        lineHeight: 1.2,
+      }}
+    >
+      {subItem}
+    </Link>
+  );
 }
 
 function NavigationItem({
@@ -24,10 +60,11 @@ function NavigationItem({
   isActive,
   isHome,
   toggleMenu,
-  pathname,
+  isMobile,
 }: NavigationItemProps) {
   // Initialize expanded state to false to prevent auto-expansion
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   const handleClick = (e: React.MouseEvent) => {
     if (isHome) {
@@ -44,18 +81,23 @@ function NavigationItem({
 
   return (
     <div className="flex flex-col landscape:flex-row lg:[@media(min-height:720px)]:flex-col landscape:items-baseline lg:[@media(min-height:720px)]:items-start items-start w-fit">
-      <div className="relative">
+      <div
+        className="relative group"
+        onMouseEnter={() => !isMobile && setIsHovered(true)}
+        onMouseLeave={() => !isMobile && setIsHovered(false)}
+      >
         {isHome ? (
           <button
             onClick={handleClick}
-            className={`text-4xl font-bold tracking-wider text-[#0F2341] transition-colors hover:text-gray-500 md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl! ${
-              isActive ? 'font-serif' : ''
-            }`}
+            className={`text-4xl font-bold tracking-wider text-[#0F2341] transition-colors ${
+              !isMobile ? 'hover:text-gray-500' : ''
+            } md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl!`}
             style={{
-              fontFamily: isActive
+              fontFamily: isHovered
                 ? "'Value Serif', serif"
                 : "'Value Sans', sans-serif",
               fontWeight: 500, // Medium weight
+              lineHeight: 1.2,
             }}
           >
             {item}
@@ -63,15 +105,16 @@ function NavigationItem({
         ) : (
           <Link
             href={href}
-            className={`text-4xl font-bold tracking-wider text-[#0F2341] transition-colors hover:text-gray-500 md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl! ${
-              isActive ? 'font-serif' : ''
-            }`}
+            className={`text-4xl font-bold tracking-wider text-[#0F2341] transition-colors ${
+              !isMobile ? 'hover:text-gray-500' : ''
+            } md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl!`}
             onClick={toggleMenu}
             style={{
-              fontFamily: isActive
+              fontFamily: isHovered
                 ? "'Value Serif', serif"
                 : "'Value Sans', sans-serif",
               fontWeight: 500, // Medium weight
+              lineHeight: 1.2,
             }}
           >
             {item}
@@ -79,7 +122,11 @@ function NavigationItem({
         )}
 
         {isActive && (
-          <span className="absolute -top-2 -right-3 h-1.5 w-1.5 rounded-full bg-[#0F2341] lg:[@media(min-height:720px)]:-top-2 lg:[@media(min-height:720px)]:-right-4" />
+          <span
+            className={`absolute -top-2 -right-3 h-1.5 w-1.5 rounded-full bg-[#0F2341] transition-colors ${
+              !isMobile ? 'group-hover:bg-gray-500' : ''
+            } lg:[@media(min-height:720px)]:-top-2 lg:[@media(min-height:720px)]:-right-4`}
+          />
         )}
       </div>
 
@@ -92,24 +139,13 @@ function NavigationItem({
           }`}
         >
           {['work', 'play'].map((subItem) => {
-            const isSubActive = pathname.startsWith(`/${subItem}`);
             return (
-              <Link
+              <NavigationSubItem
                 key={subItem}
-                href={`/${subItem}`}
-                onClick={toggleMenu}
-                className={`text-2xl font-bold tracking-wider text-[#0F2341] transition-colors hover:text-gray-500 md:text-3xl landscape:text-xl lg:[@media(min-height:720px)]:text-3xl! ${
-                  isSubActive ? 'font-serif' : ''
-                }`}
-                style={{
-                  fontFamily: isSubActive
-                    ? "'Value Serif', serif"
-                    : "'Value Sans', sans-serif",
-                  fontWeight: 500,
-                }}
-              >
-                {subItem}
-              </Link>
+                subItem={subItem}
+                toggleMenu={toggleMenu}
+                isMobile={isMobile}
+              />
             );
           })}
         </div>
@@ -131,6 +167,7 @@ export default function Navigation({ contact }: NavigationProps) {
   // Assuming the project detail view is rendered when 'project' param is present.
   const isProjectDetail = searchParams?.has('project');
   const shouldBeDark = isDarkPage && !isProjectDetail;
+  const isMobile = useIsMobile();
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -170,7 +207,7 @@ export default function Navigation({ contact }: NavigationProps) {
           height: '3rem',
           width: '3rem',
         }}
-        className={`fixed z-50 flex items-center justify-center rounded-full border border-white/40 bg-white/10 backdrop-blur-sm transition-all hover:bg-white/20 shadow-lg ${
+        className={`fixed z-50 flex items-center justify-center rounded-full border border-white/40 bg-white/10 backdrop-blur-sm transition-all hover:bg-white/20 ${
           isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
         aria-label="Open Menu"
@@ -191,7 +228,7 @@ export default function Navigation({ contact }: NavigationProps) {
 
       {/* Menu Overlay */}
       <div
-        className={`fixed z-50 bg-white shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col ${
+        className={`fixed z-50 bg-white transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col ${
           isOpen
             ? 'translate-x-0'
             : 'translate-x-full landscape:translate-x-[calc(100%+2rem)] lg:[@media(min-height:720px)]:translate-x-[calc(100%+2rem)]'
@@ -262,7 +299,7 @@ export default function Navigation({ contact }: NavigationProps) {
                     isActive={isActive}
                     isHome={isHome}
                     toggleMenu={toggleMenu}
-                    pathname={pathname}
+                    isMobile={isMobile}
                   />
                 );
               })}
@@ -273,7 +310,9 @@ export default function Navigation({ contact }: NavigationProps) {
           <div className="absolute bottom-0 left-0 w-full flex justify-between landscape:justify-end lg:[@media(min-height:720px)]:justify-between px-12 pb-12 md:px-24 landscape:px-16 landscape:pb-8 lg:[@media(min-height:720px)]:px-24! lg:[@media(min-height:720px)]:pb-16!">
             <Link
               href={contact?.instagram || 'https://instagram.com'}
-              className="text-xs font-semibold tracking-widest text-[#B6B6B6] hover:text-[#0F2341] transition-colors uppercase landscape:absolute landscape:left-[40%] lg:[@media(min-height:720px)]:static lg:[@media(min-height:720px)]:ml-0 lg:[@media(min-height:720px)]:text-sm!"
+              className={`text-xs font-semibold tracking-widest text-[#B6B6B6] ${
+                !isMobile ? 'hover:text-[#0F2341]' : ''
+              } transition-colors uppercase landscape:absolute landscape:left-[40%] lg:[@media(min-height:720px)]:static lg:[@media(min-height:720px)]:ml-0 lg:[@media(min-height:720px)]:text-sm!`}
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -286,7 +325,9 @@ export default function Navigation({ contact }: NavigationProps) {
             <div className="flex gap-6 lg:gap-8">
               <Link
                 href={`mailto:${contact?.email || 'hello@tinysotiny.com'}`}
-                className="text-xs font-semibold tracking-widest text-[#B6B6B6] hover:text-[#0F2341] transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!"
+                className={`text-xs font-semibold tracking-widest text-[#B6B6B6] ${
+                  !isMobile ? 'hover:text-[#0F2341]' : ''
+                } transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!`}
                 style={{
                   fontFamily: "'Value Sans', sans-serif",
                   fontWeight: 500,
@@ -296,7 +337,9 @@ export default function Navigation({ contact }: NavigationProps) {
               </Link>
               <Link
                 href={`tel:${contact?.phone || '+85212345678'}`}
-                className="text-xs font-semibold tracking-widest text-[#B6B6B6] hover:text-[#0F2341] transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!"
+                className={`text-xs font-semibold tracking-widest text-[#B6B6B6] ${
+                  !isMobile ? 'hover:text-[#0F2341]' : ''
+                } transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!`}
                 style={{
                   fontFamily: "'Value Sans', sans-serif",
                   fontWeight: 500,

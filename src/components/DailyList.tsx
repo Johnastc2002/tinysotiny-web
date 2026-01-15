@@ -165,9 +165,9 @@ function DailyListContent({ initialItems }: DailyListProps) {
             style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
           >
             {/* Close Button */}
-            <button
+            {/* <button
               onClick={handleClose}
-              className="fixed top-8 right-6 z-60 p-2 bg-white/50 backdrop-blur-md rounded-full shadow-md hover:bg-white transition-colors flex items-center justify-center w-12 h-12"
+              className="fixed top-8 right-6 z-60 p-2 bg-white/50 backdrop-blur-md rounded-full hover:bg-white transition-colors flex items-center justify-center w-12 h-12"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -183,7 +183,7 @@ function DailyListContent({ initialItems }: DailyListProps) {
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
-            </button>
+            </button> */}
 
             {overlayContainer && (
               <HorizontalScroll
@@ -233,7 +233,7 @@ function DailyCard({
         {/* Use thumbnail as the main image in the list view */}
         {item.thumbnail && item.thumbnail.url && (
           <div
-            className="relative w-full rounded-3xl overflow-hidden shadow-sm"
+            className="relative w-full rounded-3xl overflow-hidden"
             style={{
               aspectRatio:
                 item.thumbnail.width && item.thumbnail.height
