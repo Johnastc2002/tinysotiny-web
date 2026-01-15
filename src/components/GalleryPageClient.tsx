@@ -16,7 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import LoadingSpinner from './LoadingSpinner';
 import DetailCard, { DetailCardData } from './DetailCard';
 import ProjectPageClient from '@/components/ProjectPageClient';
-import { CursorPortal } from './CursorPortal';
+import { useCursor } from '@/context/CursorContext';
 
 interface GalleryPageClientProps {
   initialFeaturedProjects: Project[];
@@ -845,7 +845,7 @@ function ProjectCard({ project }: { project: Project }) {
   // Use bubble_thumbnail or first thumbnail
   const imageUrl = project.thumbnails?.[0] || project.bubble_thumbnail;
   const searchParams = useSearchParams();
-  const [isHovering, setIsHovering] = useState(false);
+  const { setCursor } = useCursor();
 
   const getHref = () => {
     const params = new URLSearchParams(searchParams.toString());
@@ -855,13 +855,12 @@ function ProjectCard({ project }: { project: Project }) {
 
   return (
     <>
-      <CursorPortal visible={isHovering} text={null} />
       <Link
         href={getHref()}
         scroll={false}
         className="block group transition-all duration-300 w-full h-full"
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
+        onMouseEnter={() => setCursor('label', 'View')}
+        onMouseLeave={() => setCursor('default')}
       >
         <div className="relative w-full aspect-square overflow-hidden bg-gray-200 rounded-3xl">
           {imageUrl ? (

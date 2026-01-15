@@ -5,6 +5,8 @@ import './globals.css';
 import Navigation from '@/components/Navigation';
 import { getContact } from '@/lib/contentful';
 import { VideoProvider } from '@/context/VideoContext';
+import { CursorProvider } from '@/context/CursorContext';
+import GlobalCursor from '@/components/GlobalCursor';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -35,12 +37,15 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <VideoProvider>
-          <Suspense fallback={null}>
-            <Navigation contact={contact} />
-          </Suspense>
-          {children}
-        </VideoProvider>
+        <CursorProvider>
+          <VideoProvider>
+            <GlobalCursor />
+            <Suspense fallback={null}>
+              <Navigation contact={contact} />
+            </Suspense>
+            {children}
+          </VideoProvider>
+        </CursorProvider>
       </body>
     </html>
   );

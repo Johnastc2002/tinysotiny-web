@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { CursorPortal } from './CursorPortal';
+import { useCursor } from '@/context/CursorContext';
 
 export interface DetailCardData {
   id: string;
@@ -36,8 +36,8 @@ export default function DetailCard({
   onCardClick,
 }: DetailCardProps) {
   const [isImageLoaded, setIsImageLoaded] = React.useState(false);
-  const [isHovering, setIsHovering] = useState(false);
   const router = useRouter();
+  const { setCursor } = useCursor();
 
   // Helper to ensure color has # if it's a hex code
   const formatColor = (c?: string) => {
@@ -81,7 +81,7 @@ export default function DetailCard({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 overflow-y-auto cursor-pointer"
+            <div className="fixed inset-0 z-40 overflow-y-auto"
             style={{
               backgroundColor: 'rgba(0, 0, 0, 0.2)',
               backdropFilter: 'blur(12px)',
@@ -95,17 +95,17 @@ export default function DetailCard({
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                onMouseLeave={() => setIsHovering(false)}
-                onMouseEnter={() => setIsHovering(true)}
-                className={`
+              onMouseLeave={() => setCursor('default')}
+              onMouseEnter={() => setCursor('label', 'open project')}
+              className={`
                 relative flex flex-col landscape:flex-row md:flex-row 
                 w-full h-[85vh] landscape:w-[90vw] landscape:h-[90vh] md:w-[80vw] md:max-w-5xl md:h-[60vh]
                 overflow-hidden 
                 bg-white 
                 rounded-4xl md:rounded-4xl 
-                shadow-2xl cursor-pointer
+                shadow-2xl
               `}
-                onClick={(e) => {
+              onClick={(e) => {
                   e.stopPropagation();
                   handleCardClick();
                 }}
@@ -264,7 +264,6 @@ export default function DetailCard({
           </motion.div>
         )}
       </AnimatePresence>
-      <CursorPortal visible={isHovering} text="open project" zIndex={99999} />
     </>
   );
 }

@@ -15,7 +15,7 @@ import { getDailyEntriesAction, getDailyEntryByIdAction } from '@/app/actions';
 import Image from 'next/image';
 import LoadingSpinner from './LoadingSpinner';
 import HorizontalScroll from '@/components/HorizontalScroll';
-import { CursorPortal } from '@/components/CursorPortal';
+import { useCursor } from '@/context/CursorContext';
 
 interface DailyListProps {
   initialItems: DailyData[];
@@ -219,15 +219,14 @@ function DailyCard({
   item: DailyData;
   onClick: (id: string) => void;
 }) {
-  const [isHovering, setIsHovering] = useState(false);
+  const { setCursor } = useCursor();
 
   return (
     <>
-      <CursorPortal visible={isHovering} text={null} />
       <div
         onClick={() => onClick(item.id)}
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
+        onMouseEnter={() => setCursor('label', 'View')}
+        onMouseLeave={() => setCursor('default')}
         className="flex flex-col items-center gap-3 cursor-pointer group w-full"
       >
         {/* Image Container */}

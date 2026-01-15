@@ -6,9 +6,9 @@ import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
 import { Project } from '@/types/project';
+import { useCursor } from '@/context/CursorContext';
 
 import SmartMedia from '@/components/SmartMedia';
-import { CursorPortal } from '@/components/CursorPortal';
 
 interface ProjectPageClientProps {
   project: Project;
@@ -26,7 +26,7 @@ export default function ProjectPageClient({
   // Ref for the container that holds the horizontal scroll section
   const containerRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
-  const [isHoveringNext, setIsHoveringNext] = useState(false);
+  const { setCursor } = useCursor();
 
   const getRecommendedHref = (id: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -643,8 +643,8 @@ export default function ProjectPageClient({
               href={getRecommendedHref(recommendedProject.id)}
               scroll={false}
               onClick={handleNextProject}
-              onMouseEnter={() => setIsHoveringNext(true)}
-              onMouseLeave={() => setIsHoveringNext(false)}
+              onMouseEnter={() => setCursor('label', 'Next Project')}
+              onMouseLeave={() => setCursor('default')}
               className="block w-full bg-[#F2B45A] rounded-t-3xl p-12 md:p-24 hover:bg-[#F5C270] transition-colors duration-300 group cursor-none"
             >
               <div className="flex flex-col items-start">
@@ -674,7 +674,6 @@ export default function ProjectPageClient({
                 </h3>
               </div>
             </Link>
-            <CursorPortal visible={isHoveringNext} />
           </div>
         )}
       </div>
