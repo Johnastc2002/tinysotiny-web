@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
-import Image from 'next/image';
-import { motion, useMotionValue, useSpring, MotionValue } from 'framer-motion';
+import React, { useState, useRef } from 'react';
+import { useMotionValue } from 'framer-motion';
 import { ImageMeta } from '@/types/client';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { ImageTrailOverlay } from './ui/ImageTrailOverlay';
 
 interface SloganHoverProps {
   slogan: string;
@@ -19,155 +19,6 @@ interface Bounds {
 }
 
 const BUFFER = 100;
-
-const SloganImageOverlay = ({
-  images,
-  initialX,
-  initialY,
-  mouseX,
-  mouseY,
-  bounds,
-}: {
-  images: ImageMeta[];
-  initialX: number;
-  initialY: number;
-  mouseX: MotionValue<number>;
-  mouseY: MotionValue<number>;
-  bounds: Bounds;
-}) => {
-  const x = useMotionValue(initialX);
-  const y = useMotionValue(initialY);
-
-  useEffect(() => {
-    const updateX = (latestX: number) => {
-      x.set(Math.min(Math.max(latestX, bounds.minX), bounds.maxX));
-    };
-    const updateY = (latestY: number) => {
-      y.set(Math.min(Math.max(latestY, bounds.minY), bounds.maxY));
-    };
-
-    const unsubX = mouseX.on('change', updateX);
-    const unsubY = mouseY.on('change', updateY);
-
-    return () => {
-      unsubX();
-      unsubY();
-    };
-  }, [mouseX, mouseY, x, y, bounds]);
-
-  const springConfig = { damping: 25, stiffness: 300, mass: 0.2 };
-  const springX = useSpring(x, springConfig);
-  const springY = useSpring(y, springConfig);
-
-  const [isRightSide, setIsRightSide] = useState(false);
-
-  useEffect(() => {
-    const checkSide = () => {
-      if (typeof window !== 'undefined') {
-        const center = (bounds.minX + bounds.maxX) / 2;
-        setIsRightSide(x.get() > center);
-      }
-    };
-    checkSide();
-    const unsub = x.on('change', () => {
-      if (typeof window !== 'undefined') {
-        const center = (bounds.minX + bounds.maxX) / 2;
-        setIsRightSide(x.get() > center);
-      }
-    });
-    return unsub;
-  }, [x, bounds]);
-
-  const randomOffsets = useMemo(() => {
-    // Generate random offsets when the component mounts or when images change
-    if (images) {
-      return images.map(() => Math.random() * 100 - 50);
-    }
-    return [];
-  }, [images]);
-
-  if (!images || images.length === 0) return null;
-
-  return (
-    <div className="pointer-events-none absolute inset-0 z-50 overflow-visible">
-      <motion.div
-        style={{ x: springX, y: springY }}
-        className="absolute top-0 left-0"
-      >
-        {images.map((img, index) => {
-          const offset =
-            typeof window !== 'undefined' && window.innerWidth < 768 ? 30 : 60;
-          const overlap = 120;
-
-          let left;
-          if (isRightSide) {
-            const estimatedWidth =
-              typeof window !== 'undefined' && window.innerWidth < 768
-                ? 150
-                : 200;
-            left = -offset - estimatedWidth - index * overlap;
-          } else {
-            left = offset + index * overlap;
-          }
-
-          // Use the pre-generated random offset, fallback to deterministic if not ready
-          const randomOffset =
-            randomOffsets[index] !== undefined
-              ? randomOffsets[index]
-              : ((index * 37) % 100) - 50;
-          const verticalOffset = randomOffset;
-
-          const aspectRatio = img.width / img.height;
-          const isLandscape = aspectRatio > 1;
-
-          const baseSize =
-            typeof window !== 'undefined' && window.innerWidth < 768
-              ? 150
-              : 200;
-
-          let width, height;
-
-          if (isLandscape) {
-            width = baseSize * 1.2;
-            height = width / aspectRatio;
-          } else {
-            height = baseSize * 1.25;
-            width = height * aspectRatio;
-          }
-
-          return (
-            <div
-              key={index}
-              className="absolute transition-transform duration-300 ease-out"
-              style={{
-                left: 0,
-                top: 0,
-                transform: `translate3d(${left}px, ${verticalOffset}px, 0) translate(0, -50%)`,
-                width: width,
-                height: height,
-                zIndex: isRightSide ? 10 - index : index,
-                willChange: 'transform',
-                backfaceVisibility: 'hidden',
-              }}
-            >
-              <div className="relative w-full h-full rounded-xl overflow-hidden bg-white">
-                <Image
-                  src={img.url}
-                  alt={`Slogan image ${index + 1}`}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 150px, 200px"
-                  priority={index < 3}
-                  unoptimized
-                />
-              </div>
-            </div>
-          );
-        })}
-      </motion.div>
-    </div>
-  );
-};
 
 export default function SloganHover({ slogan, images }: SloganHoverProps) {
   const [isHovered, setIsHovered] = useState(false);
@@ -233,7 +84,7 @@ export default function SloganHover({ slogan, images }: SloganHoverProps) {
       onMouseLeave={handleMouseLeave}
     >
       {isHovered && interactionState && images && images.length > 0 && (
-        <SloganImageOverlay
+        <ImageTrailOverlay
           images={images}
           initialX={interactionState.initialX}
           initialY={interactionState.initialY}

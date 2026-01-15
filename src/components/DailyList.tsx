@@ -190,6 +190,7 @@ function DailyListContent({ initialItems }: DailyListProps) {
                 key={selectedDaily.id}
                 daily={selectedDaily}
                 scrollContainerRef={{ current: overlayContainer }}
+                onClose={handleClose}
               />
             )}
           </motion.div>

@@ -8,11 +8,13 @@ import SmartMedia from '@/components/SmartMedia';
 interface HorizontalScrollProps {
   daily: DailyData;
   scrollContainerRef?: React.RefObject<HTMLElement>;
+  onClose?: () => void;
 }
 
 export default function HorizontalScroll({
   daily,
   scrollContainerRef,
+  onClose,
 }: HorizontalScrollProps) {
   const targetRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -80,6 +82,19 @@ export default function HorizontalScroll({
 
   const cardBgColor = formatColor(daily.card_bg_color);
   const cardFontColor = formatColor(daily.card_font_color);
+
+  const lastMediaInSection4 =
+    daily.medias && daily.medias.length > 3
+      ? daily.medias[daily.medias.length - 1]
+      : undefined;
+
+  const lastSectionWidth = lastMediaInSection4
+    ? `calc((50vh * ${
+        lastMediaInSection4.width && lastMediaInSection4.height
+          ? lastMediaInSection4.width / lastMediaInSection4.height
+          : 1
+      } * 0.5) + 180px)`
+    : '180px';
 
   return (
     <>
@@ -373,12 +388,20 @@ export default function HorizontalScroll({
                       key={idx}
                       className={`relative h-[50vh] md:h-[50vh] rounded-4xl overflow-hidden shrink-0 ${
                         idx === 0 ? '-ml-20 md:-ml-32' : ''
-                      } ${idx === arr.length - 1 ? '-mr-32 md:-mr-64' : ''}`}
+                      }`}
                       style={{
                         aspectRatio:
                           media.width && media.height
                             ? `${media.width}/${media.height}`
                             : 'auto',
+                        marginRight:
+                          idx === arr.length - 1
+                            ? `calc(-1 * (50vh * ${
+                                media.width && media.height
+                                  ? media.width / media.height
+                                  : 1
+                              }) * 0.5)`
+                            : '0px',
                       }}
                     >
                       <SmartMedia
@@ -397,9 +420,34 @@ export default function HorizontalScroll({
             {/* Section 5: Fin (Navy) */}
             {/* Added z-10 to stay under Section 4's last image */}
             <section
-              className="relative flex h-screen w-[25vw] shrink-0 items-center justify-center bg-[#0F2341] text-white z-10"
-              style={{ backgroundColor: cardBgColor || '#0F2341' }}
-            />
+              className="relative flex h-screen shrink-0 items-center justify-end pr-20 bg-[#0F2341] text-white z-10"
+              style={{
+                backgroundColor: cardBgColor || '#0F2341',
+                width: lastSectionWidth,
+              }}
+            >
+              <button
+                onClick={onClose}
+                className="p-4 hover:opacity-70 transition-opacity"
+                aria-label="Close"
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke={cardFontColor || 'white'}
+                    strokeWidth="1"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </section>
           </motion.div>
         </div>
       </div>

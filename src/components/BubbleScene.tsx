@@ -114,7 +114,7 @@ const generateBubbles = (
     // 1. Play Bubble (Blue, Gradient, Left side, Behind Work)
     temp.push({
       id: 0,
-      position: [-1.8, 1.8, 0.5], // Moved slightly closer to center to overlap more
+      position: [-2.8, 2.8, 0.5], // Moved slightly closer to center to overlap more
       scale: 3,
       color: BUBBLE_COLORS.PLAY,
       type: 'glass',
@@ -127,7 +127,7 @@ const generateBubbles = (
     // 2. Work Bubble (Dark, Solid, Right side, In Front)
     temp.push({
       id: 1,
-      position: [1.8, -1.8, 0], // Moved slightly closer to center
+      position: [2.8, -2.8, 0], // Moved slightly closer to center
       scale: 3.5,
       color: BUBBLE_COLORS.WORK, // Restored to user-defined Navy color
       type: 'solid',
@@ -489,7 +489,7 @@ const ImageBubble = ({
     });
   }, [defaultTexture, hoverTexture]);
 
-  const [floatSpeed] = useState(() => 1.5 + Math.random());
+  const [floatSpeed] = useState(() => (1.5 + Math.random()) * 0.5);
   const [floatIntensity] = useState(() => 1 + Math.random());
 
   const materialRef = useRef<THREE.MeshBasicMaterial>(null);
@@ -711,7 +711,7 @@ const ColorBubble = ({
   enableBlur?: boolean;
   isHovered?: boolean;
 }) => {
-  const [floatSpeed] = useState(() => 1.5 + Math.random());
+  const [floatSpeed] = useState(() => (1.5 + Math.random()) * 0.5);
   const [floatIntensity] = useState(() => 1 + Math.random());
 
   const { camera } = useThree();
@@ -719,6 +719,50 @@ const ColorBubble = ({
   const shaderRef = useRef<Shader>(null);
   const worldPos = useMemo(() => new THREE.Vector3(), []);
   const camDir = useMemo(() => new THREE.Vector3(), []);
+
+  // Grey bubble random fade logic
+  const isGrey = color === BUBBLE_COLORS.GREY;
+  const [randomState] = useState(() => {
+    const visible = Math.random() > 0.5;
+    return {
+      visible,
+      duration: 2 + Math.random() * 8,
+      opacity: visible ? 1 : 0,
+    };
+  });
+
+  const fadeState = useRef({
+    visible: randomState.visible,
+    timer: 0,
+    duration: randomState.duration,
+    currentOpacity: randomState.opacity,
+  });
+
+  useFrame((state, delta) => {
+    if (isGrey && meshRef.current) {
+      const fs = fadeState.current;
+      fs.timer += delta;
+
+      if (fs.timer >= fs.duration) {
+        fs.visible = !fs.visible;
+        fs.timer = 0;
+        fs.duration = 2 + Math.random() * 8; // Random duration 2-10s
+      }
+
+      const target = fs.visible ? 1 : 0;
+      fs.currentOpacity = THREE.MathUtils.lerp(
+        fs.currentOpacity,
+        target,
+        delta * 2.0
+      );
+
+      const mat = meshRef.current.material as THREE.Material;
+      if (mat) {
+        mat.opacity = fs.currentOpacity;
+        mat.needsUpdate = true;
+      }
+    }
+  });
 
   // Padding for feathering (2.0x extra space)
   const PADDING_SCALE = 2.0;

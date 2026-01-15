@@ -595,6 +595,7 @@ export async function getGridFilter(
 const mapAppConfig = (entry: any): AppConfig => {
   const fields = entry.fields;
   const welcomeVideoAsset = fields.welcome_video || fields.welcomeVideo;
+  const playPageBgAsset = fields.play_page_bg_media || fields.playPageBgMedia;
 
   let welcome_video;
   if (welcomeVideoAsset) {
@@ -607,11 +608,23 @@ const mapAppConfig = (entry: any): AppConfig => {
     };
   }
 
+  let play_page_bg_media;
+  if (playPageBgAsset) {
+    const meta = getAssetMetadata(playPageBgAsset);
+    play_page_bg_media = {
+      url: meta.url,
+      width: meta.width,
+      height: meta.height,
+      type: meta.type,
+    };
+  }
+
   return {
     welcome_video,
     show_play_grid: Boolean(
       fields.show_play_grid || fields.showPlayGrid || false
     ),
+    play_page_bg_media,
   };
 };
 

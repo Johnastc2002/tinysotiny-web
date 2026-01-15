@@ -651,12 +651,20 @@ export default function ProjectPageClient({
               onClick={handleNextProject}
               onMouseEnter={() => setCursor('label')}
               onMouseLeave={() => setCursor('default')}
-              style={{ cursor: 'none' }}
-              className="block w-full bg-[#F2B45A] rounded-t-3xl p-12 md:p-24 hover:bg-[#F5C270] transition-colors duration-300 group cursor-none"
+              style={{
+                cursor: 'none',
+                backgroundColor: cardBgColor || '#E5E5E5',
+              }}
+              className="block w-full rounded-t-3xl p-12 md:p-24 transition-all duration-300 group cursor-none hover:brightness-95"
             >
               <div className="flex flex-col items-start">
                 <div className="flex items-center space-x-2 mb-6 opacity-80 group-hover:opacity-100 transition-opacity">
-                  <span className="text-sm tracking-widest text-[#ffffff] uppercase font-['Value_Sans'] font-normal leading-none">
+                  <span
+                    className="text-sm tracking-widest uppercase font-['Value_Sans'] font-normal leading-none"
+                    style={{
+                      color: cardTagColor || '#B6B6B6',
+                    }}
+                  >
                     Next Project
                   </span>
                   <svg
@@ -665,7 +673,10 @@ export default function ProjectPageClient({
                     viewBox="0 0 15 15"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
-                    className="text-[#ffffff] block"
+                    className="block"
+                    style={{
+                      color: cardTagColor || '#B6B6B6',
+                    }}
                   >
                     <path
                       d="M3 3 L12 12 L12 5"
@@ -676,7 +687,12 @@ export default function ProjectPageClient({
                     />
                   </svg>
                 </div>
-                <h3 className="text-4xl md:text-6xl font-['Value_Serif'] font-medium text-[#0F2341] leading-tight max-w-4xl">
+                <h3
+                  className="text-4xl md:text-6xl font-['Value_Serif'] font-medium leading-tight max-w-4xl"
+                  style={{
+                    color: cardFontColor || '#0F2341',
+                  }}
+                >
                   {recommendedProject.title}
                 </h3>
               </div>

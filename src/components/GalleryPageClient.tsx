@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { Project, GridFilter } from '@/types/project';
+import { Project, GridFilter, ContentfulMediaItem } from '@/types/project';
 import BubbleScene from '@/components/BubbleScene';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -18,6 +18,7 @@ import DetailCard, { DetailCardData } from './DetailCard';
 import ProjectPageClient from '@/components/ProjectPageClient';
 import { useCursor } from '@/context/CursorContext';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import SmartMedia from '@/components/SmartMedia';
 
 interface GalleryPageClientProps {
   initialFeaturedProjects: Project[];
@@ -27,6 +28,7 @@ interface GalleryPageClientProps {
   enableExplosion?: boolean;
   explosionDelay?: number;
   showPlayGrid?: boolean;
+  playPageBgMedia?: ContentfulMediaItem;
 }
 
 function GalleryPageContent({
@@ -37,6 +39,7 @@ function GalleryPageContent({
   enableExplosion = false,
   explosionDelay = 0,
   showPlayGrid = true,
+  playPageBgMedia,
 }: GalleryPageClientProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -516,10 +519,32 @@ function GalleryPageContent({
       : [...initialFeaturedProjects, ...nonFeaturedProjects];
 
   const isPlay = projectType === 'play';
-  const bgClass = isPlay ? 'bg-play-gradient' : 'bg-[#F0F2F5]';
+  const bgClass = isPlay
+    ? playPageBgMedia
+      ? 'bg-black' // If media present, default to black behind it
+      : 'bg-play-gradient' // Fallback to gradient if no media
+    : 'bg-[#F0F2F5]';
 
   return (
     <div className={`relative w-full min-h-screen ${bgClass}`}>
+      {/* Play Page Background Media */}
+      {isPlay && playPageBgMedia && (
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <SmartMedia
+            url={playPageBgMedia.url}
+            type={playPageBgMedia.type}
+            width={playPageBgMedia.width}
+            height={playPageBgMedia.height}
+            alt="Play Page Background"
+            fill
+            className="w-full h-full object-cover"
+            autoplay
+            mute
+            priority
+          />
+        </div>
+      )}
+
       <DetailCard
         isOpen={!!selectedProject && !searchParams.get('project')}
         onClose={handleCloseCard}
@@ -831,7 +856,11 @@ function GalleryPageContent({
 
 export default function GalleryPageClient(props: GalleryPageClientProps) {
   const isPlay = props.projectType === 'play';
-  const bgClass = isPlay ? 'bg-play-gradient' : 'bg-[#F0F2F5]';
+  const bgClass = isPlay
+    ? props.playPageBgMedia
+      ? 'bg-black'
+      : 'bg-play-gradient'
+    : 'bg-[#F0F2F5]';
   const spinnerColor = isPlay ? '#ffffff' : '#0F2341';
   const trackColor = isPlay
     ? 'rgba(255, 255, 255, 0.1)'
@@ -857,6 +886,7 @@ function ProjectCard({ project }: { project: Project }) {
   const imageUrl = project.thumbnails?.[0] || project.bubble_thumbnail;
   const searchParams = useSearchParams();
   const { setCursor } = useCursor();
+  const isMobile = useIsMobile();
 
   const getHref = () => {
     const params = new URLSearchParams(searchParams.toString());
@@ -890,7 +920,11 @@ function ProjectCard({ project }: { project: Project }) {
 
           {/* Client Overlay */}
           {project.clientName && (
-            <div className="absolute top-2 left-3 right-3 md:top-4 md:left-4 md:right-4 z-10 pointer-events-none">
+            <div
+              className={`absolute top-2 left-3 right-3 md:top-4 md:left-4 md:right-4 z-10 pointer-events-none transition-opacity duration-300 ${
+                isMobile ? '' : 'opacity-0 group-hover:opacity-100'
+              }`}
+            >
               <span className="inline-block text-[10px] md:text-xs uppercase tracking-wider text-white whitespace-normal wrap-break-word">
                 <span className="font-['Value_Sans'] font-normal">
                   CLIENT /{' '}
@@ -903,7 +937,11 @@ function ProjectCard({ project }: { project: Project }) {
           )}
 
           {/* Tags Overlay */}
-          <div className="absolute bottom-3 left-3 md:bottom-4 md:left-4 z-10 flex flex-col gap-1 md:gap-2 items-start">
+          <div
+            className={`absolute bottom-3 left-3 md:bottom-4 md:left-4 z-10 flex flex-col gap-1 md:gap-2 items-start transition-opacity duration-300 ${
+              isMobile ? '' : 'opacity-0 group-hover:opacity-100'
+            }`}
+          >
             {project.tags.slice(0, 2).map((tag, i) => (
               <span
                 key={i}

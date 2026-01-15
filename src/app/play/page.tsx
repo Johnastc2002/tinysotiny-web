@@ -24,6 +24,7 @@ export default async function Play() {
         enableExplosion={true}
         explosionDelay={0}
         showPlayGrid={appConfig?.show_play_grid}
+        playPageBgMedia={appConfig?.play_page_bg_media}
       />
     </main>
   );

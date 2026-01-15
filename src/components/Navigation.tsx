@@ -17,18 +17,21 @@ interface NavigationItemProps {
   isHome: boolean;
   toggleMenu: () => void;
   isMobile: boolean;
+  pathname: string;
 }
 
 interface NavigationSubItemProps {
   subItem: string;
   toggleMenu: () => void;
   isMobile: boolean;
+  isActive: boolean;
 }
 
 function NavigationSubItem({
   subItem,
   toggleMenu,
   isMobile,
+  isActive,
 }: NavigationSubItemProps) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -42,9 +45,10 @@ function NavigationSubItem({
         !isMobile ? 'hover:text-gray-500' : ''
       } md:text-3xl landscape:text-xl lg:[@media(min-height:720px)]:text-3xl!`}
       style={{
-        fontFamily: isHovered
-          ? "'Value Serif', serif"
-          : "'Value Sans', sans-serif",
+        fontFamily:
+          isHovered || (isMobile && isActive)
+            ? "'Value Serif', serif"
+            : "'Value Sans', sans-serif",
         fontWeight: 500,
         lineHeight: 1.2,
       }}
@@ -61,6 +65,7 @@ function NavigationItem({
   isHome,
   toggleMenu,
   isMobile,
+  pathname,
 }: NavigationItemProps) {
   // Initialize expanded state to false to prevent auto-expansion
   const [isExpanded, setIsExpanded] = useState(false);
@@ -93,9 +98,10 @@ function NavigationItem({
               !isMobile ? 'hover:text-gray-500' : ''
             } md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl!`}
             style={{
-              fontFamily: isHovered
-                ? "'Value Serif', serif"
-                : "'Value Sans', sans-serif",
+              fontFamily:
+                isHovered || (isMobile && isActive)
+                  ? "'Value Serif', serif"
+                  : "'Value Sans', sans-serif",
               fontWeight: 500, // Medium weight
               lineHeight: 1.2,
             }}
@@ -110,9 +116,10 @@ function NavigationItem({
             } md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl!`}
             onClick={toggleMenu}
             style={{
-              fontFamily: isHovered
-                ? "'Value Serif', serif"
-                : "'Value Sans', sans-serif",
+              fontFamily:
+                isHovered || (isMobile && isActive)
+                  ? "'Value Serif', serif"
+                  : "'Value Sans', sans-serif",
               fontWeight: 500, // Medium weight
               lineHeight: 1.2,
             }}
@@ -145,6 +152,7 @@ function NavigationItem({
                 subItem={subItem}
                 toggleMenu={toggleMenu}
                 isMobile={isMobile}
+                isActive={pathname === `/${subItem}`}
               />
             );
           })}
@@ -207,7 +215,7 @@ export default function Navigation({ contact }: NavigationProps) {
           height: '3rem',
           width: '3rem',
         }}
-        className={`fixed z-50 flex items-center justify-center rounded-full border border-white/40 bg-white/10 backdrop-blur-sm transition-all hover:bg-white/20 ${
+        className={`fixed z-[100] flex items-center justify-center rounded-full border border-white/40 bg-white/10 backdrop-blur-sm transition-all hover:bg-white/20 ${
           isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
         aria-label="Open Menu"
@@ -228,7 +236,7 @@ export default function Navigation({ contact }: NavigationProps) {
 
       {/* Menu Overlay */}
       <div
-        className={`fixed z-50 bg-white transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col ${
+        className={`fixed z-[100] bg-white transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col ${
           isOpen
             ? 'translate-x-0'
             : 'translate-x-full landscape:translate-x-[calc(100%+2rem)] lg:[@media(min-height:720px)]:translate-x-[calc(100%+2rem)]'
@@ -300,6 +308,7 @@ export default function Navigation({ contact }: NavigationProps) {
                     isHome={isHome}
                     toggleMenu={toggleMenu}
                     isMobile={isMobile}
+                    pathname={pathname}
                   />
                 );
               })}
