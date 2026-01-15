@@ -24,6 +24,8 @@ interface MediaItemProps {
   externalUrl?: string;
   mediaClassName?: string;
   layout?: string;
+  autoplay?: boolean;
+  mute?: boolean;
 }
 
 interface VisitButtonConfig {
@@ -105,6 +107,8 @@ export default function SmartMedia({
   externalUrl,
   mediaClassName,
   layout,
+  autoplay = false,
+  mute = false,
 }: MediaItemProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -378,6 +382,9 @@ export default function SmartMedia({
   const toggleVimeo = async () => {
     if (!videoActivated) {
       setVideoActivated(true);
+      // Register active video immediately to prevent race condition where 'play' event
+      // triggers a pause because activeVideoId is still stale.
+      playVideo(id);
 
       // Try to play immediately if player is ready (critical for iOS sound)
       if (vimeoPlayerRef.current) {
@@ -385,7 +392,6 @@ export default function SmartMedia({
           await vimeoPlayerRef.current.setMuted(false);
           await vimeoPlayerRef.current.setVolume(1);
           await vimeoPlayerRef.current.play();
-          playVideo(id);
         } catch (e) {
           console.warn('Vimeo manual play failed:', e);
         }
@@ -398,10 +404,10 @@ export default function SmartMedia({
     const paused = await vimeoPlayerRef.current.getPaused();
     if (paused) {
       try {
+        playVideo(id);
         await vimeoPlayerRef.current.setMuted(false);
         await vimeoPlayerRef.current.setVolume(1);
         await vimeoPlayerRef.current.play();
-        playVideo(id);
       } catch (e) {
         console.warn('Vimeo play failed:', e);
       }
@@ -627,16 +633,14 @@ export default function SmartMedia({
       vimeoPlayerRef.current.setMuted(false).catch(() => {});
       vimeoPlayerRef.current.setVolume(1).catch(() => {});
 
-      vimeoPlayerRef.current
-        .play()
-        .then(() => {
-          playVideo(id);
-        })
-        .catch((e) => {
-          console.warn('Auto-play failed:', e);
-        });
+      // Ensure we register as active video BEFORE playing, to avoid race conditions
+      playVideo(id);
+
+      vimeoPlayerRef.current.play().catch((e) => {
+        console.warn('Auto-play failed:', e);
+      });
     }
-  }, [videoActivated, type, playVideo, id]);
+  }, [videoActivated, type, playVideo, id, isLoaded]);
 
   // Resize observer to update dimensions on window resize
   useEffect(() => {
@@ -1025,7 +1029,7 @@ export default function SmartMedia({
                 </div>
               ) : (
                 <div
-                  className="bg-black/30 rounded-full backdrop-blur-sm relative z-10 flex items-center justify-center"
+                  className="bg-black/30 rounded-full backdrop-blur-sm relative z-10 flex items-center justify-center text-[#b6b6b6] hover:text-white border border-[#b6b6b6] hover:border-white transition-transform hover:scale-105"
                   style={{
                     width: `${buttonConfig.playButtonSize}px`,
                     height: `${buttonConfig.playButtonSize}px`,
@@ -1035,7 +1039,7 @@ export default function SmartMedia({
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
-                      fill="white"
+                      fill="currentColor"
                       style={{
                         width: `${buttonConfig.playIconSize}px`,
                         height: `${buttonConfig.playIconSize}px`,
@@ -1051,7 +1055,7 @@ export default function SmartMedia({
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
-                      fill="white"
+                      fill="currentColor"
                       style={{
                         width: `${buttonConfig.playIconSize}px`,
                         height: `${buttonConfig.playIconSize}px`,
@@ -1092,7 +1096,7 @@ export default function SmartMedia({
                     e.stopPropagation();
                     handleFullscreen();
                   }}
-                  className={`bg-black/30 rounded-full backdrop-blur-sm hover:bg-black/50 transition-colors pointer-events-auto flex items-center justify-center`}
+                  className={`bg-black/30 rounded-full backdrop-blur-sm pointer-events-auto flex items-center justify-center text-[#b6b6b6] hover:text-white border border-[#b6b6b6] hover:border-white transition-transform hover:scale-105`}
                   style={{
                     width: `${buttonConfig.size}px`,
                     height: `${buttonConfig.size}px`,
@@ -1103,7 +1107,7 @@ export default function SmartMedia({
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
-                    fill="white"
+                    fill="currentColor"
                     style={{
                       width: `${buttonConfig.iconSize}px`,
                       height: `${buttonConfig.iconSize}px`,
@@ -1152,6 +1156,8 @@ export default function SmartMedia({
           style={{ objectFit: 'cover' }}
           loop
           playsInline
+          autoPlay={autoplay}
+          muted={mute}
           preload="auto"
           onLoadedMetadata={() => setIsLoaded(true)}
           onLoadedData={() => setIsLoaded(true)}
@@ -1170,7 +1176,7 @@ export default function SmartMedia({
           }`}
         >
           <div
-            className="bg-black/30 rounded-full backdrop-blur-sm flex items-center justify-center"
+            className="bg-black/30 rounded-full backdrop-blur-sm flex items-center justify-center text-[#b6b6b6] hover:text-white border border-[#b6b6b6] hover:border-white transition-transform hover:scale-105"
             style={{
               width: `${buttonConfig.playButtonSize}px`,
               height: `${buttonConfig.playButtonSize}px`,
@@ -1180,7 +1186,7 @@ export default function SmartMedia({
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
-                fill="white"
+                fill="currentColor"
                 style={{
                   width: `${buttonConfig.playIconSize}px`,
                   height: `${buttonConfig.playIconSize}px`,
@@ -1196,7 +1202,7 @@ export default function SmartMedia({
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
-                fill="white"
+                fill="currentColor"
                 style={{
                   width: `${buttonConfig.playIconSize}px`,
                   height: `${buttonConfig.playIconSize}px`,

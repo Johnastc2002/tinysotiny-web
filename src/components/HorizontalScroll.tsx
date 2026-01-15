@@ -167,6 +167,8 @@ export default function HorizontalScroll({
               alt="Background media"
               fill
               className="object-cover"
+              autoplay
+              mute
             />
           </div>
         ) : (
@@ -340,6 +342,8 @@ export default function HorizontalScroll({
                     fill
                     className="object-cover"
                     sizes="(max-height: 100vh) auto"
+                    autoplay
+                    mute
                   />
                 </div>
               </section>

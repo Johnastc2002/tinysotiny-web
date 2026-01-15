@@ -25,12 +25,11 @@ export default async function About() {
           {/* Main Title Section */}
           <div className="md:col-span-9">
             <SloganHover
-              slogan={aboutUs?.slogan || 'tiny details matter.'}
+              slogan={aboutUs?.slogan || ''}
               images={aboutUs?.sloganImages}
             />
             <p className="max-w-xl text-lg leading-relaxed text-[#0F2341] md:text-xl font-['Value_Sans'] font-normal">
-              {aboutUs?.firstParagraph ||
-                'tinysotiny is a creative studio based in Hong Kong, specializing in digital advertising production.'}
+              {aboutUs?.firstParagraph}
             </p>
           </div>
 
@@ -42,11 +41,10 @@ export default async function About() {
           {/* Secondary Content Section */}
           <div className="md:col-span-7 md:pr-16 pl-6 md:pl-0 mt-16 md:mt-32">
             <h2 className="mb-6 font-['Value_Sans'] font-medium italic text-3xl text-[#0F2341] md:text-4xl">
-              {aboutUs?.header || 'From statics to dynamics.'}
+              {aboutUs?.header}
             </h2>
             <p className="mb-12 max-w-2xl text-base leading-relaxed text-[#0F2341] md:text-lg font-['Value_Sans'] font-normal">
-              {aboutUs?.description2 ||
-                'Our refined expertise lies in amplifying the core brand narrative, encompassing commercial photography & videography, branding & identity, social media & digital experiences, and motion graphics.'}
+              {aboutUs?.description2}
             </p>
 
             {/* Services List */}
@@ -59,57 +57,35 @@ export default async function About() {
                   </span>
                 </div>
               ))}
-              {!aboutUs?.categories?.length && (
-                <>
-                  <div className="flex items-center gap-3">
-                    <span className="h-2 w-2 min-w-2 md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
-                    <span className="text-xs md:text-sm font-['Value_Sans'] font-normal tracking-widest text-[#0F2341] uppercase whitespace-nowrap">
-                      Photography
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="h-2 w-2 min-w-2 md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
-                    <span className="text-xs md:text-sm font-['Value_Sans'] font-normal tracking-widest text-[#0F2341] uppercase whitespace-nowrap">
-                      Motion Graphics
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="h-2 w-2 min-w-2 md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
-                    <span className="text-xs md:text-sm font-['Value_Sans'] font-normal tracking-widest text-[#0F2341] uppercase whitespace-nowrap">
-                      Videography
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="h-2 w-2 min-w-2 md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
-                    <span className="text-xs md:text-sm font-['Value_Sans'] font-normal tracking-widest text-[#0F2341] uppercase whitespace-nowrap">
-                      Branding
-                    </span>
-                  </div>
-                </>
-              )}
             </div>
 
             {/* Footer Links */}
             <div className="flex flex-row justify-between items-center w-full max-w-lg">
-              <Link
-                href={contact?.instagram || 'https://instagram.com'}
-                className="text-sm font-['Value_Sans'] font-medium tracking-widest text-[#0F2341] uppercase hover:opacity-70"
-              >
-                Instagram
-              </Link>
+              {contact?.instagram && (
+                <Link
+                  href={contact.instagram}
+                  className="text-sm font-['Value_Sans'] font-medium tracking-widest text-[#0F2341] uppercase hover:opacity-70"
+                >
+                  Instagram
+                </Link>
+              )}
               <div className="flex gap-8">
-                <Link
-                  href={`mailto:${contact?.email || 'hello@tinysotiny.com'}`}
-                  className="text-sm font-['Value_Sans'] font-medium tracking-widest text-[#0F2341] uppercase hover:opacity-70"
-                >
-                  Email
-                </Link>
-                <Link
-                  href={`tel:${contact?.phone || '+85212345678'}`}
-                  className="text-sm font-['Value_Sans'] font-medium tracking-widest text-[#0F2341] uppercase hover:opacity-70"
-                >
-                  Phone
-                </Link>
+                {contact?.email && (
+                  <Link
+                    href={`mailto:${contact.email}`}
+                    className="text-sm font-['Value_Sans'] font-medium tracking-widest text-[#0F2341] uppercase hover:opacity-70"
+                  >
+                    Email
+                  </Link>
+                )}
+                {contact?.phone && (
+                  <Link
+                    href={`tel:${contact.phone}`}
+                    className="text-sm font-['Value_Sans'] font-medium tracking-widest text-[#0F2341] uppercase hover:opacity-70"
+                  >
+                    Phone
+                  </Link>
+                )}
               </div>
             </div>
           </div>

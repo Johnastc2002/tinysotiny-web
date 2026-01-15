@@ -89,12 +89,15 @@ function DailyListContent({ initialItems }: DailyListProps) {
     }
   }, [selectedDaily, overlayContainer]);
 
-  const updateUrlWithDaily = useCallback((dailyId: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('daily', dailyId);
-    // Push to history so back button works
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [pathname, router, searchParams]);
+  const updateUrlWithDaily = useCallback(
+    (dailyId: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('daily', dailyId);
+      // Push to history so back button works
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
 
   const handleClose = () => {
     isManualClose.current = true;
@@ -196,11 +199,7 @@ function DailyListContent({ initialItems }: DailyListProps) {
       <div className="w-full max-w-2xl flex flex-col gap-16 md:gap-24 pb-20">
         <div className="h-6 md:h-8" /> {/* Spacer */}
         {items.map((item) => (
-          <DailyCard
-            key={item.id}
-            item={item}
-            onClick={updateUrlWithDaily}
-          />
+          <DailyCard key={item.id} item={item} onClick={updateUrlWithDaily} />
         ))}
         {/* Loading Indicator */}
         {hasMore && (
