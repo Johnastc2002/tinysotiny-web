@@ -831,7 +831,7 @@ export default function SmartMedia({
                   max={duration || 100}
                   value={currentTime}
                   onChange={handleSeek}
-                  className="grow min-w-0 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-white hover:bg-white/50 transition-colors"
+                  className="grow min-w-0 h-1 bg-white/30 rounded-lg appearance-none accent-white hover:bg-white/50 transition-colors"
                 />
 
                 {/* Captions & Right Controls */}

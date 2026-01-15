@@ -37,11 +37,10 @@ export default function AboutSlideOver({
             bg-white rounded-3xl shadow-lg overflow-hidden
             flex flex-col md:flex-row
             transition-transform duration-700 ease-in-out
-            cursor-default
             ${
               isOpen
-                ? 'md:translate-x-[calc(50%-50vw)] md:cursor-default'
-                : 'md:translate-x-[calc(100%-60px)] md:hover:translate-x-[calc(100%-70px)] md:cursor-pointer'
+                ? 'md:translate-x-[calc(50%-50vw)]'
+                : 'md:translate-x-[calc(100%-60px)] md:hover:translate-x-[calc(100%-70px)]'
             }
         `}
       >

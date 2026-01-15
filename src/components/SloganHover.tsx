@@ -110,16 +110,22 @@ const SloganImageOverlay = ({
           }
 
           // Use the pre-generated random offset, fallback to deterministic if not ready
-          const randomOffset = randomOffsets[index] !== undefined ? randomOffsets[index] : ((index * 37) % 100) - 50;
+          const randomOffset =
+            randomOffsets[index] !== undefined
+              ? randomOffsets[index]
+              : ((index * 37) % 100) - 50;
           const verticalOffset = randomOffset;
-          
+
           const aspectRatio = img.width / img.height;
           const isLandscape = aspectRatio > 1;
-          
-          const baseSize = typeof window !== 'undefined' && window.innerWidth < 768 ? 150 : 200;
-          
+
+          const baseSize =
+            typeof window !== 'undefined' && window.innerWidth < 768
+              ? 150
+              : 200;
+
           let width, height;
-          
+
           if (isLandscape) {
             width = baseSize * 1.2;
             height = width / aspectRatio;
@@ -165,11 +171,11 @@ const SloganImageOverlay = ({
 export default function SloganHover({ slogan, images }: SloganHoverProps) {
   const [isHovered, setIsHovered] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   // Shared mouse values (relative to container)
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  
+
   const [interactionState, setInteractionState] = useState<{
     initialX: number;
     initialY: number;
@@ -193,7 +199,7 @@ export default function SloganHover({ slogan, images }: SloganHoverProps) {
       mouseX.set(relX);
       mouseY.set(relY);
 
-      // Define bounds for the overlay movement. 
+      // Define bounds for the overlay movement.
       // Since the container wraps the text, we allow movement within the container + buffer
       const bounds: Bounds = {
         minX: -BUFFER,
@@ -233,10 +239,9 @@ export default function SloganHover({ slogan, images }: SloganHoverProps) {
           bounds={interactionState.bounds}
         />
       )}
-      <h1 className="mb-8 font-['Value_Serif'] font-medium text-6xl leading-tight text-[#0F2341] md:text-6xl lg:text-7xl cursor-default">
+      <h1 className="mb-8 font-['Value_Serif'] font-medium text-6xl leading-tight text-[#0F2341] md:text-6xl lg:text-7xl">
         {slogan}
       </h1>
     </div>
   );
 }
-
