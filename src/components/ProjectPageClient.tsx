@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
@@ -8,6 +8,7 @@ import { useSearchParams } from 'next/navigation';
 import { Project } from '@/types/project';
 
 import SmartMedia from '@/components/SmartMedia';
+import { CursorPortal } from '@/components/CursorPortal';
 
 interface ProjectPageClientProps {
   project: Project;
@@ -25,6 +26,7 @@ export default function ProjectPageClient({
   // Ref for the container that holds the horizontal scroll section
   const containerRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
+  const [isHoveringNext, setIsHoveringNext] = useState(false);
 
   const getRecommendedHref = (id: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -641,20 +643,22 @@ export default function ProjectPageClient({
               href={getRecommendedHref(recommendedProject.id)}
               scroll={false}
               onClick={handleNextProject}
-              className="block w-full bg-[#F2B45A] rounded-t-3xl p-12 md:p-24 hover:bg-[#F5C270] transition-colors duration-300 group"
+              onMouseEnter={() => setIsHoveringNext(true)}
+              onMouseLeave={() => setIsHoveringNext(false)}
+              className="block w-full bg-[#F2B45A] rounded-t-3xl p-12 md:p-24 hover:bg-[#F5C270] transition-colors duration-300 group cursor-none"
             >
               <div className="flex flex-col items-start">
                 <div className="flex items-center space-x-2 mb-6 opacity-80 group-hover:opacity-100 transition-opacity">
-                  <span className="text-sm tracking-widest text-[#ffffff] uppercase font-['Value_Sans'] font-normal">
+                  <span className="text-sm tracking-widest text-[#ffffff] uppercase font-['Value_Sans'] font-normal leading-none">
                     Next Project
                   </span>
                   <svg
-                    width="1em"
-                    height="1em"
+                    width="14"
+                    height="14"
                     viewBox="0 0 15 15"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
-                    className="text-[#ffffff] w-[1em] h-[1em]"
+                    className="text-[#ffffff] block"
                   >
                     <path
                       d="M3 3 L12 12 L12 5"
@@ -670,6 +674,7 @@ export default function ProjectPageClient({
                 </h3>
               </div>
             </Link>
+            <CursorPortal visible={isHoveringNext} />
           </div>
         )}
       </div>
