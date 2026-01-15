@@ -121,7 +121,7 @@ export default function WorkPageClient({
       // The logic above handles page=1 specially.
       fetchProjects();
     }
-  }, [appliedTags, page]); // Only fetch when appliedTags change (reset) or page changes (scroll)
+  }, [appliedTags, page, projectType]); // Only fetch when appliedTags change (reset) or page changes (scroll)
 
   // Note: The above useEffect has a flaw: `setPage` inside it might cause loop if not careful.
   // Actually, for "load more", we increment page in the observer, which triggers this effect.
@@ -161,7 +161,7 @@ export default function WorkPageClient({
       setHasMore(true);
       setPage(2); // Reset for non-featured pagination
     }
-  }, [appliedTags]);
+  }, [appliedTags, projectType]);
 
   // Infinite Scroll Observer
   useEffect(() => {
@@ -224,7 +224,7 @@ export default function WorkPageClient({
         observer.unobserve(currentTarget);
       }
     };
-  }, [hasMore, loading, page, viewMode, appliedTags]);
+  }, [hasMore, loading, page, viewMode, appliedTags, projectType]);
 
   const displayedProjects =
     filteredProjects !== null
@@ -302,14 +302,14 @@ export default function WorkPageClient({
               onClick={(e) => e.stopPropagation()}
             >
               {gridFilter.filters.map((tag, index) => {
-                const isSelected = selectedTags.includes(tag.tag_id);
+                const isSelected = selectedTags.includes(tag.display_name);
                 return (
                   <motion.button
                     key={tag.id}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.03 * index }}
-                    onClick={() => toggleTag(tag.tag_id)}
+                    onClick={() => toggleTag(tag.display_name)}
                     className={`px-6 py-2.5 rounded-full border transition-all text-xs md:text-sm uppercase tracking-wide font-medium ${
                       isSelected
                         ? 'border-[#E32619] bg-[#E32619] text-white'

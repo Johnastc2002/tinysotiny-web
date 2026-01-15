@@ -24,7 +24,7 @@ export interface Project {
   title: string;
   clientName?: string;
   description: string;
-  tags: string[];
+  tags: SearchTag[];
   bubble_thumbnail: string;
   bubble_thumbnail_hover?: string;
   thumbnails: string[];
@@ -42,7 +42,6 @@ export interface Project {
 export interface SearchTag {
   id: string;
   display_name: string;
-  tag_id: string;
 }
 
 export interface GridFilter {

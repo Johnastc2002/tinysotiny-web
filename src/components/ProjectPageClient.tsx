@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
@@ -235,7 +235,7 @@ export default function ProjectPageClient({
                                 }
                               >
                                 <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />
-                                {tag}
+                                {tag.display_name}
                               </li>
                             ))}
                           </ul>
@@ -275,7 +275,7 @@ export default function ProjectPageClient({
                                 }
                               >
                                 <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />{' '}
-                                {tag}
+                                {tag.display_name}
                               </li>
                             ))}
                           </ul>
@@ -338,7 +338,7 @@ export default function ProjectPageClient({
                         style={cardTagColor ? { color: cardTagColor } : {}}
                       >
                         <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />{' '}
-                        {tag}
+                        {tag.display_name}
                       </li>
                     ))}
                   </ul>
@@ -382,7 +382,7 @@ export default function ProjectPageClient({
                       style={cardTagColor ? { color: cardTagColor } : {}}
                     >
                       <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />{' '}
-                      {tag}
+                      {tag.display_name}
                     </li>
                   ))}
                 </ul>

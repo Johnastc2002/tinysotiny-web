@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useCursor } from '@/context/CursorContext';
+import { SearchTag } from '@/types/project';
 
 export interface DetailCardData {
   id: string;
@@ -17,7 +18,7 @@ export interface DetailCardData {
   cardFontColor?: string;
   cardTagColor?: string;
   thumbnails?: string[];
-  tags?: string[];
+  tags?: SearchTag[];
 }
 
 interface DetailCardProps {
@@ -231,7 +232,7 @@ export default function DetailCard({
                               }
                             >
                               <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />
-                              {tag}
+                              {tag.display_name}
                             </li>
                           ))}
                         </ul>

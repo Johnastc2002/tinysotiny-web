@@ -95,17 +95,31 @@ const parseRichText = (document: any): string => {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mapSearchTag = (entry: any): SearchTag => {
+  const fields = entry.fields;
+  return {
+    id: entry.sys.id,
+    display_name: String(fields.display_name || fields.displayName || ''),
+  };
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapProject = (entry: any): Project => {
   const fields = entry.fields;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const tags = entry.metadata?.tags?.map((tag: any) => tag.sys.id) || [];
+  const tags = (fields.tags || [])
+    .map((ref: any) => {
+      if (!ref.fields) return null;
+      return mapSearchTag(ref);
+    })
+    .filter((tag: SearchTag | null) => tag !== null);
 
   return {
     id: entry.sys.id,
     title: String(fields.title || ''),
     clientName: String(fields.clientName || ''),
     description: String(fields.description || ''),
-    tags: tags,
+    tags: tags as SearchTag[],
     bubble_thumbnail: getAssetUrl(
       fields.bubbleThumbnail || fields.bubble_thumbnail
     ),
@@ -377,10 +391,26 @@ export async function getProjectsByTags(
   limit: number = 9,
   type?: ProjectType
 ) {
+  // First, find the IDs of the tags that match the display names
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tagQuery: Record<string, any> = {
+    content_type: 'searchTag',
+    'fields.displayName[in]': tags.join(','),
+    limit: 100, // Assuming we won't have more than 100 tags selected at once
+  };
+
+  const tagEntries = await getEntries('searchTag', tagQuery);
+  const tagIds = tagEntries.items.map((entry) => entry.sys.id);
+
+  // If no tags found, return empty result (or handle as "no projects found")
+  if (tagIds.length === 0) {
+    return [];
+  }
+
   const skip = (page - 1) * limit;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const query: Record<string, any> = {
-    'metadata.tags.sys.id[in]': tags.join(','),
+    'fields.tags.sys.id[in]': tagIds.join(','),
     order: '-fields.projectDate',
     limit,
     skip,
@@ -523,16 +553,6 @@ export async function getDailyEntryById(id: string): Promise<DailyData | null> {
     return null;
   }
 }
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mapSearchTag = (entry: any): SearchTag => {
-  const fields = entry.fields;
-  return {
-    id: entry.sys.id,
-    display_name: String(fields.display_name || fields.displayName || ''),
-    tag_id: String(fields.tag_id || fields.tagId || ''),
-  };
-};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapGridFilter = (entry: any): GridFilter => {

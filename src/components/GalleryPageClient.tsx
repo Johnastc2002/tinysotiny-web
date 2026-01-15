@@ -268,7 +268,7 @@ function GalleryPageContent({
                 className="flex items-center leading-none text-[10px] md:text-xs font-['Value_Sans'] font-normal uppercase tracking-wide transition-colors text-current"
               >
                 <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />
-                {tag}
+                {tag.display_name}
               </li>
             ))}
           </ul>
@@ -691,7 +691,7 @@ function GalleryPageContent({
               className="max-w-5xl w-full flex flex-wrap justify-center gap-3 md:gap-4 max-h-[60vh] overflow-y-auto pt-0 pb-4 md:pt-0"
             >
               {gridFilter.filters.map((tag, index) => {
-                const isSelected = selectedTags.includes(tag.tag_id);
+                const isSelected = selectedTags.includes(tag.display_name);
 
                 return (
                   <motion.button
@@ -707,7 +707,7 @@ function GalleryPageContent({
                     }
                     onClick={(e) => {
                       e.stopPropagation();
-                      toggleTag(tag.tag_id);
+                      toggleTag(tag.display_name);
                     }}
                     className={`px-6 py-2.5 rounded-full transition-colors duration-200 text-xs md:text-sm uppercase tracking-wide font-['Value_Sans'] font-normal text-white ${
                       isSelected
@@ -909,7 +909,7 @@ function ProjectCard({ project }: { project: Project }) {
                 key={i}
                 className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-white/20 backdrop-blur-sm text-[9px] md:text-[10px] uppercase tracking-wide font-['Value_Sans'] font-normal text-white"
               >
-                {tag}
+                {tag.display_name}
               </span>
             ))}
           </div>
