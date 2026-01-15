@@ -20,6 +20,7 @@ import {
 } from '@react-three/drei';
 import * as THREE from 'three';
 import { Project } from '@/types/project';
+import { useCursor } from '@/context/CursorContext';
 import { InteractionCursor } from './BubbleActions';
 
 interface Shader {
@@ -253,6 +254,7 @@ const Bubble = ({
 }) => {
   const router = useRouter();
   const groupRef = useRef<THREE.Group>(null);
+  const { setCursor } = useCursor();
 
   // Animation state
   // Start near center (atom-like) if explosion enabled, otherwise at final position
@@ -310,7 +312,11 @@ const Bubble = ({
     e.stopPropagation(); // Stop propagation to bubbles behind
     setHoveredId(id);
     if (link) {
-      document.body.style.cursor = 'pointer';
+      setCursor('label');
+    } else if (label === 'play') {
+      setCursor('label', 'game on!');
+    } else if (onOpenCard && project) {
+      setCursor('label');
     }
   };
 
@@ -318,9 +324,7 @@ const Bubble = ({
     // Only clear if we are the one currently hovered
     if (isHovered) {
       setHoveredId(null);
-    }
-    if (link) {
-      document.body.style.cursor = 'auto';
+      setCursor('default');
     }
   };
 
@@ -683,18 +687,7 @@ const ImageBubble = ({
               cursorPos ? [cursorPos[0], cursorPos[1], cursorPos[2]] : [0, 0, 0]
             }
           >
-            <Html
-              position={[0, 0, 0]}
-              style={{
-                pointerEvents: 'none',
-                transform: 'translate(20px, 20px)',
-              }}
-              className="pointer-events-none"
-              pointerEvents="none"
-              zIndexRange={[100, 0]}
-            >
-              <InteractionCursor text={null} />
-            </Html>
+            {/* Removed Html cursor as we use global cursor now */}
           </group>
         )}
       </Billboard>
@@ -915,28 +908,6 @@ const ColorBubble = ({
           >
             {label}
           </Text>
-        )}
-        {label === 'play' && isHovered && (
-          <group
-            position={
-              cursorPos
-                ? [cursorPos[0], cursorPos[1], cursorPos[2]]
-                : [0.6, 0, 0]
-            }
-          >
-            <Html
-              position={[0, 0, 0]}
-              style={{
-                pointerEvents: 'none',
-                transform: 'translate(20px, 20px)',
-              }}
-              className="pointer-events-none"
-              pointerEvents="none"
-              zIndexRange={[100, 0]}
-            >
-              <InteractionCursor text="game on!" />
-            </Html>
-          </group>
         )}
       </Billboard>
     </Float>
@@ -1164,7 +1135,7 @@ export default function BubbleScene({
   }, [paused]);
 
   return (
-    <div className={`w-full h-screen ${bgClass}`}>
+    <div className={`w-full h-screen ${bgClass} cursor-none`}>
       <Canvas
         frameloop={paused ? 'never' : 'always'}
         camera={{ position: [0, 0, 20], fov: 50 }}

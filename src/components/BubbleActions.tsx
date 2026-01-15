@@ -22,6 +22,7 @@ export const InteractionCursor = ({
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
+          className={text ? '' : 'translate-x-[1px] translate-y-[1px]'}
         >
           <path d="M5 12h14" />
           <path d="M12 5l7 7" />

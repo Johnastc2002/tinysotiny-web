@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { motion, useMotionValue, useSpring, MotionValue } from 'framer-motion';
 import { ImageMeta } from '@/types/client';
@@ -77,14 +77,12 @@ const SloganImageOverlay = ({
     return unsub;
   }, [x, bounds]);
 
-  const [randomOffsets, setRandomOffsets] = useState<number[]>([]);
-
-  useEffect(() => {
+  const randomOffsets = useMemo(() => {
     // Generate random offsets when the component mounts or when images change
     if (images) {
-      const offsets = images.map(() => Math.random() * 100 - 50);
-      setRandomOffsets(offsets);
+      return images.map(() => Math.random() * 100 - 50);
     }
+    return [];
   }, [images]);
 
   if (!images || images.length === 0) return null;

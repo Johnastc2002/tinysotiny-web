@@ -225,9 +225,9 @@ function DailyCard({
     <>
       <div
         onClick={() => onClick(item.id)}
-        onMouseEnter={() => setCursor('label', 'View')}
+        onMouseEnter={() => setCursor('label')}
         onMouseLeave={() => setCursor('default')}
-        className="flex flex-col items-center gap-3 cursor-pointer group w-full"
+        className="flex flex-col items-center gap-3 cursor-none group w-full"
       >
         {/* Image Container */}
         {/* Use thumbnail as the main image in the list view */}

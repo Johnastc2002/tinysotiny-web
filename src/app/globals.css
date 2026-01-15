@@ -105,12 +105,16 @@ body {
   cursor: none;
 }
 
-a, button, [role="button"] {
+a,
+button,
+[role='button'] {
   cursor: none;
 }
 
 /* Restore native cursor for inputs/text areas */
-input, textarea, [contenteditable="true"] {
+input,
+textarea,
+[contenteditable='true'] {
   cursor: text;
 }
 

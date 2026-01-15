@@ -13,7 +13,9 @@ export default function GlobalCursor() {
 
   useEffect(() => {
     setMounted(true);
-    
+  }, []);
+
+  useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isVisible) setIsVisible(true);
       if (cursorRef.current) {
@@ -60,7 +62,7 @@ export default function GlobalCursor() {
             className="w-3 h-3 bg-white rounded-full -translate-x-1/2 -translate-y-1/2"
           />
         )}
-        
+
         {cursorState.type === 'label' && (
           <motion.div
             key="label"
@@ -68,15 +70,16 @@ export default function GlobalCursor() {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.5, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="relative"
-            // Offset to not cover the exact point, matching previous logic (+20px)
-            style={{ marginLeft: '20px', marginTop: '20px' }}
+            className="relative -top-[14px] -left-[14px]"
+            // Offset logic to keep icon centered: -14px is half of 28px icon size
           >
-            <InteractionCursor text={cursorState.text} className="mix-blend-normal" />
+            <InteractionCursor
+              text={cursorState.text}
+              className="mix-blend-normal"
+            />
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
 }
-

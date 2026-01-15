@@ -859,7 +859,7 @@ function ProjectCard({ project }: { project: Project }) {
         href={getHref()}
         scroll={false}
         className="block group transition-all duration-300 w-full h-full"
-        onMouseEnter={() => setCursor('label', 'View')}
+        onMouseEnter={() => setCursor('label')}
         onMouseLeave={() => setCursor('default')}
       >
         <div className="relative w-full aspect-square overflow-hidden bg-gray-200 rounded-3xl">

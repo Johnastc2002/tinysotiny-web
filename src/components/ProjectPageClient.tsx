@@ -643,8 +643,9 @@ export default function ProjectPageClient({
               href={getRecommendedHref(recommendedProject.id)}
               scroll={false}
               onClick={handleNextProject}
-              onMouseEnter={() => setCursor('label', 'Next Project')}
+              onMouseEnter={() => setCursor('label')}
               onMouseLeave={() => setCursor('default')}
+              style={{ cursor: 'none' }}
               className="block w-full bg-[#F2B45A] rounded-t-3xl p-12 md:p-24 hover:bg-[#F5C270] transition-colors duration-300 group cursor-none"
             >
               <div className="flex flex-col items-start">

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ClientData } from '@/types/client';
 import Image from 'next/image';
 import { motion, useMotionValue, useSpring, MotionValue } from 'framer-motion';
@@ -96,16 +96,12 @@ const ClientImageOverlay = ({
     return unsub;
   }, [x, bounds]);
 
-  const [randomOffsets, setRandomOffsets] = useState<number[]>([]);
-
-  useEffect(() => {
+  const randomOffsets = useMemo(() => {
     // Generate random offsets when the component mounts or when thumbnails change
     if (hoveredClient.thumbnails) {
-      const offsets = hoveredClient.thumbnails.map(
-        () => Math.random() * 100 - 50
-      );
-      setRandomOffsets(offsets);
+      return hoveredClient.thumbnails.map(() => Math.random() * 100 - 50);
     }
+    return [];
   }, [hoveredClient]);
 
   return (
@@ -290,7 +286,7 @@ export default function ClientList({ clients }: ClientListProps) {
 
             {/* Visible text positioned absolutely over the placeholder */}
             <div
-              className={`absolute inset-0 flex items-center justify-center transition-transform duration-200 cursor-default whitespace-nowrap px-1 text-[#B6B6B6] hover:text-[#B6B6B6] ${
+              className={`absolute inset-0 flex items-center justify-center transition-transform duration-200 whitespace-nowrap px-1 text-[#B6B6B6] hover:text-[#B6B6B6] ${
                 hoveredClientId === client.id
                   ? "font-['Value_Serif'] font-medium scale-105"
                   : "font-['Value_Sans'] font-medium"

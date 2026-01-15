@@ -730,7 +730,7 @@ export default function SmartMedia({
     return (
       <div
         ref={containerRef}
-        className={`${wrapperClasses} bg-[#b6b6b6] overflow-hidden group cursor-pointer`}
+        className={`${wrapperClasses} bg-[#b6b6b6] overflow-hidden group cursor-none`}
         onClick={handleContainerClick}
         onMouseMove={handleActivity}
         onTouchStart={handleActivity}
@@ -1141,7 +1141,7 @@ export default function SmartMedia({
     return (
       <div
         ref={containerRef} // Add ref here so handleFullscreen works for video type
-        className={`${wrapperClasses} bg-[#b6b6b6] overflow-hidden cursor-pointer group`}
+        className={`${wrapperClasses} bg-[#b6b6b6] overflow-hidden cursor-none group`}
         onClick={toggleVideo}
       >
         <video
