@@ -21,6 +21,10 @@ import * as THREE from 'three';
 import { Project } from '@/types/project';
 import { useCursor } from '@/context/CursorContext';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import {
+  BubbleRefractionProvider,
+  useBubbleRefraction,
+} from './BubbleRefraction';
 
 interface Shader {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,6 +52,7 @@ interface BubbleData {
   project?: Project;
   textOffset?: [number, number, number];
   isGradient?: boolean;
+  isRefractive?: boolean;
 }
 
 const useSoftCircleTexture = (
@@ -158,6 +163,7 @@ const generateBubbles = (
           color: BUBBLE_COLORS.GREY, // Corrected Grey
           type: 'glass',
           isGradient: true,
+          isRefractive: true,
         });
         i++;
       }
@@ -202,6 +208,7 @@ const generateBubbles = (
             color: BUBBLE_COLORS.GREY,
             type: 'glass',
             isGradient: true,
+            isRefractive: true,
           });
         }
         i++;
@@ -232,6 +239,7 @@ const Bubble = ({
   isHovered,
   setHoveredId,
   isMobile,
+  isRefractive,
 }: {
   id: number;
   position: [number, number, number];
@@ -252,6 +260,7 @@ const Bubble = ({
   isHovered: boolean;
   setHoveredId: (id: number | null) => void;
   isMobile: boolean;
+  isRefractive?: boolean;
 }) => {
   const router = useRouter();
   const groupRef = useRef<THREE.Group>(null);
@@ -368,6 +377,7 @@ const Bubble = ({
   return (
     <group ref={groupRef} position={enableExplosion ? undefined : position}>
       <ColorBubble
+        id={id}
         position={[0, 0, 0]} // Relative to group
         scale={adjustedScale}
         color={color}
@@ -381,6 +391,7 @@ const Bubble = ({
         isGradient={isGradient}
         enableBlur={enableBlur}
         isHovered={isHovered}
+        isRefractive={isRefractive}
       />
     </group>
   );
@@ -705,6 +716,7 @@ const ImageBubble = ({
 };
 
 const ColorBubble = ({
+  id,
   position,
   scale,
   color,
@@ -717,7 +729,9 @@ const ColorBubble = ({
   textOffset,
   isGradient,
   enableBlur,
+  isRefractive,
 }: {
+  id?: number | string;
   position: [number, number, number];
   scale: number;
   color?: string;
@@ -731,12 +745,20 @@ const ColorBubble = ({
   isGradient?: boolean;
   enableBlur?: boolean;
   isHovered?: boolean;
+  isRefractive?: boolean;
 }) => {
   const [floatSpeed] = useState(() => (1.5 + Math.random()) * 0.5);
   const [floatIntensity] = useState(() => 1 + Math.random());
 
   const { camera } = useThree();
   const meshRef = useRef<THREE.Mesh>(null);
+
+  const isRefractionActive = useBubbleRefraction(
+    id?.toString() || 'unknown',
+    meshRef,
+    !!isRefractive
+  );
+
   const shaderRef = useRef<Shader>(null);
   const worldPos = useMemo(() => new THREE.Vector3(), []);
   const camDir = useMemo(() => new THREE.Vector3(), []);
@@ -892,7 +914,7 @@ const ColorBubble = ({
           <meshBasicMaterial transparent opacity={0} depthWrite={false} />
         </mesh>
 
-        <mesh ref={meshRef} raycast={() => null}>
+        <mesh ref={meshRef} raycast={() => null} visible={!isRefractionActive}>
           {/* Use padded geometry if blur is enabled to allow feathering space */}
           <circleGeometry
             args={[scale * (enableBlur ? PADDING_SCALE : 1.0), 128]}
@@ -992,6 +1014,7 @@ const Bubbles = ({
   explosionDelay,
   enableBlur,
   isMobile,
+  enableRefraction,
 }: {
   mode: 'home' | 'gallery';
   projects?: Project[];
@@ -1000,6 +1023,7 @@ const Bubbles = ({
   explosionDelay?: number;
   enableBlur?: boolean;
   isMobile: boolean;
+  enableRefraction?: boolean;
 }) => {
   // Pass projects to generateBubbles
   const bubbles = useMemo(() => {
@@ -1052,7 +1076,7 @@ const Bubbles = ({
   });
 
   return (
-    <>
+    <BubbleRefractionProvider enabled={enableRefraction}>
       {bubbles.map((bubble) => (
         <Bubble
           key={bubble.id}
@@ -1075,9 +1099,10 @@ const Bubbles = ({
           isHovered={hoveredId === bubble.id}
           setHoveredId={setHoveredId}
           isMobile={isMobile}
+          isRefractive={bubble.isRefractive}
         />
       ))}
-    </>
+    </BubbleRefractionProvider>
   );
 };
 
@@ -1163,6 +1188,7 @@ export default function BubbleScene({
   paused = false,
   welcomeVideo,
   showPlayGrid,
+  enableRefraction = false,
 }: {
   mode?: 'home' | 'gallery';
   projects?: Project[];
@@ -1174,6 +1200,7 @@ export default function BubbleScene({
   paused?: boolean;
   welcomeVideo?: string;
   showPlayGrid?: boolean;
+  enableRefraction?: boolean;
 }) {
   console.log(
     'BubbleScene render. Mode:',
@@ -1221,6 +1248,7 @@ export default function BubbleScene({
               explosionDelay={explosionDelay}
               enableBlur={enableBlur}
               isMobile={isMobile}
+              enableRefraction={enableRefraction}
             />
           </RotatingGroup>
         </React.Suspense>
