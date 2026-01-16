@@ -975,6 +975,7 @@ const ColorBubble = ({
               color={color}
               side={THREE.DoubleSide}
               transparent={!!enableBlur}
+              depthWrite={true} // Enable depth write for correct refraction masking
               onBeforeCompile={enableBlur ? onBeforeCompile : undefined}
             />
           ) : isRefractive ? (
@@ -990,7 +991,7 @@ const ColorBubble = ({
               side={THREE.DoubleSide}
               transparent
               alphaMap={alphaMap || undefined}
-              depthWrite={false} // Ensure it doesn't occlude things behind it weirdly
+              depthWrite={true} // Enable depth write to ensure correct refraction masking
               onBeforeCompile={enableBlur ? onBeforeCompile : undefined}
             />
           ) : (

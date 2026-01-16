@@ -40,8 +40,8 @@ export const BubbleRefractionProvider = ({
     const height = Math.floor(size.height * pixelRatio);
 
     const target = new THREE.WebGLRenderTarget(width, height, {
-      minFilter: THREE.LinearFilter,
-      magFilter: THREE.LinearFilter,
+      minFilter: THREE.NearestFilter, // Use Nearest for depth precision
+      magFilter: THREE.NearestFilter,
       format: THREE.RGBAFormat,
       type: THREE.UnsignedByteType,
       depthBuffer: true,
@@ -97,7 +97,10 @@ export const BubbleRefractionProvider = ({
     hiddenBubbles.forEach((b) => {
       b.visible = true;
     });
-  });
+
+    // 4. Manual Render to Screen (since we took over the loop with priority 1)
+    state.gl.render(state.scene, state.camera);
+  }, 1); // Priority 1: Run after animations, take over render loop to ensure sync
 
   const resolution = useMemo(
     () => new THREE.Vector2(size.width, size.height),
@@ -212,76 +215,55 @@ const RefractionShaderMaterialImpl = shaderMaterial(
         vec2 refractedUV = screenUV + offset;
         
         // Depth Check: Only refract things BEHIND the bubble
-        // 1. Get depth at refracted UV from the depth texture (which contains scene depth excluding this bubble)
+        // Read raw depth values (0.0 = Near, 1.0 = Far)
         float sceneDepthVal = texture2D(tDepth, refractedUV).x;
-        float sceneDepth = perspectiveDepthToViewZ(sceneDepthVal, cameraNear, cameraFar); // View space Z (negative)
-        
-        // 2. Get this fragment's depth (linearized)
-        // gl_FragCoord.z is in [0, 1] (non-linear).
         float currentDepthVal = gl_FragCoord.z;
-        float currentDepth = perspectiveDepthToViewZ(currentDepthVal, cameraNear, cameraFar); // View space Z (negative)
         
-        // Note: ViewZ is negative. Closer objects have larger (less negative) Z.
-        // If sceneDepth > currentDepth, scene object is CLOSER to camera than bubble front face.
-        // We should NOT refract it (it's in front).
+        // If scene depth is LARGER (further) than current depth, it is behind.
+        // We add a small tolerance to prevent self-intersection artifacts if depths are close
+        float alpha = uOpacity;
         
-        // However, we hid this bubble during FBO capture, so tDepth contains everything ELSE.
-        // If there's an object in front, it will be in tDepth.
-        
-        bool isBehind = sceneDepth < currentDepth; // scene is further away (more negative)
-        
-        // If the object at refracted UV is in front of the bubble, use original UV (no refraction)
-        // or effectively "don't refract foreground".
-        // Actually, if it's in front, we shouldn't see the refraction of it? 
-        // Correct. The bubble is behind it. 
-        // BUT wait, standard depth test handles occlusion if the object is opaque.
-        // If the object is transparent, we might see it.
-        
-        // The issue is "refracting the thing behind it".
-        // Our FBO captures everything visible.
-        // If an object is BEHIND the bubble, we want to refract it.
-        // If an object is IN FRONT, standard Z-buffer occlusion (handled by WebGL) prevents us from drawing over it,
-        // UNLESS we are transparent and disable depth write?
-        
-        // If we are transparent/refractive, we usually draw LAST.
-        // If there is an opaque object in front, the depth test fails and we don't draw. Good.
-        // If there is an opaque object BEHIND, we draw over it.
-        
-        // The problem: "refraction only refracts the thing behind it".
-        // This is what it DOES now (by definition of drawing over background).
-        // Maybe the user means: "It is currently refracting things in front, and I want it to ONLY refract behind"?
-        // Or "I want to ensure it DOES refract behind".
-        
-        // If the user means "I see foreground objects being refracted", that's because our FBO captured them.
-        // Yes! The FBO captures the WHOLE scene (except this bubble).
-        // If there is a bubble in front of this one, it was captured in the FBO.
-        // And now we are refracting its image, which looks wrong because it's physically in front.
-        
-        if (!isBehind) {
-             // The object at this pixel is physically closer than the bubble surface.
-             // We are sampling a foreground object.
-             // We should not refract it. 
-             // We should sample the background behind IT? We can't, single layer FBO.
-             // Fallback: Don't offset UV.
+        // Depth test with larger bias to aggressively cull foreground artifacts
+        // 0.0001 might be too small for depth buffer precision at distance
+        if (sceneDepthVal < currentDepthVal + 0.005) {
+             // Scene is CLOSER (smaller value) -> Foreground object captured in FBO.
+             // Try to sample "unrefracted" background?
+             // If we use screenUV, we sample the object itself (bad).
+             // Ideally we want to see what's BEHIND the foreground object.
+             // But we only have one layer.
+             // So transparency is the correct physical approximation (we see the foreground object via main pass).
              refractedUV = screenUV; 
+             alpha = 0.0;
         }
 
         // Blur (4-tap)
         vec3 col = vec3(0.0);
         float scale = 0.001 * uBlurScale;
         
-        col += texture2D(tDiffuse, refractedUV + vec2( 1.0,  0.0) * scale).rgb;
-        col += texture2D(tDiffuse, refractedUV + vec2(-1.0,  0.0) * scale).rgb;
-        col += texture2D(tDiffuse, refractedUV + vec2( 0.0,  1.0) * scale).rgb;
-        col += texture2D(tDiffuse, refractedUV + vec2( 0.0, -1.0) * scale).rgb;
-        col *= 0.25;
+        // Only sample if alpha > 0 to save performance and avoid artifacts
+        if (alpha > 0.01) {
+            col += texture2D(tDiffuse, refractedUV + vec2( 1.0,  0.0) * scale).rgb;
+            col += texture2D(tDiffuse, refractedUV + vec2(-1.0,  0.0) * scale).rgb;
+            col += texture2D(tDiffuse, refractedUV + vec2( 0.0,  1.0) * scale).rgb;
+            col += texture2D(tDiffuse, refractedUV + vec2( 0.0, -1.0) * scale).rgb;
+            col *= 0.25;
+        }
 
         // Add Fresnel/Rim effect to make it visible against flat backgrounds
         vec3 viewDir = vec3(0.0, 0.0, 1.0);
         float fresnel = pow(1.0 - dot(normal, viewDir), 3.0);
         col = mix(col, vec3(1.0), fresnel * 0.3); // Add white rim
         
-        gl_FragColor = vec4(col, 1.0); // Force Alpha 1.0
+        // If alpha was killed by depth check, we can still show the rim?
+        // NO: If we culled the body because it's "foreground artifact", showing the rim
+        // creates a "weird gapped border" ghost. We should cull the rim too.
+        float finalAlpha = max(alpha, fresnel * uOpacity);
+        
+        if (alpha < 0.01) {
+            finalAlpha = 0.0;
+        }
+        
+        gl_FragColor = vec4(col, finalAlpha);
     }
   `
 );
