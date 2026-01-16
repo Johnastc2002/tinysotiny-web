@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useRef } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useMemo,
+} from 'react';
 import { useFrame, useThree, extend } from '@react-three/fiber';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -18,7 +24,7 @@ const BubbleRefractionShader = {
     uCount: { value: 0 },
     uRefractionStrength: { value: 0.02 },
     uBlurScale: { value: 4.0 },
-    uEdgeSoftness: { value: 0.2 },
+    uEdgeSoftness: { value: 0.0 }, // Hard edge to confirm exact alignment
     uOpacity: { value: 1.0 },
     uResolution: { value: new THREE.Vector2(1, 1) }, // Screen aspect ratio correction
   },
@@ -43,6 +49,7 @@ const BubbleRefractionShader = {
     varying vec2 vUv;
 
     void main() {
+      // Revert Y flip - the flipping issue was due to object orientation
       vec4 base = texture2D(tDiffuse, vUv);
       
       vec2 totalOffset = vec2(0.0);
@@ -54,23 +61,14 @@ const BubbleRefractionShader = {
         vec2 center = vec2(uCenters[i * 2], uCenters[i * 2 + 1]);
         float radius = uRadii[i];
         
-        // Correct distance for aspect ratio if needed, but assuming UV space implies stretched circles if aspect not handled.
-        // To keep circles circular, we should adjust UVs by aspect.
-        // But for screen space effect, maybe just using simple distance is enough if we correct input radius?
-        // Let's assume uRadii are in UV space (normalized).
-        
-        // Distance in UV space
-        // Aspect ratio correction:
         vec2 uvDiff = vUv - center;
         uvDiff.x *= uResolution.x / uResolution.y; // Assume landscape
         float dist = length(uvDiff);
 
-        // Adjust radius for aspect too? 
-        // If we adjust distance, we compare against "circular" radius in adjusted space.
-        
-        // Let's keep it simple: assume radius is proportional to vertical size (UV.y)
-        
-        float m = smoothstep(radius, radius - uEdgeSoftness * radius, dist);
+        // Soft edge to align with bubble geometry feathering
+        // float m = smoothstep(radius, radius - uEdgeSoftness * radius, dist);
+        // Hard edge for now to match geometry
+        float m = 1.0 - step(radius, dist);
         
         if (m > 0.0) {
           // Radial normal
@@ -92,6 +90,7 @@ const BubbleRefractionShader = {
       // Simple 4-tap blur
       vec3 acc = vec3(0.0);
       float scale = 0.001 * uBlurScale;
+      
       acc += texture2D(tDiffuse, refractedUv + vec2( 1.0,  0.0) * scale).rgb;
       acc += texture2D(tDiffuse, refractedUv + vec2(-1.0,  0.0) * scale).rgb;
       acc += texture2D(tDiffuse, refractedUv + vec2( 0.0,  1.0) * scale).rgb;
@@ -107,7 +106,8 @@ const BubbleRefractionShader = {
 interface RefractionContextType {
   registerBubble: (
     id: string,
-    ref: React.RefObject<THREE.Object3D | null>
+    ref: React.RefObject<THREE.Object3D | null>,
+    radiusScale?: number
   ) => void;
   unregisterBubble: (id: string) => void;
   isEnabled: boolean;
@@ -123,14 +123,18 @@ export const BubbleRefractionProvider = ({
   enabled?: boolean;
 }) => {
   const bubblesRef = useRef<
-    Map<string, React.RefObject<THREE.Object3D | null>>
+    Map<
+      string,
+      { ref: React.RefObject<THREE.Object3D | null>; radiusScale: number }
+    >
   >(new Map());
 
   const registerBubble = (
     id: string,
-    ref: React.RefObject<THREE.Object3D | null>
+    ref: React.RefObject<THREE.Object3D | null>,
+    radiusScale: number = 1.0
   ) => {
-    bubblesRef.current.set(id, ref);
+    bubblesRef.current.set(id, { ref, radiusScale });
   };
 
   const unregisterBubble = (id: string) => {
@@ -150,16 +154,17 @@ export const BubbleRefractionProvider = ({
 export const useBubbleRefraction = (
   id: string,
   ref: React.RefObject<THREE.Object3D | null>,
-  condition: boolean = true
+  condition: boolean = true,
+  radiusScale: number = 1.0
 ) => {
   const context = useContext(RefractionContext);
 
   useEffect(() => {
     if (context && context.isEnabled && condition && ref.current) {
-      context.registerBubble(id, ref);
+      context.registerBubble(id, ref, radiusScale);
       return () => context.unregisterBubble(id);
     }
-  }, [context, id, ref, condition]);
+  }, [context, id, ref, condition, radiusScale]);
 
   return (context?.isEnabled && condition) || false;
 };
@@ -168,12 +173,16 @@ const RefractionEffect = ({
   bubblesRef,
 }: {
   bubblesRef: React.MutableRefObject<
-    Map<string, React.RefObject<THREE.Object3D | null>>
+    Map<
+      string,
+      { ref: React.RefObject<THREE.Object3D | null>; radiusScale: number }
+    >
   >;
 }) => {
   const { gl, scene, camera, size } = useThree();
   const composer = useRef<EffectComposer>(null);
   const shaderPass = useRef<ShaderPass>(null);
+  const camDir = useMemo(() => new THREE.Vector3(), []);
 
   useEffect(() => {
     const effectComposer = new EffectComposer(gl);
@@ -204,13 +213,18 @@ const RefractionEffect = ({
 
     let activeCount = 0;
 
+    camera.getWorldDirection(camDir);
+
     for (let i = 0; i < count; i++) {
-      const obj = bubbles[i].current;
+      const { ref, radiusScale } = bubbles[i];
+      const obj = ref.current;
       if (!obj) continue;
 
-      // Get screen position
-      const pos = new THREE.Vector3().setFromMatrixPosition(obj.matrixWorld);
-      pos.project(camera); // -1 to 1
+      // Get world and screen position
+      const worldPos = new THREE.Vector3().setFromMatrixPosition(
+        obj.matrixWorld
+      );
+      const pos = worldPos.clone().project(camera); // NDC -1 to 1
 
       // Convert to 0-1 UV space
       const uvX = pos.x * 0.5 + 0.5;
@@ -221,73 +235,42 @@ const RefractionEffect = ({
 
       centers.push(uvX, uvY);
 
-      // Get Screen Space Radius
-      // A simple approximation: project a point on the edge of the sphere
-      // Or using scale and distance
-      // Perspective scaling: scale / distance
+      // Get Screen Space Radius by projecting the top edge of the bubble
+      // This automatically handles FOV, distance, and perspective scaling (Z-depth)
 
-      // Let's take the object's scale. Assuming uniform scale for sphere.
-      // The scale of the object in world units:
-      // const worldScale = obj.getWorldScale(new THREE.Vector3()).x; // Assume uniform
-
-      // Project a point `worldScale` units up from center in view space
-      // Alternative: Approximate radius in clip space = radius / -viewZ * projectionMatrix[0][0] or something.
-
-      // Simpler:
-      const dist = camera.position.distanceTo(
-        new THREE.Vector3().setFromMatrixPosition(obj.matrixWorld)
-      );
-      // Tan(FOV/2) helps relate world size to screen size
-
-      // Need to account for FOV
-      // visible height at distance d = 2 * d * tan(fov/2)
-      // radiusFraction = worldRadius / visibleHeight
-      // radiusUV = radiusFraction (since UV is 0-1)
-
-      // Assuming PerspectiveCamera
-      if ((camera as THREE.PerspectiveCamera).isPerspectiveCamera) {
-        const pCam = camera as THREE.PerspectiveCamera;
-        const fovRad = THREE.MathUtils.degToRad(pCam.fov);
-        const visibleHeight = 2 * dist * Math.tan(fovRad / 2);
-        // UV space radius (vertical fraction)
-        // bubble radius is worldScale (if geometry is radius 1, but geometry is usually diam 1? check BubbleScene)
-        // CircleGeometry args[0] is radius.
-        // In BubbleScene: <circleGeometry args={[scale, 32]} /> -> So scale IS radius.
-        // Wait, `scale` passed to geometry is the radius.
-        // And `scale` prop passed to mesh is 1.0 usually?
-        // No, `Bubble` component receives `scale`.
-        // `ColorBubble` receives `scale`.
-        // It renders `<circleGeometry args={[scale, 32]} />`.
-        // So the world radius is `scale * obj.scale`.
-        // In `ColorBubble`, mesh is `<mesh ... scale={1} ...><circleGeometry args={[scale]} ...>`
-        // But the `group` above `ColorBubble` has no scale prop?
-        // Ah, `Bubble` renders `<group ...><ColorBubble ... scale={adjustedScale} ...>`
-        // So the geometry radius is `adjustedScale`.
-        // The mesh itself has scale 1.
-        // So world radius is `adjustedScale` (if parent groups don't scale).
-
-        // BUT `useBubbleRefraction` is passed a ref to the mesh.
-        // We need to know the logical radius.
-        // The mesh bounding sphere?
-
-        // Let's assume the ref is to the mesh with geometry.
-        // We can get bounding sphere.
-        if (obj instanceof THREE.Mesh && obj.geometry) {
-          if (!obj.geometry.boundingSphere)
-            obj.geometry.computeBoundingSphere();
-          const sphere = obj.geometry.boundingSphere;
-          const worldRadius = sphere
-            ? sphere.radius * obj.getWorldScale(new THREE.Vector3()).x
-            : 1;
-
-          const rUV = worldRadius / visibleHeight;
-          radii.push(rUV);
-        } else {
-          radii.push(0.05); // Fallback
+      // 1. Get World Radius
+      let geometryRadius = 1;
+      if (obj instanceof THREE.Mesh && obj.geometry) {
+        if (!obj.geometry.boundingSphere) obj.geometry.computeBoundingSphere();
+        if (obj.geometry.boundingSphere) {
+          geometryRadius = obj.geometry.boundingSphere.radius;
         }
-      } else {
-        radii.push(0.05); // Orthographic fallback
       }
+      const worldScale = obj.getWorldScale(new THREE.Vector3()).x;
+      const worldRadius = geometryRadius * worldScale * radiusScale;
+
+      // 2. Calculate top edge position in world space
+      // Use camera's local Y axis (perpendicular to view direction) to ensure we measure radius in the view plane.
+      // Using camera.up (world up) causes depth mismatch when looking down/up, as the point moves in Z.
+      const camUp = new THREE.Vector3().setFromMatrixColumn(
+        camera.matrixWorld,
+        1
+      );
+      const topWorldPos = worldPos
+        .clone()
+        .add(camUp.multiplyScalar(worldRadius));
+
+      // 3. Project top edge to NDC
+      const topScreenPos = topWorldPos.project(camera);
+
+      // 4. Calculate radius in UV space
+      // NDC Y range is [-1, 1] (size 2), UV Y range is [0, 1] (size 1)
+      // Radius in NDC = abs(top - center)
+      // Radius in UV = RadiusNDC / 2
+      const radiusNDC = Math.abs(topScreenPos.y - pos.y);
+      const rUV = radiusNDC * 0.5;
+
+      radii.push(rUV);
 
       activeCount++;
     }

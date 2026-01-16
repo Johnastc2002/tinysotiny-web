@@ -11,7 +11,6 @@ import {
 } from '@react-three/fiber';
 import {
   OrbitControls,
-  Billboard,
   useTexture,
   Text,
   Environment,
@@ -397,6 +396,42 @@ const Bubble = ({
   );
 };
 
+const ScreenAlignedGroup = ({
+  children,
+  position,
+  ...props
+}: {
+  children: React.ReactNode;
+  position?: [number, number, number] | THREE.Vector3;
+} & React.ComponentProps<'group'>) => {
+  const ref = useRef<THREE.Group>(null);
+  const qMap = useRef(new THREE.Quaternion());
+  const qParent = useRef(new THREE.Quaternion());
+
+  useFrame(({ camera }) => {
+    if (!ref.current) return;
+
+    // 1. Get Camera World Quaternion
+    camera.getWorldQuaternion(qMap.current);
+
+    // 2. Compensate for parent rotation
+    if (ref.current.parent) {
+      ref.current.parent.getWorldQuaternion(qParent.current);
+      // q_local = q_parent_inv * q_world
+      qParent.current.invert();
+      qMap.current.premultiply(qParent.current);
+    }
+
+    ref.current.quaternion.copy(qMap.current);
+  });
+
+  return (
+    <group ref={ref} position={position} {...props}>
+      {children}
+    </group>
+  );
+};
+
 const ImageBubble = ({
   position,
   scale,
@@ -532,13 +567,7 @@ const ImageBubble = ({
       floatIntensity={floatIntensity}
       floatingRange={[-0.2, 0.2]}
     >
-      <Billboard
-        position={position}
-        follow={true}
-        lockX={false}
-        lockY={false}
-        lockZ={false}
-      >
+      <ScreenAlignedGroup position={position}>
         {/* Interaction Mesh - exact size */}
         <mesh
           onClick={onClick}
@@ -710,7 +739,7 @@ const ImageBubble = ({
             />
           </mesh>
         )}
-      </Billboard>
+      </ScreenAlignedGroup>
     </Float>
   );
 };
@@ -753,10 +782,11 @@ const ColorBubble = ({
   const { camera } = useThree();
   const meshRef = useRef<THREE.Mesh>(null);
 
-  const isRefractionActive = useBubbleRefraction(
+  useBubbleRefraction(
     id?.toString() || 'unknown',
     meshRef,
-    !!isRefractive
+    !!isRefractive,
+    1.0
   );
 
   const shaderRef = useRef<Shader>(null);
@@ -807,8 +837,8 @@ const ColorBubble = ({
     }
   });
 
-  // Padding for feathering (2.0x extra space)
-  const PADDING_SCALE = 2.0;
+  // Padding for feathering (2.0x extra space) - UNUSED now, but keeping var if needed later or remove.
+  // const PADDING_SCALE = 2.0;
 
   useFrame(() => {
     if (enableBlur && meshRef.current) {
@@ -830,7 +860,21 @@ const ColorBubble = ({
 
   const onBeforeCompile = (shader: Shader) => {
     shader.uniforms.uFeather = { value: 0.0 };
-    shader.uniforms.uScaleFactor = { value: PADDING_SCALE };
+    // Pass PADDING_SCALE to shader if we were padding geometry, but now we are not padding geometry
+    // or we need to ensure shader knows real scale relative to geometry.
+    // Actually, if we remove geometry padding (scale * 1.0), we must ensure PADDING_SCALE is 1.0 in shader or logic adapts.
+    // If we want to keep feather logic working, we need padding.
+    // The user claims "bug that when enableBlur, the bubble wrongly scale the logic to 0.5".
+    // This implies geometry was scaled up (2.0), so we had to scale down logic (0.5).
+    // User wants "bubble size always align".
+    // If we revert geometry to [scale], we can't feather outside?
+    // Wait, if we use scale * 1.0, and feather, we eat into the bubble.
+    // If the user accepts that, or if we use a different technique.
+    // BUT the user said "compensate the bug... enlarged the bubble back".
+    // So likely the geometry padding was the "enlarged back" part.
+    // Let's set geometry to [scale].
+    // And remove scale compensation in shader.
+    shader.uniforms.uScaleFactor = { value: 1.0 };
 
     shader.vertexShader =
       `
@@ -861,20 +905,25 @@ const ColorBubble = ({
       // Calculate distance from center using GEOMETRY UVs (vPosUv)
       float dist = length(vPosUv - 0.5);
       
-      // The original radius (0.5) is now at 0.5 / uScaleFactor in UV space
-      float originalRadius = 0.5 / uScaleFactor;
+      // Radius is 0.5 in UV space
+      float originalRadius = 0.5;
       
       float alphaFeather = 1.0;
       
-      // Feather OUTSIDE the original radius
-      if (dist > originalRadius) {
-         // Map dist from [originalRadius, originalRadius + uFeather] to [1, 0]
-         float featherWidth = max(uFeather, 0.0001);
-         alphaFeather = 1.0 - smoothstep(originalRadius, originalRadius + featherWidth, dist);
-      }
+      // Feather INSIDE the radius (since we don't have padding anymore?)
+      // Or we accept feather is clipped if we don't pad.
+      // But user said "wrongly scale logic to 0.5". 
+      // If we remove scaling, originalRadius is 0.5.
+      
+      // Feather logic
+      // We want to feather the edge.
+      float featherWidth = max(uFeather, 0.0001);
+      // smoothstep from (radius - feather) to radius?
+      // If we want soft edge within the circle:
+      alphaFeather = 1.0 - smoothstep(originalRadius - featherWidth, originalRadius, dist);
       
       // Hard clip at geometry edge
-      if (dist > 0.495) alphaFeather = 0.0;
+      if (dist > 0.495) alphaFeather *= 0.0; // Just to be safe at very edge
       
       diffuseColor.a *= alphaFeather;
     `;
@@ -897,13 +946,7 @@ const ColorBubble = ({
       floatIntensity={floatIntensity}
       floatingRange={[-0.2, 0.2]}
     >
-      <Billboard
-        position={position}
-        follow={true}
-        lockX={false}
-        lockY={false}
-        lockZ={false}
-      >
+      <ScreenAlignedGroup position={position}>
         {/* Interaction Mesh */}
         <mesh
           onClick={onClick}
@@ -914,11 +957,9 @@ const ColorBubble = ({
           <meshBasicMaterial transparent opacity={0} depthWrite={false} />
         </mesh>
 
-        <mesh ref={meshRef} raycast={() => null} visible={!isRefractionActive}>
-          {/* Use padded geometry if blur is enabled to allow feathering space */}
-          <circleGeometry
-            args={[scale * (enableBlur ? PADDING_SCALE : 1.0), 128]}
-          />
+        <mesh ref={meshRef} raycast={() => null} visible={true}>
+          {/* Always use exact scale, handle padding inside shader if needed, but for now geometry matches visual size */}
+          <circleGeometry args={[scale, 128]} />
           {type === 'solid' ? (
             <meshBasicMaterial
               color={color}
@@ -976,7 +1017,7 @@ const ColorBubble = ({
             {label}
           </Text>
         )}
-      </Billboard>
+      </ScreenAlignedGroup>
     </Float>
   );
 };
