@@ -23,6 +23,7 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import {
   BubbleRefractionProvider,
   useBubbleRefraction,
+  RefractiveBubbleMaterial,
 } from './BubbleRefraction';
 
 interface Shader {
@@ -356,6 +357,7 @@ const Bubble = ({
     return (
       <group ref={groupRef} position={enableExplosion ? undefined : position}>
         <ImageBubble
+          id={id}
           position={[0, 0, 0]} // Relative to group
           scale={adjustedScale}
           imageUrl={imageUrl}
@@ -433,6 +435,7 @@ const ScreenAlignedGroup = ({
 };
 
 const ImageBubble = ({
+  id,
   position,
   scale,
   imageUrl,
@@ -443,6 +446,7 @@ const ImageBubble = ({
   enableBlur,
   isHovered,
 }: {
+  id: number | string;
   position: [number, number, number];
   scale: number;
   imageUrl: string;
@@ -459,6 +463,9 @@ const ImageBubble = ({
 
   const { camera } = useThree();
   const meshRef = useRef<THREE.Mesh>(null);
+  // Use 1.0/PADDING_SCALE (0.5) to ensure the occlusion mask matches the visual bubble size,
+  // not the larger padded geometry used for feathering.
+  useBubbleRefraction(id.toString(), meshRef, 0.5, false);
   const shaderRef = useRef<Shader>(null);
   const overlayShaderRef = useRef<Shader>(null);
   const worldPos = useMemo(() => new THREE.Vector3(), []);
@@ -785,8 +792,8 @@ const ColorBubble = ({
   useBubbleRefraction(
     id?.toString() || 'unknown',
     meshRef,
-    !!isRefractive,
-    1.0
+    1.0,
+    !!isRefractive
   );
 
   const shaderRef = useRef<Shader>(null);
@@ -960,12 +967,21 @@ const ColorBubble = ({
         <mesh ref={meshRef} raycast={() => null} visible={true}>
           {/* Always use exact scale, handle padding inside shader if needed, but for now geometry matches visual size */}
           <circleGeometry args={[scale, 128]} />
+          {/* Debug: Print type info */}
+          {/* console.log('Bubble Render:', { id, type, isRefractive }) */}
+
           {type === 'solid' ? (
             <meshBasicMaterial
               color={color}
               side={THREE.DoubleSide}
               transparent={!!enableBlur}
               onBeforeCompile={enableBlur ? onBeforeCompile : undefined}
+            />
+          ) : isRefractive ? (
+            <RefractiveBubbleMaterial
+              uOpacity={1.0}
+              uRefractionStrength={0.02}
+              uBlurScale={4.0}
             />
           ) : isGradient ? (
             // Special case for Play bubble & Grey bubbles: Basic material with alpha map for 100% -> 20% gradient
@@ -978,6 +994,13 @@ const ColorBubble = ({
               onBeforeCompile={enableBlur ? onBeforeCompile : undefined}
             />
           ) : (
+            /* 
+            <RefractiveBubbleMaterial
+              uOpacity={1.0}
+              uRefractionStrength={0.02}
+              uBlurScale={4.0}
+            /> 
+            */
             // Revert to MeshPhysicalMaterial for stability and performance.
             // Using transparent={false} to enable the native transmission blur effect in Three.js
             <meshPhysicalMaterial
