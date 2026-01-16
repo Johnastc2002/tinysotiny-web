@@ -339,13 +339,17 @@ const Bubble = ({
   // Conditionally call useTexture only if type is 'image' and imageUrl is present
   // ... (comments retained)
 
+  const adjustedScale = useMemo(() => {
+    return enableBlur ? scale : scale * 1.1;
+  }, [scale, enableBlur]);
+
   // Actually, standard practice for conditional hooks: split components.
   if (type === 'image' && imageUrl) {
     return (
       <group ref={groupRef} position={enableExplosion ? undefined : position}>
         <ImageBubble
           position={[0, 0, 0]} // Relative to group
-          scale={scale}
+          scale={adjustedScale}
           imageUrl={imageUrl}
           imageHoverUrl={imageHoverUrl}
           onClick={handleClick}
@@ -365,7 +369,7 @@ const Bubble = ({
     <group ref={groupRef} position={enableExplosion ? undefined : position}>
       <ColorBubble
         position={[0, 0, 0]} // Relative to group
-        scale={scale}
+        scale={adjustedScale}
         color={color}
         type={colorType}
         onClick={handleClick}
@@ -897,7 +901,7 @@ const ColorBubble = ({
             <meshBasicMaterial
               color={color}
               side={THREE.DoubleSide}
-              transparent={true} // Must be true for feathering
+              transparent={!!enableBlur}
               onBeforeCompile={enableBlur ? onBeforeCompile : undefined}
             />
           ) : isGradient ? (
@@ -998,13 +1002,13 @@ const Bubbles = ({
   isMobile: boolean;
 }) => {
   // Pass projects to generateBubbles
-  const [bubbles] = useState(() => {
+  const bubbles = useMemo(() => {
     let count = 20;
     if (mode === 'gallery' && projects) {
       count = projects.length;
     }
     return generateBubbles(count, mode, projects || []);
-  });
+  }, [mode, projects]);
 
   // Track the single hovered bubble ID
   const [hoveredId, setHoveredId] = useState<number | null>(null);
