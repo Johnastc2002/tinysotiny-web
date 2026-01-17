@@ -350,7 +350,7 @@ export async function getFeaturedProjects(type?: ProjectType) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const query: Record<string, any> = {
     'metadata.tags.sys.id[in]': 'featured',
-    order: '-fields.projectDate',
+    order: '-fields.projectDate,sys.id',
     include: 3,
   };
 
@@ -371,7 +371,7 @@ export async function getNonFeaturedProjects(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const query: Record<string, any> = {
     'metadata.tags.sys.id[nin]': 'featured',
-    order: '-fields.projectDate',
+    order: '-fields.projectDate,sys.id',
     limit,
     skip,
     include: 3,
@@ -411,7 +411,7 @@ export async function getProjectsByTags(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const query: Record<string, any> = {
     'fields.tags.sys.id[in]': tagIds.join(','),
-    order: '-fields.projectDate',
+    order: '-fields.projectDate,sys.id',
     limit,
     skip,
     include: 3,
@@ -467,7 +467,7 @@ export async function getRecommendedProject(
 export async function getAllProjects(type?: ProjectType) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const query: Record<string, any> = {
-    order: '-fields.projectDate',
+    order: '-fields.projectDate,sys.id',
     include: 3,
   };
 
@@ -512,7 +512,7 @@ export async function getAllClients(): Promise<ClientData[]> {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const query: Record<string, any> = {
-      order: 'fields.clientName',
+      order: 'fields.clientName,sys.id',
     };
     const entries = await getEntries('client', query);
     return entries.items.map(mapClient);
@@ -529,7 +529,7 @@ export async function getDailyEntries(
   const skip = (page - 1) * limit;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const query: Record<string, any> = {
-    order: '-sys.createdAt',
+    order: '-sys.createdAt,sys.id',
     limit,
     skip,
     include: 3,

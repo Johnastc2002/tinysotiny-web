@@ -132,6 +132,10 @@ export const useBubbleRefraction = (
   enabled: boolean = true
 ) => {
   const context = useContext(RefractionContext);
+  // Remove unused _radiusScale to fix lint warning
+  // We keep it in signature for API compatibility if needed, or just ignore it.
+  // Using void to suppress unused warning for now as it might be used later.
+  void _radiusScale;
 
   useLayoutEffect(() => {
     // In React 18 / R3F, ref.current should be populated by the time this effect runs
@@ -155,6 +159,7 @@ const RefractionShaderMaterialImpl = shaderMaterial(
     uRefractionStrength: 0.02,
     uBlurScale: 4.0,
     uOpacity: 1.0,
+    uRadius: 1.0,
     cameraNear: 0.1,
     cameraFar: 1000.0,
   },
@@ -162,10 +167,14 @@ const RefractionShaderMaterialImpl = shaderMaterial(
   `
     varying vec2 vUv;
     varying vec4 vScreenPos;
+    varying vec3 vViewPosition;
+    
     void main() {
       vUv = uv;
       vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-      gl_Position = projectionMatrix * viewMatrix * worldPosition;
+      vec4 viewPos = viewMatrix * worldPosition;
+      vViewPosition = viewPos.xyz;
+      gl_Position = projectionMatrix * viewPos;
       vScreenPos = gl_Position;
     }
   `,
@@ -177,13 +186,17 @@ const RefractionShaderMaterialImpl = shaderMaterial(
     uniform float uRefractionStrength;
     uniform float uBlurScale;
     uniform float uOpacity;
+    uniform float uRadius;
     uniform float cameraNear;
     uniform float cameraFar;
 
     varying vec2 vUv;
     varying vec4 vScreenPos;
+    varying vec3 vViewPosition;
 
-    #include <packing>
+    float calcDepth( const in float viewZ, const in float near, const in float far ) {
+      return (( far + near ) / ( far - near ) * viewZ + 2.0 * far * near / ( far - near )) / viewZ * - 0.5 + 0.5;
+    }
 
     void main() {
         // Screen UV (0 to 1)
@@ -196,14 +209,27 @@ const RefractionShaderMaterialImpl = shaderMaterial(
         // Circular mask
         if(dist > 0.5) discard;
 
-        // Force visible color for debugging shader execution
-        // gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0); // Magenta
-        // return;
-
-        // Calculate simple normal for sphere
-        // z = sqrt(0.25 - x*x - y*y) / 0.5 (normalized)
-        float z = sqrt(0.25 - dist * dist);
-        vec3 normal = normalize(vec3(localDiff.x, localDiff.y, z));
+        // Calculate sphere height (normalized 0..0.5)
+        // z = sqrt(0.25 - x*x - y*y)
+        float zHeight = sqrt(0.25 - dist * dist);
+        
+        // Calculate normal
+        vec3 normal = normalize(vec3(localDiff.x, localDiff.y, zHeight));
+        
+        // Calculate corrected depth for sphere surface
+        // zHeight is 0.5 at center, 0 at edge.
+        // In view space, the sphere protrudes towards the camera by Radius.
+        // UV space 1.0 = 2 * Radius. So zHeight=0.5 corresponds to Radius.
+        // Physical offset = zHeight * 2.0 * uRadius
+        float viewSpaceOffset = zHeight * 2.0 * uRadius;
+        
+        // Adjust view Z (closer to camera = larger Z value in negative view space? No, viewZ is negative.)
+        // Closer to camera means z is LESS negative (closer to 0).
+        // So we ADD the positive offset.
+        float adjustedViewZ = vViewPosition.z + viewSpaceOffset;
+        
+        // Calculate depth for the sphere surface
+        float currentDepthVal = calcDepth(adjustedViewZ, cameraNear, cameraFar);
         
         // Refraction vector (simple offset based on XY normal)
         vec2 n = normal.xy;
@@ -217,7 +243,7 @@ const RefractionShaderMaterialImpl = shaderMaterial(
         // Depth Check: Only refract things BEHIND the bubble
         // Read raw depth values (0.0 = Near, 1.0 = Far)
         float sceneDepthVal = texture2D(tDepth, refractedUV).x;
-        float currentDepthVal = gl_FragCoord.z;
+        // float currentDepthVal = gl_FragCoord.z; // Replaced by calculated sphere depth
         
         // If scene depth is LARGER (further) than current depth, it is behind.
         // We add a small tolerance to prevent self-intersection artifacts if depths are close
@@ -225,7 +251,7 @@ const RefractionShaderMaterialImpl = shaderMaterial(
         
         // Depth test with larger bias to aggressively cull foreground artifacts
         // 0.0001 might be too small for depth buffer precision at distance
-        if (sceneDepthVal < currentDepthVal + 0.005) {
+        if (sceneDepthVal < currentDepthVal + 0.001) {
              // Scene is CLOSER (smaller value) -> Foreground object captured in FBO.
              // Try to sample "unrefracted" background?
              // If we use screenUV, we sample the object itself (bad).
@@ -274,6 +300,8 @@ interface RefractiveBubbleMaterialProps {
   uOpacity?: number;
   uRefractionStrength?: number;
   uBlurScale?: number;
+  uRadius?: number;
+  uColor?: string;
   [key: string]: unknown;
 }
 
@@ -284,7 +312,13 @@ export const RefractiveBubbleMaterial = (
   const { camera } = useThree();
 
   if (!context || !context.isEnabled || !context.texture)
-    return <meshBasicMaterial transparent opacity={0.5} />;
+    return (
+      <meshBasicMaterial
+        transparent
+        opacity={1.0}
+        color={props.uColor || 'white'}
+      />
+    );
 
   return (
     // @ts-expect-error - Custom shader material extended in R3F

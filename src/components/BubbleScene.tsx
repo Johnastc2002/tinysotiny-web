@@ -26,6 +26,24 @@ import {
   RefractiveBubbleMaterial,
 } from './BubbleRefraction';
 
+const createRNG = (seed: number) => {
+  let s = seed % 2147483647;
+  if (s <= 0) s += 2147483646;
+  return () => {
+    return (s = (s * 16807) % 2147483647) / 2147483647;
+  };
+};
+
+const getSeedFromId = (id: number | string) => {
+  if (typeof id === 'number') return id;
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash << 5) - hash + id.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+};
+
 interface Shader {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   uniforms: { [uniform: string]: { value: any } };
@@ -114,6 +132,8 @@ const generateBubbles = (
   projects: Project[] = []
 ) => {
   const temp: BubbleData[] = [];
+  // Use seeded RNG for deterministic layout
+  const rng = createRNG(12345);
 
   if (mode === 'home') {
     // 1. Play Bubble (Blue, Gradient, Left side, Behind Work)
@@ -148,10 +168,10 @@ const generateBubbles = (
     const targetCount = Math.max(count, 3);
 
     while (i < targetCount && attempts < 500) {
-      const x = (Math.random() - 0.5) * 25; // Increased range
-      const y = (Math.random() - 0.5) * 25;
-      const z = (Math.random() - 0.5) * 25;
-      const scale = 0.8 + Math.random() * 3.5; // Wider range of sizes
+      const x = (rng() - 0.5) * 25; // Increased range
+      const y = (rng() - 0.5) * 25;
+      const z = (rng() - 0.5) * 25;
+      const scale = 0.8 + rng() * 3.5; // Wider range of sizes
 
       const position: [number, number, number] = [x, y, z];
 
@@ -179,10 +199,10 @@ const generateBubbles = (
     // However, collision check with empty 'temp' always passes.
 
     while (i < totalBubbles && attempts < 1000) {
-      const x = (Math.random() - 0.5) * 20;
-      const y = (Math.random() - 0.5) * 20;
-      const z = (Math.random() - 0.5) * 20;
-      const scale = 0.8 + Math.random() * 2.0; // Wider random range
+      const x = (rng() - 0.5) * 20;
+      const y = (rng() - 0.5) * 20;
+      const z = (rng() - 0.5) * 20;
+      const scale = 0.8 + rng() * 2.0; // Wider random range
 
       const position: [number, number, number] = [x, y, z];
 
@@ -803,10 +823,11 @@ const ColorBubble = ({
   // Grey bubble random fade logic
   const isGrey = color === BUBBLE_COLORS.GREY;
   const [randomState] = useState(() => {
-    const visible = Math.random() > 0.5;
+    const rng = createRNG(getSeedFromId(id || 'unknown'));
+    const visible = rng() > 0.5;
     return {
       visible,
-      duration: 2 + Math.random() * 8,
+      duration: 2 + rng() * 8,
       opacity: visible ? 1 : 0,
     };
   });
@@ -983,6 +1004,8 @@ const ColorBubble = ({
               uOpacity={1.0}
               uRefractionStrength={0.02}
               uBlurScale={4.0}
+              uRadius={scale}
+              uColor={color}
             />
           ) : isGradient ? (
             // Special case for Play bubble & Grey bubbles: Basic material with alpha map for 100% -> 20% gradient
@@ -995,27 +1018,16 @@ const ColorBubble = ({
               onBeforeCompile={enableBlur ? onBeforeCompile : undefined}
             />
           ) : (
-            /* 
-            <RefractiveBubbleMaterial
-              uOpacity={1.0}
-              uRefractionStrength={0.02}
-              uBlurScale={4.0}
-            /> 
-            */
-            // Revert to MeshPhysicalMaterial for stability and performance.
-            // Using transparent={false} to enable the native transmission blur effect in Three.js
-            <meshPhysicalMaterial
+            // Revert to MeshStandardMaterial for better stability when refraction is disabled
+            <meshStandardMaterial
               color={color}
               side={THREE.DoubleSide}
-              transparent={false} // Transmission requires transparent=false to blur background correctly
-              opacity={1} // Ignored when transparent=false
-              roughness={0.6} // Blur strength
-              transmission={0.5} // Controls how "see-through" it is (simulating opacity)
-              thickness={3} // Volume for light scattering
-              ior={1.2}
-              clearcoat={0}
+              transparent={true}
+              opacity={0.6}
+              roughness={0.2}
+              metalness={0.1}
               alphaMap={alphaMap || undefined}
-              depthWrite={false} // Should be false for transparency, but true can help sorting issues. Keep false for now.
+              depthWrite={true}
             />
           )}
         </mesh>
@@ -1092,7 +1104,7 @@ const Bubbles = ({
 }) => {
   // Pass projects to generateBubbles
   const bubbles = useMemo(() => {
-    let count = 20;
+    let count = 14;
     if (mode === 'gallery' && projects) {
       count = projects.length;
     }
@@ -1140,34 +1152,38 @@ const Bubbles = ({
     }
   });
 
-  return (
-    <BubbleRefractionProvider enabled={enableRefraction}>
-      {bubbles.map((bubble) => (
-        <Bubble
-          key={bubble.id}
-          id={bubble.id}
-          position={bubble.position}
-          scale={bubble.scale}
-          imageUrl={bubble.imageUrl}
-          imageHoverUrl={bubble.imageHoverUrl}
-          color={bubble.color}
-          type={bubble.type}
-          link={bubble.link}
-          onOpenCard={onOpenCard}
-          project={bubble.project}
-          label={bubble.label}
-          textOffset={bubble.textOffset}
-          isGradient={bubble.isGradient}
-          enableExplosion={enableExplosion}
-          explosionDelay={explosionDelay}
-          enableBlur={enableBlur}
-          isHovered={hoveredId === bubble.id}
-          setHoveredId={setHoveredId}
-          isMobile={isMobile}
-          isRefractive={bubble.isRefractive}
-        />
-      ))}
+  const content = bubbles.map((bubble) => (
+    <Bubble
+      key={bubble.id}
+      id={bubble.id}
+      position={bubble.position}
+      scale={bubble.scale}
+      imageUrl={bubble.imageUrl}
+      imageHoverUrl={bubble.imageHoverUrl}
+      color={bubble.color}
+      type={bubble.type}
+      link={bubble.link}
+      onOpenCard={onOpenCard}
+      project={bubble.project}
+      label={bubble.label}
+      textOffset={bubble.textOffset}
+      isGradient={bubble.isGradient}
+      enableExplosion={enableExplosion}
+      explosionDelay={explosionDelay}
+      enableBlur={enableBlur}
+      isHovered={hoveredId === bubble.id}
+      setHoveredId={setHoveredId}
+      isMobile={isMobile}
+      isRefractive={bubble.isRefractive && enableRefraction}
+    />
+  ));
+
+  return enableRefraction ? (
+    <BubbleRefractionProvider enabled={true}>
+      {content}
     </BubbleRefractionProvider>
+  ) : (
+    <>{content}</>
   );
 };
 
@@ -1267,27 +1283,11 @@ export default function BubbleScene({
   showPlayGrid?: boolean;
   enableRefraction?: boolean;
 }) {
-  console.log(
-    'BubbleScene render. Mode:',
-    mode,
-    'Projects:',
-    projects?.length,
-    'Config:',
-    { welcomeVideo, showPlayGrid }
-  );
-
-  const bgClass = transparent ? 'bg-transparent' : 'bg-[#F0F2F5]';
-  const userInteractionRef = useRef(false);
   const isMobile = useIsMobile();
-
-  useEffect(() => {
-    if (!paused) {
-      invalidate();
-    }
-  }, [paused]);
+  const userInteractionRef = useRef(false);
 
   return (
-    <div className={`w-full h-screen ${bgClass} cursor-none`}>
+    <div className={`w-full h-screen cursor-none`}>
       <Canvas
         frameloop={paused ? 'never' : 'always'}
         camera={{ position: [0, 0, 20], fov: 50 }}
