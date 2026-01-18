@@ -206,58 +206,50 @@ const RefractionShaderMaterialImpl = shaderMaterial(
         vec2 localDiff = vUv - 0.5;
         float dist = length(localDiff);
         
-        // Circular mask
-        if(dist > 0.5) discard;
+        // FOGGY GRADIENT LOGIC START
+        float normalizedDist = dist * 2.0; // 0 at center, 1 at edge
+        
+        if(normalizedDist > 1.0) discard;
+
+        // Match the canvas gradient: 0->0.6, 0.3->0.5, 1.0->0.0
+        float maskAlpha = 0.0;
+        if (normalizedDist < 0.3) {
+            maskAlpha = mix(0.6, 0.5, normalizedDist / 0.3);
+        } else {
+            maskAlpha = mix(0.5, 0.0, (normalizedDist - 0.3) / 0.7);
+        }
+        
+        // Apply mask to global opacity
+        float currentOpacity = uOpacity * maskAlpha;
+        // FOGGY GRADIENT LOGIC END
 
         // Calculate sphere height (normalized 0..0.5)
-        // z = sqrt(0.25 - x*x - y*y)
         float zHeight = sqrt(0.25 - dist * dist);
         
         // Calculate normal
         vec3 normal = normalize(vec3(localDiff.x, localDiff.y, zHeight));
         
         // Calculate corrected depth for sphere surface
-        // zHeight is 0.5 at center, 0 at edge.
-        // In view space, the sphere protrudes towards the camera by Radius.
-        // UV space 1.0 = 2 * Radius. So zHeight=0.5 corresponds to Radius.
-        // Physical offset = zHeight * 2.0 * uRadius
         float viewSpaceOffset = zHeight * 2.0 * uRadius;
-        
-        // Adjust view Z (closer to camera = larger Z value in negative view space? No, viewZ is negative.)
-        // Closer to camera means z is LESS negative (closer to 0).
-        // So we ADD the positive offset.
         float adjustedViewZ = vViewPosition.z + viewSpaceOffset;
-        
-        // Calculate depth for the sphere surface
         float currentDepthVal = calcDepth(adjustedViewZ, cameraNear, cameraFar);
         
         // Refraction vector (simple offset based on XY normal)
         vec2 n = normal.xy;
         
-        // Strength
-        vec2 offset = n * uRefractionStrength * uOpacity;
+        // Strength (Use currentOpacity instead of uOpacity)
+        vec2 offset = n * uRefractionStrength * currentOpacity;
         
         // Apply refraction
         vec2 refractedUV = screenUV + offset;
         
         // Depth Check: Only refract things BEHIND the bubble
-        // Read raw depth values (0.0 = Near, 1.0 = Far)
         float sceneDepthVal = texture2D(tDepth, refractedUV).x;
-        // float currentDepthVal = gl_FragCoord.z; // Replaced by calculated sphere depth
         
-        // If scene depth is LARGER (further) than current depth, it is behind.
-        // We add a small tolerance to prevent self-intersection artifacts if depths are close
-        float alpha = uOpacity;
+        // Use currentOpacity for alpha base
+        float alpha = currentOpacity;
         
-        // Depth test with larger bias to aggressively cull foreground artifacts
-        // 0.0001 might be too small for depth buffer precision at distance
         if (sceneDepthVal < currentDepthVal + 0.001) {
-             // Scene is CLOSER (smaller value) -> Foreground object captured in FBO.
-             // Try to sample "unrefracted" background?
-             // If we use screenUV, we sample the object itself (bad).
-             // Ideally we want to see what's BEHIND the foreground object.
-             // But we only have one layer.
-             // So transparency is the correct physical approximation (we see the foreground object via main pass).
              refractedUV = screenUV; 
              alpha = 0.0;
         }
@@ -266,7 +258,6 @@ const RefractionShaderMaterialImpl = shaderMaterial(
         vec3 col = vec3(0.0);
         float scale = 0.001 * uBlurScale;
         
-        // Only sample if alpha > 0 to save performance and avoid artifacts
         if (alpha > 0.01) {
             col += texture2D(tDiffuse, refractedUV + vec2( 1.0,  0.0) * scale).rgb;
             col += texture2D(tDiffuse, refractedUV + vec2(-1.0,  0.0) * scale).rgb;
@@ -275,17 +266,15 @@ const RefractionShaderMaterialImpl = shaderMaterial(
             col *= 0.25;
         }
 
-        // Add Fresnel/Rim effect to make it visible against flat backgrounds
+        // Add Fresnel/Rim effect
         vec3 viewDir = vec3(0.0, 0.0, 1.0);
         float fresnel = pow(1.0 - dot(normal, viewDir), 3.0);
-        col = mix(col, vec3(1.0), fresnel * 0.3); // Add white rim
+        col = mix(col, vec3(1.0), fresnel * 0.3); 
         
-        // If alpha was killed by depth check, we can still show the rim?
-        // NO: If we culled the body because it's "foreground artifact", showing the rim
-        // creates a "weird gapped border" ghost. We should cull the rim too.
-        float finalAlpha = max(alpha, fresnel * uOpacity);
+        // Use currentOpacity for fresnel too
+        float finalAlpha = max(alpha, fresnel * currentOpacity);
         
-        if (alpha < 0.01) {
+        if (alpha < 0.001) {
             finalAlpha = 0.0;
         }
         
