@@ -74,7 +74,7 @@ interface BubbleData {
 }
 
 const useSoftCircleTexture = (
-  type: 'solid' | 'glass' | 'image' | 'play_gradient' | 'grey_fog' = 'glass'
+  type: 'solid' | 'glass' | 'image' | 'play_gradient' = 'glass'
 ) => {
   return useMemo(() => {
     if (typeof document === 'undefined') return null;
@@ -90,11 +90,6 @@ const useSoftCircleTexture = (
         // We use grayscale colors because alphaMap reads the green channel/luminance
         gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
         gradient.addColorStop(1, 'rgba(51, 51, 51, 1)'); // ~20% luminance
-      } else if (type === 'grey_fog') {
-        // FOGGY EFFECT: Lower opacity and smoother gradient
-        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.6)'); // Reduce core opacity from 1 to 0.6
-        gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.5)'); // Start fading earlier
-        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)'); // Fade to transparent
       } else {
         // Standard soft edge for other glass bubbles - use transparency which results in black on clear canvas
         gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
@@ -367,13 +362,7 @@ const Bubble = ({
   };
 
   const softTexture = useSoftCircleTexture(
-    label === 'play'
-      ? 'play_gradient'
-      : isGradient
-      ? 'grey_fog'
-      : type === 'glass'
-      ? 'glass'
-      : 'solid'
+    isGradient ? 'play_gradient' : type === 'glass' ? 'glass' : 'solid'
   );
 
   // Conditionally call useTexture only if type is 'image' and imageUrl is present
