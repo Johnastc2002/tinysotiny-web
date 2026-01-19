@@ -54,7 +54,7 @@ interface Shader {
 export const BUBBLE_COLORS = {
   PLAY: '#001EFF',
   WORK: '#0F2341',
-  GREY: '#d6d6d6',
+  GREY: '#d6d6d6', // The color here DOES NOT AFFECT when (enableRefraction = true) is enabled
 };
 
 interface BubbleData {
@@ -180,7 +180,7 @@ const generateBubbles = (
           id: i,
           position,
           scale,
-          color: BUBBLE_COLORS.GREY, // Corrected Grey
+          color: '#ffffff', // Set to white as tint is handled in shader
           type: 'glass',
           isGradient: true,
           isRefractive: true,
@@ -225,7 +225,7 @@ const generateBubbles = (
             id: i,
             position,
             scale,
-            color: BUBBLE_COLORS.GREY,
+            color: '#ffffff', // Set to white as tint is handled in shader
             type: 'glass',
             isGradient: true,
             isRefractive: true,
@@ -1002,8 +1002,10 @@ const ColorBubble = ({
           ) : isRefractive ? (
             <RefractiveBubbleMaterial
               uOpacity={1.0}
-              uRefractionStrength={0.02}
-              uBlurScale={4.0}
+              uRefractionStrength={0.015}
+              // [CONFIG] TWEAK HERE: Overall blur amount. Higher = wider blur.
+              // Try values between 4.0 and 12.0.
+              uBlurScale={6.0}
               uRadius={scale}
               uColor={color}
             />

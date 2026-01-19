@@ -40,14 +40,22 @@ export const BubbleRefractionProvider = ({
     const height = Math.floor(size.height * pixelRatio);
 
     const target = new THREE.WebGLRenderTarget(width, height, {
-      minFilter: THREE.NearestFilter, // Use Nearest for depth precision
-      magFilter: THREE.NearestFilter,
+      minFilter: THREE.LinearMipmapLinearFilter, // Use Mipmaps for smoother blur sampling
+      magFilter: THREE.LinearFilter,
       format: THREE.RGBAFormat,
-      type: THREE.UnsignedByteType,
+      type: THREE.HalfFloatType, // Use HalfFloat for better precision with dark colors/linear blending
       depthBuffer: true,
       depthTexture: new THREE.DepthTexture(width, height),
       stencilBuffer: false,
+      generateMipmaps: true, // Auto-generate mipmaps every frame
     });
+    // Ensure depth texture uses NearestFilter to avoid WebGL errors (Linear depth is often not supported)
+    if (target.depthTexture) {
+      target.depthTexture.type = THREE.UnsignedIntType; 
+      target.depthTexture.minFilter = THREE.NearestFilter; 
+      target.depthTexture.magFilter = THREE.NearestFilter; 
+    }
+
     return target;
   }, [size, gl]);
 
@@ -103,8 +111,8 @@ export const BubbleRefractionProvider = ({
   }, 1); // Priority 1: Run after animations, take over render loop to ensure sync
 
   const resolution = useMemo(
-    () => new THREE.Vector2(size.width, size.height),
-    [size]
+    () => new THREE.Vector2(size.width * gl.getPixelRatio(), size.height * gl.getPixelRatio()),
+    [size, gl]
   );
 
   return (
@@ -157,9 +165,10 @@ const RefractionShaderMaterialImpl = shaderMaterial(
     tDepth: null,
     uResolution: new THREE.Vector2(),
     uRefractionStrength: 0.02,
-    uBlurScale: 4.0,
+    uBlurScale: 2.0,
     uOpacity: 1.0,
     uRadius: 1.0,
+    uColor: new THREE.Color('white'),
     cameraNear: 0.1,
     cameraFar: 1000.0,
   },
@@ -168,7 +177,8 @@ const RefractionShaderMaterialImpl = shaderMaterial(
     varying vec2 vUv;
     varying vec4 vScreenPos;
     varying vec3 vViewPosition;
-    
+    varying vec4 vProjZ;
+
     void main() {
       vUv = uv;
       vec4 worldPosition = modelMatrix * vec4(position, 1.0);
@@ -176,9 +186,14 @@ const RefractionShaderMaterialImpl = shaderMaterial(
       vViewPosition = viewPos.xyz;
       gl_Position = projectionMatrix * viewPos;
       vScreenPos = gl_Position;
+      
+      // Store Projection Matrix elements for correct depth calculation in Fragment Shader
+      // Row 2 (Clip Z) and Row 3 (Clip W) coefficients for View Z and W(1.0)
+      // m[col][row]
+      vProjZ = vec4(projectionMatrix[2][2], projectionMatrix[3][2], projectionMatrix[2][3], projectionMatrix[3][3]);
     }
   `,
-  // Fragment Shader
+    // Fragment Shader
   `
     uniform sampler2D tDiffuse;
     uniform sampler2D tDepth;
@@ -187,107 +202,136 @@ const RefractionShaderMaterialImpl = shaderMaterial(
     uniform float uBlurScale;
     uniform float uOpacity;
     uniform float uRadius;
+    uniform vec3 uColor;
     uniform float cameraNear;
     uniform float cameraFar;
 
     varying vec2 vUv;
     varying vec4 vScreenPos;
     varying vec3 vViewPosition;
+    varying vec4 vProjZ;
 
-    float calcDepth( const in float viewZ, const in float near, const in float far ) {
-      return (( far + near ) / ( far - near ) * viewZ + 2.0 * far * near / ( far - near )) / viewZ * - 0.5 + 0.5;
+    // Manual implementation since we might not have the include
+    float perspectiveDepthToViewZ( const in float invClipZ, const in float near, const in float far ) {
+      return ( near * far ) / ( ( far - near ) * invClipZ - far );
     }
 
+    // Manual Bilinear Filtering for Depth to smooth out intersection aliasing
+    float getSmoothDepth(sampler2D depthSampler, vec2 uv, vec2 resolution) {
+        vec2 texelSize = 1.0 / resolution;
+        vec2 pixel = uv * resolution - 0.5;
+        vec2 f = fract(pixel);
+        
+        // Snap to center of nearest texel
+        vec2 uv00 = (floor(pixel) + 0.5) * texelSize;
+        
+        float d00 = texture2D(depthSampler, uv00).x;
+        float d10 = texture2D(depthSampler, uv00 + vec2(texelSize.x, 0.0)).x;
+        float d01 = texture2D(depthSampler, uv00 + vec2(0.0, texelSize.y)).x;
+        float d11 = texture2D(depthSampler, uv00 + texelSize).x;
+        
+        // Bilinear mix of raw depth values
+        float d0 = mix(d00, d10, f.x);
+        float d1 = mix(d01, d11, f.x);
+        
+        return mix(d0, d1, f.y);
+    }
+    
     void main() {
         // Screen UV (0 to 1)
         vec2 screenUV = vScreenPos.xy / vScreenPos.w * 0.5 + 0.5;
         
-        // Local UV centered (from 0..1 to -0.5..0.5)
+        // Local UV centered
         vec2 localDiff = vUv - 0.5;
         float dist = length(localDiff);
         
         // Circular mask
         if(dist > 0.5) discard;
 
-        // Calculate sphere height (normalized 0..0.5)
-        // z = sqrt(0.25 - x*x - y*y)
+        // Calculate sphere height for normal/refraction
         float zHeight = sqrt(0.25 - dist * dist);
-        
-        // Calculate normal
         vec3 normal = normalize(vec3(localDiff.x, localDiff.y, zHeight));
-        
-        // Calculate corrected depth for sphere surface
-        // zHeight is 0.5 at center, 0 at edge.
-        // In view space, the sphere protrudes towards the camera by Radius.
-        // UV space 1.0 = 2 * Radius. So zHeight=0.5 corresponds to Radius.
-        // Physical offset = zHeight * 2.0 * uRadius
-        float viewSpaceOffset = zHeight * 2.0 * uRadius;
-        
-        // Adjust view Z (closer to camera = larger Z value in negative view space? No, viewZ is negative.)
-        // Closer to camera means z is LESS negative (closer to 0).
-        // So we ADD the positive offset.
-        float adjustedViewZ = vViewPosition.z + viewSpaceOffset;
-        
-        // Calculate depth for the sphere surface
-        float currentDepthVal = calcDepth(adjustedViewZ, cameraNear, cameraFar);
-        
-        // Refraction vector (simple offset based on XY normal)
         vec2 n = normal.xy;
         
-        // Strength
-        vec2 offset = n * uRefractionStrength * uOpacity;
+        // Calculate depths
+        float currentDepthRaw = gl_FragCoord.z;
+        float currentLinearDist = -perspectiveDepthToViewZ(currentDepthRaw, cameraNear, cameraFar);
+
+        // --- SOFT PARTICLE FADE ---
+        // Get scene depth at current fragment position
+        float closestSceneDepthRaw = getSmoothDepth(tDepth, screenUV, uResolution);
+        float closestSceneLinearDist = -perspectiveDepthToViewZ(closestSceneDepthRaw, cameraNear, cameraFar);
         
-        // Apply refraction
+        // Compare depths
+        // If scene is behind bubble (closestSceneLinearDist > currentLinearDist), depthDiff > 0.
+        // If scene is closer (intersecting), depthDiff approaches 0.
+        float depthDiff = closestSceneLinearDist - currentLinearDist;
+        
+        // Soft fade factor: 0.0 at intersection, 1.0 when bubble is > 1.0 unit in front of background
+        float alphaFade = smoothstep(0.0, 1.0, depthDiff);
+
+        // --- REFRACTION ---
+        // Strength dampened by alphaFade to avoid edge glitch
+        vec2 offset = n * uRefractionStrength * uOpacity * alphaFade;
         vec2 refractedUV = screenUV + offset;
         
-        // Depth Check: Only refract things BEHIND the bubble
-        // Read raw depth values (0.0 = Near, 1.0 = Far)
-        float sceneDepthVal = texture2D(tDepth, refractedUV).x;
-        // float currentDepthVal = gl_FragCoord.z; // Replaced by calculated sphere depth
+        // --- BLUR LOGIC ---
+        // Initialize with direct sample
+        vec3 col = texture2D(tDiffuse, refractedUV).rgb;
+        float blurStrength = 0.002 * uBlurScale; 
         
-        // If scene depth is LARGER (further) than current depth, it is behind.
-        // We add a small tolerance to prevent self-intersection artifacts if depths are close
-        float alpha = uOpacity;
-        
-        // Depth test with larger bias to aggressively cull foreground artifacts
-        // 0.0001 might be too small for depth buffer precision at distance
-        if (sceneDepthVal < currentDepthVal + 0.001) {
-             // Scene is CLOSER (smaller value) -> Foreground object captured in FBO.
-             // Try to sample "unrefracted" background?
-             // If we use screenUV, we sample the object itself (bad).
-             // Ideally we want to see what's BEHIND the foreground object.
-             // But we only have one layer.
-             // So transparency is the correct physical approximation (we see the foreground object via main pass).
-             refractedUV = screenUV; 
-             alpha = 0.0;
+        if (uOpacity > 0.01) {
+            col = vec3(0.0);
+            float totalWeight = 0.0;
+            vec3 centerCol = texture2D(tDiffuse, refractedUV, 1.5).rgb;
+            
+            for(int i = 0; i < 16; i++) { // 16 samples for performance
+                float theta = 2.39996 * float(i);
+                float r = sqrt(float(i) / 16.0);
+                float weight = exp(-0.5 * r * r);
+                vec2 sampleOffset = vec2(cos(theta), sin(theta)) * r;
+                vec2 sampleUV = refractedUV + sampleOffset * blurStrength;
+                
+                // Simple check to avoid bleeding foreground objects into blur
+                // (Optional, but keeps edges cleaner)
+                float sampleDepthRaw = texture2D(tDepth, sampleUV).x;
+                float sampleLinearDist = -perspectiveDepthToViewZ(sampleDepthRaw, cameraNear, cameraFar);
+                
+                // If sample is significantly in front of bubble, ignore it (use center)
+                if (sampleLinearDist < currentLinearDist - 0.5) {
+                     col += centerCol * weight;
+                } else {
+                     col += texture2D(tDiffuse, sampleUV, 1.5).rgb * weight;
+                }
+                totalWeight += weight;
+            }
+            col /= totalWeight;
         }
-
-        // Blur (4-tap)
-        vec3 col = vec3(0.0);
-        float scale = 0.001 * uBlurScale;
         
-        // Only sample if alpha > 0 to save performance and avoid artifacts
-        if (alpha > 0.01) {
-            col += texture2D(tDiffuse, refractedUV + vec2( 1.0,  0.0) * scale).rgb;
-            col += texture2D(tDiffuse, refractedUV + vec2(-1.0,  0.0) * scale).rgb;
-            col += texture2D(tDiffuse, refractedUV + vec2( 0.0,  1.0) * scale).rgb;
-            col += texture2D(tDiffuse, refractedUV + vec2( 0.0, -1.0) * scale).rgb;
-            col *= 0.25;
-        }
+        // Apply Fog / Tint
+        float centerOpacity = 1.0;
+        float edgeOpacity = 0.1;
+        float overallOpacity = 0.3;
+        
+        float normalizedDist = dist * 2.0;
+        float radialFactor = mix(centerOpacity, edgeOpacity, normalizedDist);
+        float fogFactor = radialFactor * overallOpacity;
+        
+        vec3 tintColor = vec3(15.0/255.0, 35.0/255.0, 65.0/255.0); // #0F2341
+        
+        col = mix(col, tintColor, fogFactor);
 
-        // Add Fresnel/Rim effect to make it visible against flat backgrounds
+        // Add Fresnel/Rim effect
         vec3 viewDir = vec3(0.0, 0.0, 1.0);
         float fresnel = pow(1.0 - dot(normal, viewDir), 3.0);
-        col = mix(col, vec3(1.0), fresnel * 0.3); // Add white rim
         
-        // If alpha was killed by depth check, we can still show the rim?
-        // NO: If we culled the body because it's "foreground artifact", showing the rim
-        // creates a "weird gapped border" ghost. We should cull the rim too.
-        float finalAlpha = max(alpha, fresnel * uOpacity);
+        // Apply occlusion fade to rim too
+        float rim = fresnel * 0.3 * alphaFade;
         
-        if (alpha < 0.01) {
-            finalAlpha = 0.0;
-        }
+        col = mix(col, vec3(1.0), rim);
+        
+        // Final Alpha
+        float finalAlpha = max(uOpacity * alphaFade, rim * uOpacity);
         
         gl_FragColor = vec4(col, finalAlpha);
     }
@@ -305,19 +349,20 @@ interface RefractiveBubbleMaterialProps {
   [key: string]: unknown;
 }
 
-export const RefractiveBubbleMaterial = (
-  props: RefractiveBubbleMaterialProps
-) => {
+export const RefractiveBubbleMaterial = ({
+  uColor,
+  ...props
+}: RefractiveBubbleMaterialProps) => {
   const context = useContext(RefractionContext);
   const { camera } = useThree();
 
+  const colorUniform = useMemo(() => {
+    return new THREE.Color(uColor || 'white');
+  }, [uColor]);
+
   if (!context || !context.isEnabled || !context.texture)
     return (
-      <meshBasicMaterial
-        transparent
-        opacity={1.0}
-        color={props.uColor || 'white'}
-      />
+      <meshBasicMaterial transparent opacity={1.0} color={uColor || 'white'} />
     );
 
   return (
@@ -330,6 +375,9 @@ export const RefractiveBubbleMaterial = (
       cameraNear={camera.near}
       cameraFar={camera.far}
       transparent
+      depthWrite={false} // Ensure transparent object doesn't write to depth
+      depthTest={true}   // Ensure transparent object tests against depth
+      uColor={colorUniform}
       {...props}
     />
   );
