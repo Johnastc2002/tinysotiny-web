@@ -54,7 +54,7 @@ interface Shader {
 export const BUBBLE_COLORS = {
   PLAY: '#001EFF',
   WORK: '#0F2341',
-  GREY: '#d6d6d6', // The color here DOES NOT AFFECT when (enableRefraction = true) is enabled
+  GREY: '#0F2341', // The color here DOES NOT AFFECT when (enableRefraction = true) is enabled
 };
 
 interface BubbleData {
@@ -180,7 +180,7 @@ const generateBubbles = (
           id: i,
           position,
           scale,
-          color: '#ffffff', // Set to white as tint is handled in shader
+          color: BUBBLE_COLORS.GREY, // Set to GREY color
           type: 'glass',
           isGradient: true,
           isRefractive: true,
@@ -225,7 +225,7 @@ const generateBubbles = (
             id: i,
             position,
             scale,
-            color: '#ffffff', // Set to white as tint is handled in shader
+            color: BUBBLE_COLORS.GREY, // Set to GREY color
             type: 'glass',
             isGradient: true,
             isRefractive: true,

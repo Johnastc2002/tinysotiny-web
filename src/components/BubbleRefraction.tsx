@@ -94,12 +94,17 @@ export const BubbleRefractionProvider = ({
     // Save clear settings
     const oldClearColor = new THREE.Color();
     state.gl.getClearColor(oldClearColor);
+    const oldClearAlpha = state.gl.getClearAlpha();
+
+    // Set clear color to match scene background to avoid black artifacts
+    state.gl.setClearColor('#F0F2F5', 1);
 
     state.gl.setRenderTarget(fbo);
     state.gl.clear();
     state.gl.render(state.scene, state.camera);
 
-    // 3. Restore
+    // 3. Restore clear color
+    state.gl.setClearColor(oldClearColor, oldClearAlpha);
     state.gl.setRenderTarget(currentRenderTarget);
 
     hiddenBubbles.forEach((b) => {
@@ -245,7 +250,7 @@ const RefractionShaderMaterialImpl = shaderMaterial(
         vec2 localDiff = vUv - 0.5;
         float dist = length(localDiff);
         
-        // Circular mask
+        // Sharp circular mask for bubble edge
         if(dist > 0.5) discard;
 
         // Calculate sphere height for normal/refraction
@@ -263,75 +268,99 @@ const RefractionShaderMaterialImpl = shaderMaterial(
         float closestSceneLinearDist = -perspectiveDepthToViewZ(closestSceneDepthRaw, cameraNear, cameraFar);
         
         // Compare depths
-        // If scene is behind bubble (closestSceneLinearDist > currentLinearDist), depthDiff > 0.
-        // If scene is closer (intersecting), depthDiff approaches 0.
         float depthDiff = closestSceneLinearDist - currentLinearDist;
         
-        // Soft fade factor: 0.0 at intersection, 1.0 when bubble is > 1.0 unit in front of background
-        float alphaFade = smoothstep(0.0, 1.0, depthDiff);
+        // Using constant alpha instead of depth fade to avoid grey borders
+        float alphaFade = 1.0;
 
         // --- REFRACTION ---
-        // Strength dampened by alphaFade to avoid edge glitch
-        vec2 offset = n * uRefractionStrength * uOpacity * alphaFade;
+        vec2 offset = n * uRefractionStrength * uOpacity;
         vec2 refractedUV = screenUV + offset;
         
-        // --- BLUR LOGIC ---
-        // Initialize with direct sample
+        // --- SOFT FROSTED GLASS DIFFUSION ---
+        
         vec3 col = texture2D(tDiffuse, refractedUV).rgb;
-        float blurStrength = 0.002 * uBlurScale; 
         
         if (uOpacity > 0.01) {
-            col = vec3(0.0);
+            vec3 blurCol = vec3(0.0);
             float totalWeight = 0.0;
-            vec3 centerCol = texture2D(tDiffuse, refractedUV, 1.5).rgb;
             
-            for(int i = 0; i < 16; i++) { // 16 samples for performance
-                float theta = 2.39996 * float(i);
-                float r = sqrt(float(i) / 16.0);
-                float weight = exp(-0.5 * r * r);
-                vec2 sampleOffset = vec2(cos(theta), sin(theta)) * r;
-                vec2 sampleUV = refractedUV + sampleOffset * blurStrength;
-                
-                // Simple check to avoid bleeding foreground objects into blur
-                // (Optional, but keeps edges cleaner)
-                float sampleDepthRaw = texture2D(tDepth, sampleUV).x;
-                float sampleLinearDist = -perspectiveDepthToViewZ(sampleDepthRaw, cameraNear, cameraFar);
-                
-                // If sample is significantly in front of bubble, ignore it (use center)
-                if (sampleLinearDist < currentLinearDist - 0.5) {
-                     col += centerCol * weight;
-                } else {
-                     col += texture2D(tDiffuse, sampleUV, 1.5).rgb * weight;
-                }
-                totalWeight += weight;
-            }
-            col /= totalWeight;
-        }
-        
-        // Apply Fog / Tint
-        float centerOpacity = 1.0;
-        float edgeOpacity = 0.1;
-        float overallOpacity = 0.3;
-        
-        float normalizedDist = dist * 2.0;
-        float radialFactor = mix(centerOpacity, edgeOpacity, normalizedDist);
-        float fogFactor = radialFactor * overallOpacity;
-        
-        vec3 tintColor = vec3(15.0/255.0, 35.0/255.0, 65.0/255.0); // #0F2341
-        
-        col = mix(col, tintColor, fogFactor);
+            // Reduced radius, relying more on Mipmap Blur (LOD) for smoothness
+            float currentBlurRadius = 0.01 * uBlurScale;
+            
+            // Very high LOD bias to force using low-resolution mipmaps
+            // This creates a perfectly smooth "creamy" blur without banding or ringing
+            // Eliminates the need for noise/dithering which causes grain
+            float lodBias = 1.4 + (uBlurScale * 0.5);
 
-        // Add Fresnel/Rim effect
-        vec3 viewDir = vec3(0.0, 0.0, 1.0);
-        float fresnel = pow(1.0 - dot(normal, viewDir), 3.0);
+            // 64 samples for smooth quality
+            for(int i = 0; i < 64; i++) {
+                float fi = float(i);
+                
+                // Stable Golden Angle spiral (no noise)
+                float angle = fi * 2.39996;
+                
+                // Square root distribution
+                float r = sqrt(fi / 64.0);
+                
+                // Sample offset
+                vec2 offset = vec2(cos(angle), sin(angle)) * currentBlurRadius * r;
+                vec2 sampleUV = refractedUV + offset;
+                
+                // Sample color with high LOD bias
+                vec3 texSample = texture2D(tDiffuse, sampleUV, lodBias).rgb;
+                
+                // Gaussian weight
+                float w = exp(-2.0 * r * r);
+                
+                // Soft depth rejection
+                float sampleDepthRaw = texture2D(tDepth, sampleUV).x;
+                float sampleDepth = -perspectiveDepthToViewZ(sampleDepthRaw, cameraNear, cameraFar);
+                float centerDepthRaw = texture2D(tDepth, refractedUV).x;
+                float centerDepth = -perspectiveDepthToViewZ(centerDepthRaw, cameraNear, cameraFar);
+                
+                // DISABLED DEPTH REJECTION to ensure full blur across edges
+                // This allows the blur to "cross over" object boundaries, creating a soft feathered look
+                // instead of keeping edges sharp.
+                float depthWeight = 1.0; 
+                w *= (0.2 + 0.8 * depthWeight);
+                
+                blurCol += texSample * w;
+                totalWeight += w;
+            }
+            
+            col = blurCol / totalWeight;
+        }
+
+        // --- BALANCED BRIGHTNESS CORRECTION ---
+        // Calculate luminance to determine how bright the pixel is
+        float lum = dot(col, vec3(0.299, 0.587, 0.114));
+
+        // Adaptive Gamma:
+        // Use strong gamma (0.25) for dark areas to lift them.
+        // Use normal gamma (1.0) for bright areas to avoid washout.
+        // We interpolate based on luminance.
+        float adaptiveGamma = mix(0.5, 1.0, lum);
         
-        // Apply occlusion fade to rim too
-        float rim = fresnel * 0.3 * alphaFade;
+        col = pow(col, vec3(adaptiveGamma));
+        col *= 1.1; // Increase overall brightness
+
+        // --- TINTING ---
+        // Radial gradient: 100% at center, 20% at edge
+        // Overall strength: 30%
+        float normDist = dist * 2.0; // 0.0 to 1.0
+        float gradientMask = mix(0.6, 0.2, normDist); // 1.0 to 0.2
+        float tintStrength = 0.3; 
         
-        col = mix(col, vec3(1.0), rim);
+        // Apply tint using MULTIPLY blend to ensure it darkens the bubble (glass filter effect)
+        // We mix between pure white (no filter) and the tint color based on strength
+        // For grey bubbles (uColor around 0.84), this will darken slightly.
+        // For navy bubbles (uColor around 0.06), this will darken significantly.
+        vec3 tintFactor = mix(vec3(1.0), uColor, gradientMask * tintStrength);
+        col *= tintFactor;
         
-        // Final Alpha
-        float finalAlpha = max(uOpacity * alphaFade, rim * uOpacity);
+        // Final Alpha - sharp edge
+        float finalAlpha = uOpacity * alphaFade;
         
         gl_FragColor = vec4(col, finalAlpha);
     }
