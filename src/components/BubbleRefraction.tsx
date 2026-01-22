@@ -246,16 +246,19 @@ const RefractionShaderMaterialImpl = shaderMaterial(
         // Screen UV (0 to 1)
         vec2 screenUV = vScreenPos.xy / vScreenPos.w * 0.5 + 0.5;
         
-        // Local UV centered
-        vec2 localDiff = vUv - 0.5;
-        float dist = length(localDiff);
-        
-        // Sharp circular mask for bubble edge
-        if(dist > 0.5) discard;
+    // Local UV centered
+    vec2 localDiff = vUv - 0.5;
+    float dist = length(localDiff);
+    
+    // Soft edge to prevent aliasing (zig-zag lines)
+    float edgeSmoothness = 0.01;
+    float alphaEdge = 1.0 - smoothstep(0.5 - edgeSmoothness, 0.5, dist);
 
-        // Calculate sphere height for normal/refraction
-        float zHeight = sqrt(0.25 - dist * dist);
-        vec3 normal = normalize(vec3(localDiff.x, localDiff.y, zHeight));
+    // Calculate sphere height for normal/refraction
+    // Clamp dist to avoid NaN in sqrt
+    float safeDist = min(dist, 0.5);
+    float zHeight = sqrt(0.25 - safeDist * safeDist);
+    vec3 normal = normalize(vec3(localDiff.x, localDiff.y, zHeight));
         vec2 n = normal.xy;
         
         // Calculate depths
@@ -359,10 +362,10 @@ const RefractionShaderMaterialImpl = shaderMaterial(
         vec3 tintFactor = mix(vec3(1.0), uColor, gradientMask * tintStrength);
         col *= tintFactor;
         
-        // Final Alpha - sharp edge
-        float finalAlpha = uOpacity * alphaFade;
-        
-        gl_FragColor = vec4(col, finalAlpha);
+    // Final Alpha - sharp edge
+    float finalAlpha = uOpacity * alphaFade * alphaEdge;
+    
+    gl_FragColor = vec4(col, finalAlpha);
     }
   `
 );
