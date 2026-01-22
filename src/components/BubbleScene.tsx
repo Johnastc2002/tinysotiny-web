@@ -1002,10 +1002,10 @@ const ColorBubble = ({
           ) : isRefractive ? (
             <RefractiveBubbleMaterial
               uOpacity={1.0}
-              uRefractionStrength={0.015}
+              uRefractionStrength={0.005}
               // [CONFIG] TWEAK HERE: Overall blur amount. Higher = wider blur.
               // Try values between 4.0 and 12.0.
-              uBlurScale={6.0}
+              uBlurScale={2.0}
               uRadius={scale}
               uColor={color}
             />
