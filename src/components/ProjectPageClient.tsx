@@ -222,14 +222,12 @@ export default function ProjectPageClient({
                               <li
                                 key={index}
                                 className={`flex items-center leading-none text-xs font-['Value_Sans'] font-normal uppercase tracking-wide transition-colors ${
-                                  !cardTagColor && !cardFontColor
+                                  !cardFontColor
                                     ? 'text-[#B6B6B6]'
                                     : ''
                                 }`}
                                 style={
-                                  cardTagColor
-                                    ? { color: cardTagColor }
-                                    : cardFontColor
+                                  cardFontColor
                                     ? { color: cardFontColor }
                                     : {}
                                 }
@@ -267,12 +265,8 @@ export default function ProjectPageClient({
                             {project.tags.map((tag, tagIndex) => (
                               <li
                                 key={tagIndex}
-                                className={`flex items-center leading-none text-xs font-['Value_Sans'] font-normal uppercase tracking-wide ${
-                                  !cardTagColor ? 'text-[#B6B6B6]' : ''
-                                }`}
-                                style={
-                                  cardTagColor ? { color: cardTagColor } : {}
-                                }
+                                className="flex items-center leading-none text-xs font-['Value_Sans'] font-normal uppercase tracking-wide text-[#B6B6B6]"
+                                style={{}}
                               >
                                 <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />{' '}
                                 {tag.display_name}
