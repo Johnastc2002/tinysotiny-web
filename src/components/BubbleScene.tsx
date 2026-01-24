@@ -15,6 +15,8 @@ import {
   Text,
   Environment,
   Float,
+  useVideoTexture,
+  useAspect,
 } from '@react-three/drei';
 import * as THREE from 'three';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -1061,11 +1063,20 @@ const ColorBubble = ({
   );
 };
 
-const RotatingGroup = ({ children }: { children: React.ReactNode }) => {
+const RotatingGroup = ({
+  children,
+  speed = 0.05,
+  isDraggingRef,
+}: {
+  children: React.ReactNode;
+  speed?: number;
+  isDraggingRef?: React.MutableRefObject<boolean>;
+}) => {
   const ref = useRef<THREE.Group>(null);
   useFrame((state, delta) => {
     if (ref.current) {
-      ref.current.rotation.y += delta * 0.05;
+      if (isDraggingRef?.current) return;
+      ref.current.rotation.y += delta * speed;
     }
   });
   return <group ref={ref}>{children}</group>;
@@ -1087,8 +1098,7 @@ const Loader = () => {
 };
 
 const Bubbles = ({
-  mode,
-  projects,
+  bubbles,
   onOpenCard,
   enableExplosion,
   explosionDelay,
@@ -1096,8 +1106,7 @@ const Bubbles = ({
   isMobile,
   enableRefraction,
 }: {
-  mode: 'home' | 'gallery';
-  projects?: Project[];
+  bubbles: BubbleData[];
   onOpenCard?: (project: Project) => void;
   enableExplosion?: boolean;
   explosionDelay?: number;
@@ -1105,15 +1114,6 @@ const Bubbles = ({
   isMobile: boolean;
   enableRefraction?: boolean;
 }) => {
-  // Pass projects to generateBubbles
-  const bubbles = useMemo(() => {
-    let count = 14;
-    if (mode === 'gallery' && projects) {
-      count = projects.length;
-    }
-    return generateBubbles(count, mode, projects || []);
-  }, [mode, projects]);
-
   // Track the single hovered bubble ID
   const [hoveredId, setHoveredId] = useState<number | null>(null);
 
@@ -1261,6 +1261,151 @@ const CameraAdjuster = ({
   return null;
 };
 
+const ControlsSpeedAdjuster = () => {
+  const controls = useThree((state) => state.controls);
+  const camera = useThree((state) => state.camera);
+
+  useFrame(() => {
+    if (!controls || !('target' in controls)) return;
+    
+    // Cast controls to any or proper type to access target and speeds
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const orbitControls = controls as any;
+
+    const dist = camera.position.distanceTo(orbitControls.target);
+    
+    // Linear scaling: speed = dist * factor
+    // Base: dist 20 -> speed 0.5 => factor = 0.025
+    // Adjusted: dist 20 -> speed 0.3 => factor = 0.015 for more precision
+    let targetSpeed = dist * 0.015;
+    
+    // Clamp
+    targetSpeed = Math.max(0.1, Math.min(targetSpeed, 2.0));
+
+    // Debug: Log values to compare across pages
+    // console.log('Dist:', dist.toFixed(2), 'Speed:', targetSpeed.toFixed(3));
+
+    orbitControls.rotateSpeed = targetSpeed;
+    orbitControls.autoRotateSpeed = targetSpeed;
+  });
+
+  return null;
+};
+
+const MagneticCamera = ({
+  bubbles,
+  enabled,
+  baseZoomSpeed,
+}: {
+  bubbles: BubbleData[];
+  enabled: boolean;
+  baseZoomSpeed: number;
+}) => {
+  const { camera, controls } = useThree();
+  const vec = useMemo(() => new THREE.Vector3(), []);
+  const pos = useMemo(() => new THREE.Vector3(), []);
+
+  useFrame(() => {
+    if (!enabled || !controls || !('target' in controls)) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const orbitControls = controls as any;
+    const target = orbitControls.target as THREE.Vector3;
+
+    // Reset zoom speed to base at start of frame
+    orbitControls.zoomSpeed = baseZoomSpeed;
+
+    // 1. Find the bubble closest to the center of the screen
+    let closestBubble: BubbleData | null = null;
+    let minDist = Infinity;
+
+    // Center of screen in NDC is (0,0)
+    for (const bubble of bubbles) {
+      // Get bubble world position
+      bubble.position && pos.set(...bubble.position);
+
+      // Project to screen space
+      vec.copy(pos).project(camera);
+
+      // Distance to center (0,0) in NDC
+      const d = vec.lengthSq();
+
+      // Check if it's in front of camera (z < 1) and reasonably close to center
+      if (vec.z < 1 && d < minDist) {
+        minDist = d;
+        closestBubble = bubble;
+      }
+    }
+
+    // Threshold for "center": 0.8 NDC radius (approx 40% of screen width)
+    if (closestBubble && minDist < 0.8) {
+      const bubblePos = new THREE.Vector3(...closestBubble.position);
+
+      // --- Distance Snapping (Friction) ---
+      // Ideal distance logic:
+      // We want the bubble to be comfortably visible.
+      // Heuristic: Distance = Scale * Factor.
+      // Factor ~5.0 ensures full visibility.
+      const idealDistFromBubble = closestBubble.scale * 5.0;
+
+      // Current setup: Camera -> Origin (Target) <- Bubble
+      // Camera radius from origin
+      const camRadius = camera.position.distanceTo(target);
+      const bubbleRadius = bubblePos.distanceTo(target);
+
+      // If we are looking "past" the bubble at the origin,
+      // ideal Camera Radius = Bubble Radius + Ideal Distance
+      const idealCamRadius = bubbleRadius + idealDistFromBubble;
+
+      // Zone where friction applies:
+      // From: ideal viewing distance + some buffer (e.g. scale * 6)
+      // To: bubble surface (bubbleRadius + scale * 0.5)
+
+      const farLimit = bubbleRadius + closestBubble.scale * 6.0;
+      const nearLimit = bubbleRadius + closestBubble.scale * 0.5;
+
+      if (camRadius < farLimit && camRadius > nearLimit) {
+        // Calculate progress through the friction zone (0 = far, 1 = near)
+        const distToBubble = camRadius - nearLimit;
+        const zoneWidth = farLimit - nearLimit;
+
+        // t goes from 0 (at far limit) to 1 (at near limit)
+        const t = 1.0 - distToBubble / zoneWidth;
+
+        // Apply friction based on t.
+        // Base friction: 1.0 (no friction)
+        // Max friction: 0.1 (10% speed)
+        // Quadratic curve for smooth onset
+        const friction = 1.0 - 0.9 * (t * t);
+
+        orbitControls.zoomSpeed = baseZoomSpeed * friction;
+      }
+    }
+  });
+
+  return null;
+};
+
+const BackgroundVideo = ({ url }: { url: string }) => {
+  const { scene } = useThree();
+  const texture = useVideoTexture(url, {
+    unsuspend: 'canplay',
+    muted: true,
+    loop: true,
+    start: true,
+    playsInline: true,
+    crossOrigin: 'Anonymous',
+  });
+
+  useEffect(() => {
+    scene.background = texture;
+    return () => {
+      scene.background = null;
+    };
+  }, [texture, scene]);
+
+  return null;
+};
+
 export default function BubbleScene({
   mode = 'gallery',
   projects,
@@ -1273,6 +1418,10 @@ export default function BubbleScene({
   welcomeVideo,
   showPlayGrid,
   enableRefraction = false,
+  rotationSpeed = 0.05,
+  zoomSpeed = 0.5,
+  backgroundColor,
+  backgroundVideo,
 }: {
   mode?: 'home' | 'gallery';
   projects?: Project[];
@@ -1285,11 +1434,25 @@ export default function BubbleScene({
   welcomeVideo?: string;
   showPlayGrid?: boolean;
   enableRefraction?: boolean;
+  rotationSpeed?: number;
+  zoomSpeed?: number;
+  backgroundColor?: string;
+  backgroundVideo?: { url: string; width: number; height: number };
 }) {
   const isMobile = useIsMobile();
   const userInteractionRef = useRef(false);
+  const isDraggingRef = useRef(false);
 
   const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
+
+  // Generate bubbles here to pass to both Bubbles and MagneticCamera
+  const bubbles = useMemo(() => {
+    let count = 14;
+    if (mode === 'gallery' && projects) {
+      count = projects.length;
+    }
+    return generateBubbles(count, mode, projects || []);
+  }, [mode, projects]);
 
   useEffect(() => {
     if (!welcomeVideo) return;
@@ -1306,6 +1469,13 @@ export default function BubbleScene({
   const handleVideoEnd = () => {
     setShowWelcomeVideo(false);
   };
+
+  const glConfig = useMemo(() => ({
+    antialias: true,
+    toneMapping: THREE.NoToneMapping,
+    alpha: transparent,
+    preserveDrawingBuffer: true,
+  }), [transparent]);
 
   return (
     <div className={`w-full h-screen cursor-none relative`}>
@@ -1331,23 +1501,31 @@ export default function BubbleScene({
       <Canvas
         frameloop={paused ? 'never' : 'always'}
         camera={{ position: [0, 0, 20], fov: 50 }}
-        gl={{
-          antialias: true,
-          toneMapping: THREE.NoToneMapping,
-          alpha: transparent,
-          preserveDrawingBuffer: true,
-        }}
+        gl={glConfig}
       >
         <ambientLight intensity={3} />
         <pointLight position={[10, 10, 10]} intensity={2} />
-        {!transparent && <color attach="background" args={['#F0F2F5']} />}
+        <React.Suspense fallback={null}>
+          {backgroundVideo && <BackgroundVideo url={backgroundVideo.url} />}
+        </React.Suspense>
+        {backgroundColor && !backgroundVideo && (
+          <color attach="background" args={[backgroundColor]} />
+        )}
+        {!transparent && !backgroundColor && !backgroundVideo && (
+          <color attach="background" args={['#F0F2F5']} />
+        )}
         <Environment preset="studio" />
         <CameraAdjuster userInteractionRef={userInteractionRef} />
+        <ControlsSpeedAdjuster />
+        <MagneticCamera
+          bubbles={bubbles}
+          enabled={userInteractionRef.current}
+          baseZoomSpeed={zoomSpeed}
+        />
         <React.Suspense fallback={<Loader />}>
-          <RotatingGroup>
+          <RotatingGroup speed={rotationSpeed} isDraggingRef={isDraggingRef}>
             <Bubbles
-              mode={mode}
-              projects={projects}
+              bubbles={bubbles}
               onOpenCard={onOpenCard}
               enableExplosion={enableExplosion}
               explosionDelay={explosionDelay}
@@ -1365,8 +1543,14 @@ export default function BubbleScene({
           maxDistance={60}
           autoRotate={false}
           autoRotateSpeed={0.5}
+          rotateSpeed={0.5}
+          zoomSpeed={zoomSpeed}
           onStart={() => {
             userInteractionRef.current = true;
+            isDraggingRef.current = true;
+          }}
+          onEnd={() => {
+            isDraggingRef.current = false;
           }}
         />
       </Canvas>

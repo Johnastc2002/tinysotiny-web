@@ -84,7 +84,7 @@ export default function DetailCard({
             exit={{ opacity: 0 }}
           >
             <div
-              className="fixed inset-0 z-40 overflow-y-auto cursor-none"
+              className="fixed inset-0 z-[100] overflow-y-auto cursor-none"
               style={{
                 backgroundColor: 'rgba(0, 0, 0, 0.2)',
                 backdropFilter: 'blur(12px)',
@@ -104,7 +104,7 @@ export default function DetailCard({
                 relative flex flex-col landscape:flex-row md:flex-row 
                 w-[60vw] h-[60vh] md:max-w-5xl
                 overflow-hidden 
-                bg-white 
+                bg-transparent
                 rounded-4xl md:rounded-4xl 
                 cursor-none
               `}
@@ -149,7 +149,7 @@ export default function DetailCard({
                   </div>
 
                   {/* Right Side - Content */}
-                  <div className="flex w-full landscape:w-1/2 md:w-1/2 flex-col hover:bg-gray-50 transition-colors flex-none landscape:flex-none md:flex-none landscape:h-full md:h-full landscape:overflow-y-auto md:overflow-y-auto bg-white z-10">
+                  <div className="flex w-full landscape:w-1/2 md:w-1/2 flex-col hover:bg-gray-50 transition-colors flex-none landscape:flex-none md:flex-none landscape:h-full md:h-full landscape:overflow-y-auto md:overflow-y-auto bg-transparent z-10">
                     {/* Top Section - Description */}
                     <div
                       className="flex-1 px-6 pt-3 pb-6 landscape:p-6 md:p-10 flex flex-col transition-colors duration-300 min-h-min relative"
@@ -183,7 +183,7 @@ export default function DetailCard({
                           {data.title}
                         </h2>
                         <p
-                          className={`text-xs md:text-sm leading-relaxed max-w-md font-['Value_Sans'] font-normal line-clamp-5 md:line-clamp-6 text-ellipsis overflow-hidden ${
+                          className={`text-xs md:text-sm leading-relaxed max-w-md font-['Value_Sans'] font-normal line-clamp-3 md:line-clamp-6 text-ellipsis overflow-hidden ${
                             !fontColor ? 'text-[#0F2341]' : ''
                           }`}
                           style={

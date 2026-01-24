@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, Suspense } from 'react';
+import React, { useState, useRef, useEffect, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Project, GridFilter, ContentfulMediaItem } from '@/types/project';
 import BubbleScene from '@/components/BubbleScene';
@@ -46,6 +46,9 @@ function GalleryPageContent({
   const searchParams = useSearchParams();
 
   const [viewMode, setViewMode] = useState<'dot' | 'grid'>('dot');
+
+  // Stable reference for featured projects to prevent BubbleScene re-renders on navigation
+  const [featuredProjects] = useState<Project[]>(initialFeaturedProjects);
 
   // Projects state
   const [nonFeaturedProjects, setNonFeaturedProjects] = useState<Project[]>(
@@ -301,7 +304,7 @@ function GalleryPageContent({
   };
 
   // Update URL when opening DetailCard (Bubble Click)
-  const handleOpenCard = (project: Project) => {
+  const handleOpenCard = useCallback((project: Project) => {
     // Check if card is already open or url param exists
     const currentCardId = searchParams.get('card');
     if (currentCardId === project.id) return;
@@ -311,7 +314,7 @@ function GalleryPageContent({
     const params = new URLSearchParams(searchParams.toString());
     params.set('card', project.id);
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  };
+  }, [searchParams, pathname, router]);
 
   // Intercept DetailCard open to just update URL for simple card or keep separate?
   // The user says "when the user press the project detail... navigate to it".
@@ -525,25 +528,39 @@ function GalleryPageContent({
       : 'bg-play-gradient' // Fallback to gradient if no media
     : 'bg-[#F0F2F5]';
 
+  // Determine dynamic background color for BubbleScene
+  // Work page: Always #F0F2F5
+  // Play page: Transparent (undefined) normally, but Black when card is open to prevent transition glitches
+  const sceneBackgroundColor = isPlay
+    ? searchParams.get('card')
+      ? '#000000'
+      : undefined
+    : '#F0F2F5';
+
   return (
     <div className={`relative w-full min-h-screen ${bgClass}`}>
-      {/* Play Page Background Media */}
-      {isPlay && playPageBgMedia && (
-        <div className="fixed inset-0 z-0 pointer-events-none">
-          <SmartMedia
-            url={playPageBgMedia.url}
-            type={playPageBgMedia.type}
-            width={playPageBgMedia.width}
-            height={playPageBgMedia.height}
-            alt="Play Page Background"
-            fill
-            className="w-full h-full object-cover"
-            autoplay
-            mute
-            priority
-          />
-        </div>
-      )}
+      {/* Play Page Background Media - Only show if NOT handled by BubbleScene (e.g. image or vimeo, or if we want to layer it) */}
+      {/* Actually, if we move it to BubbleScene, we should hide this one to avoid double playing/layering issues */}
+      {/* But BubbleScene only covers the canvas area. If canvas is full screen, it's fine. */}
+      {isPlay &&
+        playPageBgMedia &&
+        // If we are passing it to BubbleScene, don't render it here
+        !(playPageBgMedia.type === 'video') && (
+          <div className="fixed inset-0 z-0 pointer-events-none">
+            <SmartMedia
+              url={playPageBgMedia.url}
+              type={playPageBgMedia.type}
+              width={playPageBgMedia.width}
+              height={playPageBgMedia.height}
+              alt="Play Page Background"
+              fill
+              className="w-full h-full object-cover"
+              autoplay
+              mute
+              priority
+            />
+          </div>
+        )}
 
       <DetailCard
         isOpen={!!selectedProject && !searchParams.get('project')}
@@ -802,24 +819,47 @@ function GalleryPageContent({
         )}
       </AnimatePresence>
 
+      <DetailCard
+        isOpen={!!selectedProject && !searchParams.get('project')}
+        onClose={handleCloseCard}
+        data={cardData}
+        basePath="/project"
+        onCardClick={(id) => updateUrlWithProject(id)}
+      />
+
       <div className="w-full h-full relative">
         {/* Dot View (Always Mounted, Hidden via CSS) */}
         <div
           className={`h-screen w-full overflow-hidden fixed top-0 left-0 transition-opacity duration-500 ${
-            viewMode === 'dot'
+            viewMode === 'dot' && !searchParams.get('project')
               ? 'opacity-100 z-10'
               : 'opacity-0 z-0 pointer-events-none'
           }`}
         >
           <BubbleScene
             mode="gallery"
-            projects={initialFeaturedProjects}
+            projects={featuredProjects}
             enableExplosion={enableExplosion}
             explosionDelay={explosionDelay}
             transparent={isPlay}
             onOpenCard={handleOpenCard}
             enableBlur={true}
             paused={isBubblePaused}
+            rotationSpeed={0.025}
+            zoomSpeed={0.5}
+            // Pass video background if available to avoid transparency glitches
+            backgroundVideo={
+              isPlay &&
+              playPageBgMedia &&
+              playPageBgMedia.type === 'video' &&
+              playPageBgMedia.url
+                ? {
+                    url: playPageBgMedia.url,
+                    width: playPageBgMedia.width,
+                    height: playPageBgMedia.height,
+                  }
+                : undefined
+            }
           />
         </div>
 
