@@ -80,6 +80,7 @@ export const getSocialImageUrl = (url: string | undefined): string | undefined =
   newUrl = setParam(newUrl, 'f', 'faces'); // Focus on faces if present
   newUrl = setParam(newUrl, 'q', '80');
   newUrl = setParam(newUrl, 'fm', 'jpg'); // Force JPEG for maximum compatibility
+  newUrl = setParam(newUrl, 'v', '1'); // Force cache bust for WhatsApp
   
   return newUrl;
 };
