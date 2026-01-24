@@ -17,21 +17,30 @@ export async function generateMetadata(
   const params = await searchParams;
   const dailyId = params.daily;
 
-  const previousImages = (await parent).openGraph?.images || [];
-
   if (typeof dailyId === 'string') {
     const daily = await getDailyEntryById(dailyId);
     if (daily) {
-      const images = daily.thumbnail?.url
+      let thumbnailUrl = daily.thumbnail?.url;
+
+      // Fallback to first image in medias if no thumbnail
+      if (!thumbnailUrl && daily.medias?.length > 0) {
+        const firstImage = daily.medias.find((m) => m.type === 'image');
+        if (firstImage) {
+          thumbnailUrl = firstImage.url;
+        }
+      }
+
+      const defaultImage = '/logo.png';
+      const images = thumbnailUrl
         ? [
             {
-              url: daily.thumbnail.url,
-              width: daily.thumbnail.width || 1200,
-              height: daily.thumbnail.height || 630,
+              url: thumbnailUrl,
+              width: 1200,
+              height: 630,
               alt: daily.title,
             },
           ]
-        : previousImages;
+        : [defaultImage];
 
       return {
         title: `${daily.title} | tinysotiny.co`,
@@ -45,7 +54,7 @@ export async function generateMetadata(
           card: 'summary_large_image',
           title: daily.title,
           description: daily.description,
-          images: daily.thumbnail?.url ? [daily.thumbnail.url] : [],
+          images: thumbnailUrl ? [thumbnailUrl] : [defaultImage],
         },
       };
     }
