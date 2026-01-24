@@ -543,9 +543,7 @@ function GalleryPageContent({
       {/* Actually, if we move it to BubbleScene, we should hide this one to avoid double playing/layering issues */}
       {/* But BubbleScene only covers the canvas area. If canvas is full screen, it's fine. */}
       {isPlay &&
-        playPageBgMedia &&
-        // If we are passing it to BubbleScene, don't render it here
-        !(playPageBgMedia.type === 'video') && (
+        playPageBgMedia && (
           <div className="fixed inset-0 z-0 pointer-events-none">
             <SmartMedia
               url={playPageBgMedia.url}
@@ -845,21 +843,8 @@ function GalleryPageContent({
             onOpenCard={handleOpenCard}
             enableBlur={true}
             paused={isBubblePaused}
-            rotationSpeed={0.025}
+            rotationSpeed={0.01}
             zoomSpeed={0.5}
-            // Pass video background if available to avoid transparency glitches
-            backgroundVideo={
-              isPlay &&
-              playPageBgMedia &&
-              playPageBgMedia.type === 'video' &&
-              playPageBgMedia.url
-                ? {
-                    url: playPageBgMedia.url,
-                    width: playPageBgMedia.width,
-                    height: playPageBgMedia.height,
-                  }
-                : undefined
-            }
           />
         </div>
 

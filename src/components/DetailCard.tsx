@@ -82,15 +82,13 @@ export default function DetailCard({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] overflow-y-auto cursor-none"
+            style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.2)',
+              backdropFilter: 'blur(12px)',
+            }}
+            onClick={onClose}
           >
-            <div
-              className="fixed inset-0 z-[100] overflow-y-auto cursor-none"
-              style={{
-                backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                backdropFilter: 'blur(12px)',
-              }}
-              onClick={onClose}
-            >
               <div className="min-h-full flex items-center justify-center p-12 landscape:p-4 md:p-0">
                 <motion.div
                   key={data.id} // Add key to force proper AnimatePresence behavior on ID change
@@ -265,7 +263,6 @@ export default function DetailCard({
                   </div>
                 </motion.div>
               </div>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -1440,7 +1440,6 @@ export default function BubbleScene({
   rotationSpeed?: number;
   zoomSpeed?: number;
   backgroundColor?: string;
-  backgroundVideo?: { url: string; width: number; height: number };
 }) {
   const isMobile = useIsMobile();
   const userInteractionRef = useRef(false);
@@ -1516,13 +1515,10 @@ export default function BubbleScene({
       >
         <ambientLight intensity={3} />
         <pointLight position={[10, 10, 10]} intensity={2} />
-        <React.Suspense fallback={null}>
-          {backgroundVideo && <BackgroundVideo url={backgroundVideo.url} />}
-        </React.Suspense>
-        {backgroundColor && !backgroundVideo && (
+        {backgroundColor && (
           <color attach="background" args={[backgroundColor]} />
         )}
-        {!transparent && !backgroundColor && !backgroundVideo && (
+        {!transparent && !backgroundColor && (
           <color attach="background" args={['#efefef']} />
         )}
         <Environment preset="studio" />
