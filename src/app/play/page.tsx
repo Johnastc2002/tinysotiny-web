@@ -5,6 +5,7 @@ import {
   getGridFilter,
   getAppConfig,
   getProjectById,
+  getSocialImageUrl,
 } from '@/lib/contentful';
 import GalleryPageClient from '@/components/GalleryPageClient';
 
@@ -43,17 +44,13 @@ export async function generateMetadata(
         }
       }
 
-      // Optimize thumbnail for social sharing (WhatsApp prefers < 300KB)
-      // Replace w=1920 with w=1200 to reduce file size
-      if (thumbnail && thumbnail.includes('w=1920')) {
-        thumbnail = thumbnail.replace('w=1920', 'w=1200');
-      }
+      const socialThumbnail = getSocialImageUrl(thumbnail);
 
       const defaultImage = '/logo.png';
-      const images = thumbnail
+      const images = socialThumbnail
         ? [
             {
-              url: thumbnail,
+              url: socialThumbnail,
               width: 1200,
               height: 630,
               alt: project.title,
@@ -74,7 +71,7 @@ export async function generateMetadata(
           card: 'summary_large_image',
           title: project.title,
           description: project.description,
-          images: thumbnail ? [thumbnail] : [defaultImage],
+          images: socialThumbnail ? [socialThumbnail] : [defaultImage],
         },
       };
     }

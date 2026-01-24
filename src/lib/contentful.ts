@@ -60,6 +60,29 @@ const optimizeUrl = (url: string, contentType?: string) => {
   return url;
 };
 
+export const getSocialImageUrl = (url: string | undefined): string | undefined => {
+  if (!url) return undefined;
+  
+  // Replace width to 1200
+  let newUrl = url.replace(/w=\d+/, 'w=1200');
+  // Replace quality to 75
+  newUrl = newUrl.replace(/q=\d+/, 'q=75');
+  
+  // If w= was not present (no replacement happened), append it
+  if (!newUrl.includes('w=1200')) {
+    const separator = newUrl.includes('?') ? '&' : '?';
+    newUrl = `${newUrl}${separator}w=1200`;
+  }
+  
+  // If q= was not present, append it
+  if (!newUrl.includes('q=75')) {
+    const separator = newUrl.includes('?') ? '&' : '?';
+    newUrl = `${newUrl}${separator}q=75`;
+  }
+  
+  return newUrl;
+};
+
 const getMediaType = (contentType: string): 'image' | 'video' => {
   return contentType.startsWith('video/') ? 'video' : 'image';
 };

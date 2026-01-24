@@ -1,7 +1,7 @@
 import { Metadata, ResolvingMetadata } from 'next';
 import React from 'react';
 import Link from 'next/link';
-import { getDailyEntries, getDailyEntryById } from '@/lib/contentful';
+import { getDailyEntries, getDailyEntryById, getSocialImageUrl } from '@/lib/contentful';
 import DailyList from '@/components/DailyList';
 
 export const revalidate = 3600; // Revalidate every hour
@@ -30,17 +30,13 @@ export async function generateMetadata(
         }
       }
 
-      // Optimize thumbnail for social sharing (WhatsApp prefers < 300KB)
-      // Replace w=1920 with w=1200 to reduce file size
-      if (thumbnailUrl && thumbnailUrl.includes('w=1920')) {
-        thumbnailUrl = thumbnailUrl.replace('w=1920', 'w=1200');
-      }
+      const socialThumbnail = getSocialImageUrl(thumbnailUrl);
 
       const defaultImage = '/logo.png';
-      const images = thumbnailUrl
+      const images = socialThumbnail
         ? [
             {
-              url: thumbnailUrl,
+              url: socialThumbnail,
               width: 1200,
               height: 630,
               alt: daily.title,
@@ -61,7 +57,7 @@ export async function generateMetadata(
           card: 'summary_large_image',
           title: daily.title,
           description: daily.description,
-          images: thumbnailUrl ? [thumbnailUrl] : [defaultImage],
+          images: socialThumbnail ? [socialThumbnail] : [defaultImage],
         },
       };
     }
