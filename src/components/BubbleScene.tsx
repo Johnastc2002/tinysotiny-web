@@ -1442,6 +1442,7 @@ export default function BubbleScene({
   const isMobile = useIsMobile();
   const userInteractionRef = useRef(false);
   const isDraggingRef = useRef(false);
+  const { setCursor } = useCursor();
 
   const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
 
@@ -1476,6 +1477,13 @@ export default function BubbleScene({
     alpha: transparent,
     preserveDrawingBuffer: true,
   }), [transparent]);
+
+  // Reset cursor when navigating away or component unmounts
+  useEffect(() => {
+    return () => {
+      setCursor('default');
+    };
+  }, [setCursor]);
 
   return (
     <div className={`w-full h-screen cursor-none relative`}>

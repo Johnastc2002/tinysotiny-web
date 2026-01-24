@@ -20,6 +20,50 @@ export default function GlobalCursor() {
   useEffect(() => {
     if (isMobile) return;
 
+    const addCursorStyle = () => {
+      const id = 'global-cursor-style';
+      if (!document.getElementById(id)) {
+        const style = document.createElement('style');
+        style.id = id;
+        style.innerHTML = `
+          * { cursor: none !important; }
+          input, textarea, [contenteditable="true"] { cursor: text !important; }
+        `;
+        document.head.appendChild(style);
+      }
+      document.documentElement.style.setProperty('cursor', 'none', 'important');
+    };
+
+    const removeCursorStyle = () => {
+      const id = 'global-cursor-style';
+      const style = document.getElementById(id);
+      if (style) style.remove();
+      document.documentElement.style.cursor = '';
+    };
+
+    const onFocus = () => {
+      addCursorStyle();
+      // Force a layout reflow to ensure the cursor style is applied
+      void document.body.offsetHeight;
+    };
+    const onBlur = () => removeCursorStyle();
+
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('blur', onBlur);
+    
+    // Apply immediately on mount too
+    addCursorStyle(); // Always apply on mount, regardless of focus state, to be safe
+
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('blur', onBlur);
+      removeCursorStyle();
+    };
+  }, [isMobile]);
+
+  useEffect(() => {
+    if (isMobile) return;
+
     const handleMouseMove = (e: MouseEvent) => {
       if (!isVisible) setIsVisible(true);
       if (cursorRef.current) {
