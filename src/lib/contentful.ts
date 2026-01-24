@@ -74,10 +74,9 @@ export const getSocialImageUrl = (url: string | undefined): string | undefined =
   };
 
   let newUrl = url;
-  newUrl = setParam(newUrl, 'w', '1200');
-  newUrl = setParam(newUrl, 'h', '630');
-  newUrl = setParam(newUrl, 'fit', 'pad'); // Pad to fit dimensions without cropping
-  newUrl = setParam(newUrl, 'bg', 'rgb:ffffff'); // White background for padding
+  newUrl = setParam(newUrl, 'w', '800');
+  newUrl = setParam(newUrl, 'h', '800');
+  newUrl = setParam(newUrl, 'fit', 'crop'); // Square crop for better balance on mobile
   newUrl = setParam(newUrl, 'q', '80');
   newUrl = setParam(newUrl, 'fm', 'jpg'); // Force JPEG for maximum compatibility
   
