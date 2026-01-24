@@ -65,6 +65,7 @@ export default function DetailCard({
   }, [data?.id, isOpen]); // Only reset when ID changes or opens
 
   const handleCardClick = () => {
+    setCursor('default');
     if (data) {
       if (onCardClick) {
         onCardClick(data.id);
