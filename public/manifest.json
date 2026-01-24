@@ -1,0 +1,21 @@
+{
+  "name": "tinysotiny.co",
+  "short_name": "tinysotiny",
+  "description": "tiny details matter.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/app-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/app-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

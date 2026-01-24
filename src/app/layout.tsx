@@ -44,6 +44,21 @@ export const metadata: Metadata = {
     description: 'tiny details matter.',
     images: ['https://tinysotiny-web.vercel.app/logo.png'],
   },
+  icons: {
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/app-logo.png',
+    other: {
+      rel: 'apple-touch-icon-precomposed',
+      url: '/app-logo.png',
+    },
+  },
+  appleWebApp: {
+    title: 'tinysotiny',
+    statusBarStyle: 'black-translucent',
+    startupImage: ['/app-logo.png'],
+  },
+  manifest: '/manifest.json',
 };
 
 export const revalidate = 3600; // Revalidate every hour
