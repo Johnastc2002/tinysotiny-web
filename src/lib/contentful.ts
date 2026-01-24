@@ -63,15 +63,15 @@ const optimizeUrl = (url: string, contentType?: string) => {
 export const getSocialImageUrl = (url: string | undefined): string | undefined => {
   if (!url) return undefined;
   
-  // Replace width to 1200
-  let newUrl = url.replace(/w=\d+/, 'w=1200');
+  // Replace width to 600 (smaller size for better chat app compatibility)
+  let newUrl = url.replace(/w=\d+/, 'w=600');
   // Replace quality to 75
   newUrl = newUrl.replace(/q=\d+/, 'q=75');
   
   // If w= was not present (no replacement happened), append it
-  if (!newUrl.includes('w=1200')) {
+  if (!newUrl.includes('w=600')) {
     const separator = newUrl.includes('?') ? '&' : '?';
-    newUrl = `${newUrl}${separator}w=1200`;
+    newUrl = `${newUrl}${separator}w=600`;
   }
   
   // If q= was not present, append it
