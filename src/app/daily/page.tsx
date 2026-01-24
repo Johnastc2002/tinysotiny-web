@@ -22,15 +22,30 @@ export async function generateMetadata(
   if (typeof dailyId === 'string') {
     const daily = await getDailyEntryById(dailyId);
     if (daily) {
+      const images = daily.thumbnail?.url
+        ? [
+            {
+              url: daily.thumbnail.url,
+              width: daily.thumbnail.width || 1200,
+              height: daily.thumbnail.height || 630,
+              alt: daily.title,
+            },
+          ]
+        : previousImages;
+
       return {
         title: `${daily.title} | tinysotiny.co`,
         description: daily.description,
         openGraph: {
           title: daily.title,
           description: daily.description,
-          images: daily.thumbnail?.url
-            ? [daily.thumbnail.url]
-            : previousImages,
+          images: images,
+        },
+        twitter: {
+          card: 'summary_large_image',
+          title: daily.title,
+          description: daily.description,
+          images: daily.thumbnail?.url ? [daily.thumbnail.url] : [],
         },
       };
     }

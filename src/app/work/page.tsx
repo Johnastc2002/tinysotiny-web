@@ -26,13 +26,30 @@ export async function generateMetadata(
     const project = await getProjectById(projectId);
     if (project) {
       const thumbnail = project.thumbnails?.[0] || project.bubble_thumbnail;
+      const images = thumbnail
+        ? [
+            {
+              url: thumbnail,
+              width: 1200,
+              height: 630,
+              alt: project.title,
+            },
+          ]
+        : previousImages;
+
       return {
         title: `${project.title} | tinysotiny.co`,
         description: project.description,
         openGraph: {
           title: project.title,
           description: project.description,
-          images: thumbnail ? [thumbnail] : previousImages,
+          images: images,
+        },
+        twitter: {
+          card: 'summary_large_image',
+          title: project.title,
+          description: project.description,
+          images: thumbnail ? [thumbnail] : [],
         },
       };
     }

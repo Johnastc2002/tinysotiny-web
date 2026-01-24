@@ -25,14 +25,24 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'tinysotiny.co',
     description: 'tiny details matter.',
+    url: 'https://tinysotiny-web.vercel.app',
+    siteName: 'tinysotiny.co',
     images: [
       {
-        url: '/logo.png',
+        url: 'https://tinysotiny-web.vercel.app/logo.png',
         width: 800,
         height: 600,
         alt: 'tinysotiny.co logo',
       },
     ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'tinysotiny.co',
+    description: 'tiny details matter.',
+    images: ['https://tinysotiny-web.vercel.app/logo.png'],
   },
 };
 
