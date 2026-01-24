@@ -17,6 +17,7 @@ import {
   Float,
 } from '@react-three/drei';
 import * as THREE from 'three';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Project } from '@/types/project';
 import { useCursor } from '@/context/CursorContext';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -1288,8 +1289,45 @@ export default function BubbleScene({
   const isMobile = useIsMobile();
   const userInteractionRef = useRef(false);
 
+  const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
+
+  useEffect(() => {
+    if (!welcomeVideo) return;
+
+    const lastVisit = localStorage.getItem('last_visit_date');
+    const today = new Date().toDateString();
+
+    if (lastVisit !== today) {
+      setShowWelcomeVideo(true);
+      localStorage.setItem('last_visit_date', today);
+    }
+  }, [welcomeVideo]);
+
+  const handleVideoEnd = () => {
+    setShowWelcomeVideo(false);
+  };
+
   return (
-    <div className={`w-full h-screen cursor-none`}>
+    <div className={`w-full h-screen cursor-none relative`}>
+      <AnimatePresence>
+        {showWelcomeVideo && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1 }}
+            className="fixed inset-0 z-50 bg-black flex items-center justify-center"
+          >
+            <video
+              src={welcomeVideo}
+              className="w-full h-full object-cover"
+              autoPlay
+              muted
+              playsInline
+              onEnded={handleVideoEnd}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
       <Canvas
         frameloop={paused ? 'never' : 'always'}
         camera={{ position: [0, 0, 20], fov: 50 }}
