@@ -188,9 +188,9 @@ export default function Navigation({ contact }: NavigationProps) {
           isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
         style={{
-          top: '2rem',
+          top: isMobile ? '2.25rem' : '2rem',
           left: '1.5rem',
-          height: '3rem',
+          height: isMobile ? '2.5rem' : '3rem',
           display: 'flex',
           alignItems: 'center',
         }}
@@ -199,7 +199,7 @@ export default function Navigation({ contact }: NavigationProps) {
           src="/logo.png"
           alt="Logo"
           style={{
-            height: '38px',
+            height: isMobile ? '28px' : '38px',
             width: 'auto',
             filter: shouldBeDark ? 'brightness(0) invert(1)' : 'none',
           }}
@@ -210,26 +210,34 @@ export default function Navigation({ contact }: NavigationProps) {
       <button
         onClick={toggleMenu}
         style={{
-          top: '2rem',
+          top: isMobile ? '2.25rem' : '2rem',
           right: '1.5rem',
-          height: '3rem',
-          width: '3rem',
+          height: isMobile ? '2.5rem' : '3rem',
+          width: isMobile ? '2.5rem' : '3rem',
         }}
         className={`fixed z-[100] flex items-center justify-center rounded-full border border-white/40 bg-white/10 backdrop-blur-sm transition-all hover:bg-white/20 ${
           isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
         aria-label="Open Menu"
       >
-        <div className="flex flex-col" style={{ gap: '4px' }}>
+        <div className="flex flex-col" style={{ gap: isMobile ? '3px' : '4px' }}>
           <span
-            className={`h-0.5 w-5 rounded-full transition-colors ${
+            className={`rounded-full transition-colors ${
               shouldBeDark ? 'bg-white' : 'bg-[#B6B6B6]'
             }`}
+            style={{
+              height: isMobile ? '1.5px' : '2px',
+              width: isMobile ? '16px' : '20px',
+            }}
           />
           <span
-            className={`h-0.5 w-5 rounded-full transition-colors ${
+            className={`rounded-full transition-colors ${
               shouldBeDark ? 'bg-white' : 'bg-[#B6B6B6]'
             }`}
+            style={{
+              height: isMobile ? '1.5px' : '2px',
+              width: isMobile ? '16px' : '20px',
+            }}
           />
         </div>
       </button>
