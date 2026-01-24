@@ -30,6 +30,12 @@ export async function generateMetadata(
         }
       }
 
+      // Optimize thumbnail for social sharing (WhatsApp prefers < 300KB)
+      // Replace w=1920 with w=1200 to reduce file size
+      if (thumbnailUrl && thumbnailUrl.includes('w=1920')) {
+        thumbnailUrl = thumbnailUrl.replace('w=1920', 'w=1200');
+      }
+
       const defaultImage = '/logo.png';
       const images = thumbnailUrl
         ? [
@@ -49,6 +55,7 @@ export async function generateMetadata(
           title: daily.title,
           description: daily.description,
           images: images,
+          type: 'website',
         },
         twitter: {
           card: 'summary_large_image',
