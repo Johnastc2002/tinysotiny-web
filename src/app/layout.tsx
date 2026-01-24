@@ -19,8 +19,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://tinysotiny.co'),
   title: 'tinysotiny.co',
   description: 'tiny details matter.',
+  openGraph: {
+    title: 'tinysotiny.co',
+    description: 'tiny details matter.',
+    images: [
+      {
+        url: '/logo.png',
+        width: 800,
+        height: 600,
+        alt: 'tinysotiny.co logo',
+      },
+    ],
+  },
 };
 
 export const revalidate = 3600; // Revalidate every hour

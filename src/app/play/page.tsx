@@ -1,12 +1,46 @@
+import { Metadata } from 'next';
 import {
   getFeaturedProjects,
   getNonFeaturedProjects,
   getGridFilter,
   getAppConfig,
+  getProjectById,
 } from '@/lib/contentful';
 import GalleryPageClient from '@/components/GalleryPageClient';
 
 export const revalidate = 60; // Revalidate every 60 seconds
+
+type Props = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export async function generateMetadata({
+  searchParams,
+}: Props): Promise<Metadata> {
+  const params = await searchParams;
+  const projectId = params.project;
+
+  if (typeof projectId === 'string') {
+    const project = await getProjectById(projectId);
+    if (project) {
+      const thumbnail = project.thumbnails?.[0] || project.bubble_thumbnail;
+      return {
+        title: `${project.title} | tinysotiny.co`,
+        description: project.description,
+        openGraph: {
+          title: project.title,
+          description: project.description,
+          images: thumbnail ? [thumbnail] : [],
+        },
+      };
+    }
+  }
+
+  return {
+    title: 'Play | tinysotiny.co',
+    description: 'Playground.',
+  };
+}
 
 export default async function Play() {
   const featuredProjects = await getFeaturedProjects('play');

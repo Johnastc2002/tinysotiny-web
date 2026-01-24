@@ -169,12 +169,15 @@ const generateBubbles = (
     let i = 2;
     // Fix: count is used for total bubbles. If count is smaller than current 'i' (2), loop won't run.
     const targetCount = Math.max(count, 3);
+    const spatialSpread = 25;
+    const scaleSpread = 5.5;
 
+    console.log('targetCount', targetCount);
     while (i < targetCount && attempts < 500) {
-      const x = (rng() - 0.5) * 25; // Increased range
-      const y = (rng() - 0.5) * 25;
-      const z = (rng() - 0.5) * 25;
-      const scale = 0.8 + rng() * 3.5; // Wider range of sizes
+      const x = (rng() - 0.5) * spatialSpread; // Increased range
+      const y = (rng() - 0.5) * spatialSpread;
+      const z = (rng() - 0.5) * spatialSpread;
+      const scale = 0.5 + rng() * scaleSpread; // Wider range of sizes
 
       const position: [number, number, number] = [x, y, z];
 
@@ -569,8 +572,8 @@ const ImageBubble = ({
     });
   }, [defaultTexture, hoverTexture]);
 
-  const [floatSpeed] = useState(() => (1.5 + Math.random()) * 0.5);
-  const [floatIntensity] = useState(() => 1 + Math.random());
+  const [floatSpeed] = useState(() => (1.5 + Math.random()) * 0.25);
+  const [floatIntensity] = useState(() => 0.5 + Math.random() * 0.5);
 
   const materialRef = useRef<THREE.MeshBasicMaterial>(null);
 
@@ -595,7 +598,7 @@ const ImageBubble = ({
       speed={floatSpeed}
       rotationIntensity={0}
       floatIntensity={floatIntensity}
-      floatingRange={[-0.2, 0.2]}
+      floatingRange={[-0.1, 0.1]}
     >
       <ScreenAlignedGroup position={position}>
         {/* Interaction Mesh - exact size */}
@@ -806,8 +809,8 @@ const ColorBubble = ({
   isHovered?: boolean;
   isRefractive?: boolean;
 }) => {
-  const [floatSpeed] = useState(() => (1.5 + Math.random()) * 0.5);
-  const [floatIntensity] = useState(() => 1 + Math.random());
+  const [floatSpeed] = useState(() => (1.5 + Math.random()) * 0.25);
+  const [floatIntensity] = useState(() => 0.5 + Math.random() * 0.5);
 
   const { camera } = useThree();
   const meshRef = useRef<THREE.Mesh>(null);
@@ -1065,7 +1068,7 @@ const ColorBubble = ({
 
 const RotatingGroup = ({
   children,
-  speed = 0.05,
+  speed = 0.025,
   isDraggingRef,
 }: {
   children: React.ReactNode;
@@ -1418,7 +1421,7 @@ export default function BubbleScene({
   welcomeVideo,
   showPlayGrid,
   enableRefraction = false,
-  rotationSpeed = 0.05,
+  rotationSpeed = 0.01,
   zoomSpeed = 0.5,
   backgroundColor,
   backgroundVideo,
@@ -1520,7 +1523,7 @@ export default function BubbleScene({
           <color attach="background" args={[backgroundColor]} />
         )}
         {!transparent && !backgroundColor && !backgroundVideo && (
-          <color attach="background" args={['#F0F2F5']} />
+          <color attach="background" args={['#efefef']} />
         )}
         <Environment preset="studio" />
         <CameraAdjuster userInteractionRef={userInteractionRef} />

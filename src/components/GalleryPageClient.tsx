@@ -526,16 +526,16 @@ function GalleryPageContent({
     ? playPageBgMedia
       ? 'bg-black' // If media present, default to black behind it
       : 'bg-play-gradient' // Fallback to gradient if no media
-    : 'bg-[#F0F2F5]';
+    : 'bg-[#efefef]';
 
   // Determine dynamic background color for BubbleScene
-  // Work page: Always #F0F2F5
+  // Work page: Always #efefef
   // Play page: Transparent (undefined) normally, but Black when card is open to prevent transition glitches
   const sceneBackgroundColor = isPlay
     ? searchParams.get('card')
       ? '#000000'
       : undefined
-    : '#F0F2F5';
+    : '#efefef';
 
   return (
     <div className={`relative w-full min-h-screen ${bgClass}`}>
@@ -866,7 +866,7 @@ function GalleryPageContent({
         {/* Grid View (Always Mounted, Hidden via CSS) */}
         <div
           className={`w-full h-screen fixed inset-0 overflow-y-auto transition-opacity duration-500 ${
-            isPlay ? 'bg-transparent' : 'bg-[#F0F2F5]'
+            isPlay ? 'bg-transparent' : 'bg-[#efefef]'
           } ${
             viewMode === 'grid'
               ? 'opacity-100 z-20'
@@ -900,7 +900,7 @@ export default function GalleryPageClient(props: GalleryPageClientProps) {
     ? props.playPageBgMedia
       ? 'bg-black'
       : 'bg-play-gradient'
-    : 'bg-[#F0F2F5]';
+    : 'bg-[#efefef]';
   const spinnerColor = isPlay ? '#ffffff' : '#0F2341';
   const trackColor = isPlay
     ? 'rgba(255, 255, 255, 0.1)'

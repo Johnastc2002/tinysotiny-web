@@ -1,9 +1,41 @@
+import { Metadata } from 'next';
 import React from 'react';
 import Link from 'next/link';
-import { getDailyEntries } from '@/lib/contentful';
+import { getDailyEntries, getDailyEntryById } from '@/lib/contentful';
 import DailyList from '@/components/DailyList';
 
 export const revalidate = 3600; // Revalidate every hour
+
+type Props = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export async function generateMetadata({
+  searchParams,
+}: Props): Promise<Metadata> {
+  const params = await searchParams;
+  const dailyId = params.daily;
+
+  if (typeof dailyId === 'string') {
+    const daily = await getDailyEntryById(dailyId);
+    if (daily) {
+      return {
+        title: `${daily.title} | tinysotiny.co`,
+        description: daily.description,
+        openGraph: {
+          title: daily.title,
+          description: daily.description,
+          images: daily.thumbnail?.url ? [daily.thumbnail.url] : [],
+        },
+      };
+    }
+  }
+
+  return {
+    title: 'Daily | tinysotiny.co',
+    description: 'Daily thoughts and inspirations.',
+  };
+}
 
 export default async function Daily() {
   // Fetch initial daily entries.
