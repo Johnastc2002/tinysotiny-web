@@ -76,7 +76,8 @@ export const getSocialImageUrl = (url: string | undefined): string | undefined =
   let newUrl = url;
   newUrl = setParam(newUrl, 'w', '1200');
   newUrl = setParam(newUrl, 'h', '630');
-  newUrl = setParam(newUrl, 'fit', 'crop'); // Center crop to fill dimensions
+  newUrl = setParam(newUrl, 'fit', 'pad'); // Pad to fit dimensions without cropping
+  newUrl = setParam(newUrl, 'bg', 'rgb:ffffff'); // White background for padding
   newUrl = setParam(newUrl, 'q', '80');
   newUrl = setParam(newUrl, 'fm', 'jpg'); // Force JPEG for maximum compatibility
   
