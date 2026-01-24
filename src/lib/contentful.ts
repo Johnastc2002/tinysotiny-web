@@ -76,7 +76,8 @@ export const getSocialImageUrl = (url: string | undefined): string | undefined =
   let newUrl = url;
   newUrl = setParam(newUrl, 'w', '800');
   newUrl = setParam(newUrl, 'h', '800');
-  newUrl = setParam(newUrl, 'fit', 'crop'); // Square crop for better balance on mobile
+  newUrl = setParam(newUrl, 'fit', 'thumb'); // Smart thumbnail crop
+  newUrl = setParam(newUrl, 'f', 'faces'); // Focus on faces if present
   newUrl = setParam(newUrl, 'q', '80');
   newUrl = setParam(newUrl, 'fm', 'jpg'); // Force JPEG for maximum compatibility
   
