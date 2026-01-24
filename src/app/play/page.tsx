@@ -21,12 +21,29 @@ export async function generateMetadata(
   const params = await searchParams;
   const projectId = params.project;
 
-  const previousImages = (await parent).openGraph?.images || [];
-
   if (typeof projectId === 'string') {
     const project = await getProjectById(projectId);
+    
     if (project) {
-      const thumbnail = project.thumbnails?.[0] || project.bubble_thumbnail;
+      let thumbnail = project.thumbnails?.[0] || project.bubble_thumbnail;
+
+      // Fallback to banners if no thumbnail
+      if (!thumbnail && project.banners?.length > 0) {
+        thumbnail = project.banners[0];
+      }
+
+      // Fallback to first image in media_rows if still no thumbnail
+      if (!thumbnail && project.media_rows?.length > 0) {
+        for (const row of project.media_rows) {
+          const firstImage = row.medias.find((m) => m.type === 'image');
+          if (firstImage) {
+            thumbnail = firstImage.url;
+            break;
+          }
+        }
+      }
+
+      const defaultImage = '/logo.png';
       const images = thumbnail
         ? [
             {
@@ -36,7 +53,7 @@ export async function generateMetadata(
               alt: project.title,
             },
           ]
-        : previousImages;
+        : [defaultImage];
 
       return {
         title: `${project.title} | tinysotiny.co`,
@@ -50,7 +67,7 @@ export async function generateMetadata(
           card: 'summary_large_image',
           title: project.title,
           description: project.description,
-          images: thumbnail ? [thumbnail] : [],
+          images: thumbnail ? [thumbnail] : [defaultImage],
         },
       };
     }
