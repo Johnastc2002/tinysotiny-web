@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     siteName: 'tinysotiny.co',
     images: [
       {
-        url: 'https://tinysotiny-web.vercel.app/logo.png',
+        url: 'https://tinysotiny-web.vercel.app/logo-url.png',
         width: 800,
         height: 600,
         alt: 'tinysotiny.co logo',
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'tinysotiny.co',
     description: 'tiny details matter.',
-    images: ['https://tinysotiny-web.vercel.app/logo.png'],
+    images: ['https://tinysotiny-web.vercel.app/logo-url.png'],
   },
   icons: {
     icon: '/logo.png',

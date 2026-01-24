@@ -31,7 +31,7 @@ export async function generateMetadata(
 
       const socialThumbnail = getSocialImageUrl(thumbnailUrl);
 
-      const defaultImage = '/logo.png';
+      const defaultImage = '/logo-url.png';
       const images = socialThumbnail
         ? [
             {
