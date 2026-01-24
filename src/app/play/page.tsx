@@ -51,8 +51,8 @@ export async function generateMetadata(
         ? [
             {
               url: socialThumbnail,
-              width: 1200,
-              height: 630,
+              width: 600,
+              height: 315,
               alt: project.title,
             },
           ]
