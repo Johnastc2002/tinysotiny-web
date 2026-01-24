@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+import { Metadata, ResolvingMetadata } from 'next';
 import {
   getFeaturedProjects,
   getNonFeaturedProjects,
@@ -13,11 +13,14 @@ type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-export async function generateMetadata({
-  searchParams,
-}: Props): Promise<Metadata> {
+export async function generateMetadata(
+  { searchParams }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
   const params = await searchParams;
   const projectId = params.project;
+
+  const previousImages = (await parent).openGraph?.images || [];
 
   if (typeof projectId === 'string') {
     const project = await getProjectById(projectId);
@@ -29,7 +32,7 @@ export async function generateMetadata({
         openGraph: {
           title: project.title,
           description: project.description,
-          images: thumbnail ? [thumbnail] : [],
+          images: thumbnail ? [thumbnail] : previousImages,
         },
       };
     }

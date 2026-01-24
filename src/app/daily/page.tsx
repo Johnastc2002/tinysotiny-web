@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+import { Metadata, ResolvingMetadata } from 'next';
 import React from 'react';
 import Link from 'next/link';
 import { getDailyEntries, getDailyEntryById } from '@/lib/contentful';
@@ -10,11 +10,14 @@ type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-export async function generateMetadata({
-  searchParams,
-}: Props): Promise<Metadata> {
+export async function generateMetadata(
+  { searchParams }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
   const params = await searchParams;
   const dailyId = params.daily;
+
+  const previousImages = (await parent).openGraph?.images || [];
 
   if (typeof dailyId === 'string') {
     const daily = await getDailyEntryById(dailyId);
@@ -25,7 +28,9 @@ export async function generateMetadata({
         openGraph: {
           title: daily.title,
           description: daily.description,
-          images: daily.thumbnail?.url ? [daily.thumbnail.url] : [],
+          images: daily.thumbnail?.url
+            ? [daily.thumbnail.url]
+            : previousImages,
         },
       };
     }

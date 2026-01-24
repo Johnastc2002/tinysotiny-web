@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://tinysotiny.co'),
+  metadataBase: new URL('https://tinysotiny-web.vercel.app'),
   title: 'tinysotiny.co',
   description: 'tiny details matter.',
   openGraph: {
