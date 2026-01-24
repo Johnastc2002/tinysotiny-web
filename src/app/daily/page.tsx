@@ -1,6 +1,5 @@
 import { Metadata, ResolvingMetadata } from 'next';
 import React from 'react';
-import Link from 'next/link';
 import { getDailyEntries, getDailyEntryById, getSocialImageUrl } from '@/lib/contentful';
 import DailyList from '@/components/DailyList';
 
@@ -37,8 +36,8 @@ export async function generateMetadata(
         ? [
             {
               url: socialThumbnail,
-              width: 600,
-              height: 315,
+              width: 1200,
+              height: 630,
               alt: daily.title,
             },
           ]
