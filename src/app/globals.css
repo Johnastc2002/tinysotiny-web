@@ -154,3 +154,13 @@ textarea,
   background-repeat: no-repeat;
   background-attachment: fixed;
 }
+
+/* Rich Text Link Styles */
+.rich-text-link {
+  font-weight: normal;
+  transition: color 0.3s ease;
+}
+
+.desktop-rich-text .rich-text-link:hover {
+  color: #00a5d2;
+}

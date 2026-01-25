@@ -5,8 +5,8 @@ import { AppConfig } from '@/types/app-config';
 import { AboutUsData, ContactData } from '@/types/about';
 import { ClientData, ImageMeta } from '@/types/client';
 import { DailyData } from '@/types/daily';
-import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
-import { Document } from '@contentful/rich-text-types';
+import { documentToHtmlString, Options } from '@contentful/rich-text-html-renderer';
+import { Document, INLINES } from '@contentful/rich-text-types';
 
 const SPACE_ID = process.env.CONTENTFUL_SPACE_ID;
 const ACCESS_TOKEN = process.env.CONTENTFUL_ACCESS_TOKEN;
@@ -115,7 +115,16 @@ const getAssetMetadata = (asset: any) => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const parseRichText = (document: any): string => {
   if (!document) return '';
-  return documentToHtmlString(document as Document);
+  const options: Options = {
+    renderNode: {
+      [INLINES.HYPERLINK]: (node, next) => {
+        return `<a href="${node.data.uri}" target="_blank" rel="noopener noreferrer" class="rich-text-link">${next(
+          node.content
+        )}</a>`;
+      },
+    },
+  };
+  return documentToHtmlString(document as Document, options);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

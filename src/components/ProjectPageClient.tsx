@@ -7,6 +7,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
 import { Project } from '@/types/project';
 import { useCursor } from '@/context/CursorContext';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 import SmartMedia from '@/components/SmartMedia';
 import MotionGraphicsAnimation from '@/components/MotionGraphicsAnimation';
@@ -31,6 +32,7 @@ export default function ProjectPageClient({
   const containerRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
   const { setCursor } = useCursor();
+  const isMobile = useIsMobile();
 
   const getRecommendedHref = (id: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -501,7 +503,9 @@ export default function ProjectPageClient({
 
                 {/* Casts */}
                 <div
-                  className="text-lg text-[#0F2341] leading-relaxed whitespace-pre-line font-['Value_Sans'] font-normal [&>p:last-child]:mb-0 [&>p]:mb-4"
+                  className={`text-lg text-[#0F2341] leading-relaxed whitespace-pre-line font-['Value_Sans'] font-normal [&>p:last-child]:mb-0 [&>p]:mb-4 ${
+                    !isMobile ? 'desktop-rich-text' : ''
+                  }`}
                   dangerouslySetInnerHTML={{ __html: project.cast }}
                 />
               </motion.div>
