@@ -9,6 +9,10 @@ import { Project } from '@/types/project';
 import { useCursor } from '@/context/CursorContext';
 
 import SmartMedia from '@/components/SmartMedia';
+import MotionGraphicsAnimation from '@/components/MotionGraphicsAnimation';
+import BrandingAnimation from '@/components/BrandingAnimation';
+import PhotographyAnimation from '@/components/PhotographyAnimation';
+import VideographyAnimation from '@/components/VideographyAnimation';
 
 interface ProjectPageClientProps {
   project: Project;
@@ -430,8 +434,12 @@ export default function ProjectPageClient({
             </div>
 
             {/* Client & Services Section (Mobile) */}
-            <div className="px-8 pt-12 bg-[#f8f8f8]">
-              {/* Client Section */}
+            <div className="px-8 pt-12 bg-[#f8f8f8] relative overflow-hidden">
+              <div className="absolute inset-0 z-0 opacity-10 pointer-events-none">
+                <MotionGraphicsAnimation />
+              </div>
+              <div className="relative z-10">
+                {/* Client Section */}
               {project.clientName && (
                 <div>
                   <span className="text-sm font-semibold uppercase tracking-wider text-[#B6B6B6] block mb-1">
@@ -467,6 +475,7 @@ export default function ProjectPageClient({
                     </div>
                   </div>
                 )}
+              </div>
             </div>
           </div>
         </div>
@@ -496,8 +505,15 @@ export default function ProjectPageClient({
             </div>
 
             {/* Right Column: Client & Services Section (Desktop) - Outside the white box */}
-            <div className="w-full md:w-[40%] pt-16 pl-12 pb-0 pointer-events-auto flex flex-col justify-end">
-              {/* Client Section */}
+            <div className="w-full md:w-[40%] pt-16 pl-12 pb-0 pointer-events-auto flex flex-col justify-end relative overflow-hidden">
+              <div className="absolute inset-0 z-0 pointer-events-none">
+                {/* <MotionGraphicsAnimation /> */}
+                {/* <BrandingAnimation /> */}
+                <PhotographyAnimation />
+                {/* <VideographyAnimation /> */}
+              </div>
+              <div className="relative z-10">
+                {/* Client Section */}
               {project.clientName && (
                 <div className="mb-8">
                   <span className="text-sm font-semibold uppercase tracking-wider text-[#B6B6B6] block mb-1">
@@ -531,6 +547,7 @@ export default function ProjectPageClient({
                     </ul>
                   </div>
                 )}
+              </div>
             </div>
           </div>
         </div>
