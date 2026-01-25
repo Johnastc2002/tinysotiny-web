@@ -13,7 +13,8 @@ const AnimatedLogo: React.FC<AnimatedLogoProps> = ({ shouldBeDark, isMobile }) =
   const lottieRef = useRef<LottieRefCurrentProps>(null);
   
   // Aspect ratio is roughly 321/302 ~= 1.06
-  const height = isMobile ? 28 : 38;
+  // Match the hamburger menu size: 2.5rem (40px) on mobile, 3rem (48px) on desktop
+  const height = isMobile ? 40 : 48;
   const width = height * (321 / 302);
 
   return (
