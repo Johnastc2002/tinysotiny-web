@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { ContactData } from '@/types/about';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import AnimatedLogo from './AnimatedLogo';
 
 interface NavigationProps {
   contact?: ContactData | null;
@@ -195,15 +196,7 @@ export default function Navigation({ contact }: NavigationProps) {
           alignItems: 'center',
         }}
       >
-        <img
-          src="/logo.png"
-          alt="Logo"
-          style={{
-            height: isMobile ? '28px' : '38px',
-            width: 'auto',
-            filter: shouldBeDark ? 'brightness(0) invert(1)' : 'none',
-          }}
-        />
+        <AnimatedLogo shouldBeDark={shouldBeDark} isMobile={isMobile} />
       </Link>
 
       {/* Glass Hamburger Button */}
