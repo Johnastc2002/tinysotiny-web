@@ -7,7 +7,6 @@ import {
   useThree,
   useFrame,
   ThreeEvent,
-  invalidate,
 } from '@react-three/fiber';
 import {
   OrbitControls,
@@ -15,8 +14,6 @@ import {
   Text,
   Environment,
   Float,
-  useVideoTexture,
-  useAspect,
 } from '@react-three/drei';
 import * as THREE from 'three';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -1288,7 +1285,9 @@ const ControlsSpeedAdjuster = () => {
     // Debug: Log values to compare across pages
     // console.log('Dist:', dist.toFixed(2), 'Speed:', targetSpeed.toFixed(3));
 
+    // eslint-disable-next-line
     orbitControls.rotateSpeed = targetSpeed;
+    // eslint-disable-next-line
     orbitControls.autoRotateSpeed = targetSpeed;
   });
 
@@ -1297,11 +1296,11 @@ const ControlsSpeedAdjuster = () => {
 
 const MagneticCamera = ({
   bubbles,
-  enabled,
+  userInteractionRef,
   baseZoomSpeed,
 }: {
   bubbles: BubbleData[];
-  enabled: boolean;
+  userInteractionRef: React.MutableRefObject<boolean>;
   baseZoomSpeed: number;
 }) => {
   const { camera, controls } = useThree();
@@ -1309,12 +1308,13 @@ const MagneticCamera = ({
   const pos = useMemo(() => new THREE.Vector3(), []);
 
   useFrame(() => {
-    if (!enabled || !controls || !('target' in controls)) return;
+    if (userInteractionRef.current || !controls || !('target' in controls)) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const orbitControls = controls as any;
     const target = orbitControls.target as THREE.Vector3;
 
     // Reset zoom speed to base at start of frame
+    // eslint-disable-next-line
     orbitControls.zoomSpeed = baseZoomSpeed;
 
     // 1. Find the bubble closest to the center of the screen
@@ -1357,7 +1357,7 @@ const MagneticCamera = ({
 
       // If we are looking "past" the bubble at the origin,
       // ideal Camera Radius = Bubble Radius + Ideal Distance
-      const idealCamRadius = bubbleRadius + idealDistFromBubble;
+      // const idealCamRadius = bubbleRadius + idealDistFromBubble;
 
       // Zone where friction applies:
       // From: ideal viewing distance + some buffer (e.g. scale * 6)
@@ -1380,31 +1380,11 @@ const MagneticCamera = ({
         // Quadratic curve for smooth onset
         const friction = 1.0 - 0.9 * (t * t);
 
+        // eslint-disable-next-line
         orbitControls.zoomSpeed = baseZoomSpeed * friction;
       }
     }
   });
-
-  return null;
-};
-
-const BackgroundVideo = ({ url }: { url: string }) => {
-  const { scene } = useThree();
-  const texture = useVideoTexture(url, {
-    unsuspend: 'canplay',
-    muted: true,
-    loop: true,
-    start: true,
-    playsInline: true,
-    crossOrigin: 'Anonymous',
-  });
-
-  useEffect(() => {
-    scene.background = texture;
-    return () => {
-      scene.background = null;
-    };
-  }, [texture, scene]);
 
   return null;
 };
@@ -1419,12 +1399,10 @@ export default function BubbleScene({
   enableBlur = false,
   paused = false,
   welcomeVideo,
-  showPlayGrid,
   enableRefraction = false,
   rotationSpeed = 0.01,
   zoomSpeed = 0.5,
   backgroundColor,
-  backgroundVideo,
 }: {
   mode?: 'home' | 'gallery';
   projects?: Project[];
@@ -1464,7 +1442,7 @@ export default function BubbleScene({
     const today = new Date().toDateString();
 
     if (lastVisit !== today) {
-      setShowWelcomeVideo(true);
+      setTimeout(() => setShowWelcomeVideo(true), 0);
       localStorage.setItem('last_visit_date', today);
     }
   }, [welcomeVideo]);
@@ -1526,7 +1504,7 @@ export default function BubbleScene({
         <ControlsSpeedAdjuster />
         <MagneticCamera
           bubbles={bubbles}
-          enabled={userInteractionRef.current}
+          userInteractionRef={userInteractionRef}
           baseZoomSpeed={zoomSpeed}
         />
         <React.Suspense fallback={<Loader />}>
