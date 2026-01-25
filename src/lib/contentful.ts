@@ -570,8 +570,11 @@ export async function getDailyEntries(
 
 export async function getDailyEntryById(id: string): Promise<DailyData | null> {
   try {
-    const entry = await client.getEntry(id);
-    return mapDaily(entry);
+    const entries = await getEntries('daily', { 'sys.id': id, include: 3 });
+    if (entries.items.length > 0) {
+      return mapDaily(entries.items[0]);
+    }
+    return null;
   } catch (error) {
     console.error(`Error fetching daily entry with id ${id}:`, error);
     return null;
