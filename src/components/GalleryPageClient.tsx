@@ -556,6 +556,7 @@ function GalleryPageContent({
               autoplay
               mute
               priority
+              hideOverlay
             />
           </div>
         )}
