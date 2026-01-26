@@ -72,7 +72,41 @@ export default function SloganHover({ slogan, images }: SloganHoverProps) {
   };
 
   const handleMouseLeave = () => {
-    setIsHovered(false);
+    if (!isMobile) {
+      setIsHovered(false);
+    }
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (!isMobile) return;
+
+    if (isHovered) {
+      setIsHovered(false);
+      return;
+    }
+
+    if (containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const relX = e.clientX - containerRect.left;
+      const relY = e.clientY - containerRect.top;
+
+      mouseX.set(relX);
+      mouseY.set(relY);
+
+      const bounds: Bounds = {
+        minX: -BUFFER,
+        maxX: containerRect.width + BUFFER,
+        minY: -BUFFER,
+        maxY: containerRect.height + BUFFER,
+      };
+
+      setInteractionState({
+        initialX: relX,
+        initialY: relY,
+        bounds,
+      });
+      setIsHovered(true);
+    }
   };
 
   return (
@@ -82,6 +116,7 @@ export default function SloganHover({ slogan, images }: SloganHoverProps) {
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
     >
       {isHovered && interactionState && images && images.length > 0 && (
         <ImageTrailOverlay

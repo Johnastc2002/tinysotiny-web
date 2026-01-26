@@ -80,6 +80,49 @@ export default function ClientList({ clients }: ClientListProps) {
     }
   };
 
+  const handleClientClick = (e: React.MouseEvent, clientId: string) => {
+    if (!isMobile) return;
+    
+    // If clicking the already selected client, toggle off
+    if (hoveredClientId === clientId) {
+      setHoveredClientId(null);
+      return;
+    }
+
+    if (containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const itemRect = e.currentTarget.getBoundingClientRect();
+
+      // Calculate relative position
+      const relX = e.clientX - containerRect.left;
+      const relY = e.clientY - containerRect.top;
+
+      // Update shared mouse values immediately
+      mouseX.set(relX);
+      mouseY.set(relY);
+
+      // Calculate bounds relative to container
+      const itemLeft = itemRect.left - containerRect.left;
+      const itemTop = itemRect.top - containerRect.top;
+      const itemRight = itemLeft + itemRect.width;
+      const itemBottom = itemTop + itemRect.height;
+
+      const bounds: Bounds = {
+        minX: itemLeft - BUFFER,
+        maxX: itemRight + BUFFER,
+        minY: itemTop - BUFFER,
+        maxY: itemBottom + BUFFER,
+      };
+
+      setInteractionState({
+        initialX: relX,
+        initialY: relY,
+        bounds,
+      });
+      setHoveredClientId(clientId);
+    }
+  };
+
   const hoveredClient = clients.find((c) => c.id === hoveredClientId);
 
   return (
@@ -107,7 +150,8 @@ export default function ClientList({ clients }: ClientListProps) {
           key={client.id}
           className="flex items-baseline relative z-20"
           onMouseEnter={(e) => handleMouseEnterClient(e, client.id)}
-          onMouseLeave={() => setHoveredClientId(null)}
+          onMouseLeave={() => !isMobile && setHoveredClientId(null)}
+          onClick={(e) => handleClientClick(e, client.id)}
         >
           {/* Container to prevent layout shift */}
           <div className="relative grid grid-cols-1 grid-rows-1 items-baseline">
