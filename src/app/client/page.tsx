@@ -9,7 +9,7 @@ export default async function Client() {
   const clients = await getAllClients();
 
   return (
-    <div className="min-h-screen w-full bg-[#fcfcfc] px-8 py-8 md:px-16 md:py-12 flex flex-col">
+    <div className="min-h-screen w-full bg-[#fcfcfc] px-8 py-8 md:px-16 md:py-12 flex flex-col overflow-x-hidden">
       {/* Logo Spacer */}
       <div className="mb-20"></div>
 

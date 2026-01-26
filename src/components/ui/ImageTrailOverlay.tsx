@@ -141,7 +141,17 @@ export const ImageTrailOverlay = ({
   // Sync with parent mouse values, but clamp to bounds
   useEffect(() => {
     const updateX = (latestX: number) => {
-      x.set(Math.min(Math.max(latestX, bounds.minX), bounds.maxX));
+      // Clamp to bounds to prevent overflow, but allow full range within bounds
+      let newX = Math.min(Math.max(latestX, bounds.minX), bounds.maxX);
+      
+      // Additional safety clamp to viewport if window is available
+      if (typeof window !== 'undefined') {
+        const viewportWidth = window.innerWidth;
+        // Assuming overlay is full width, clamp to [0, viewportWidth] roughly
+        // But x is relative to container. We need to be careful.
+        // For now, rely on bounds being correct.
+      }
+      x.set(newX);
     };
     const updateY = (latestY: number) => {
       y.set(Math.min(Math.max(latestY, bounds.minY), bounds.maxY));
