@@ -1162,6 +1162,7 @@ export default function SmartMedia({
           playsInline
           autoPlay={autoplay}
           muted={mute}
+          controls={false}
           preload="auto"
           onLoadedMetadata={() => setIsLoaded(true)}
           onLoadedData={() => setIsLoaded(true)}

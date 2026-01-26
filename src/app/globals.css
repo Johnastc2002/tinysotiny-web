@@ -164,3 +164,12 @@ textarea,
 .desktop-rich-text .rich-text-link:hover {
   color: #00a5d2;
 }
+
+/* Hide default video controls for welcome video */
+.welcome-video::-webkit-media-controls {
+  display: none !important;
+}
+.welcome-video::-webkit-media-controls-start-playback-button {
+  display: none !important;
+  -webkit-appearance: none;
+}

@@ -557,6 +557,7 @@ function GalleryPageContent({
               mute
               priority
               hideOverlay
+              mediaClassName="welcome-video"
             />
           </div>
         )}

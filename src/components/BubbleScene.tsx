@@ -1477,10 +1477,11 @@ export default function BubbleScene({
           >
             <video
               src={welcomeVideo}
-              className="w-full h-full object-cover"
+              className="welcome-video w-full h-full object-cover"
               autoPlay
               muted
               playsInline
+              controls={false}
               onEnded={handleVideoEnd}
             />
           </motion.div>
