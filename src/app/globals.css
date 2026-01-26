@@ -159,18 +159,16 @@ textarea,
 .rich-text-link {
   font-weight: normal;
   transition: color 0.3s ease;
+  color: #00a5d2; /* Default: Blue (Mobile/Tablet/Touch) */
 }
 
-/* Desktop: Hover effect */
+/* Desktop Override (when desktop-rich-text class is present) */
+.desktop-rich-text .rich-text-link {
+  color: inherit; /* Reset to text color on desktop */
+}
+
 .desktop-rich-text .rich-text-link:hover {
-  color: #00a5d2;
-}
-
-/* Mobile: Always apply color (no hover needed) */
-@media (max-width: 768px) {
-  .rich-text-link {
-    color: #00a5d2;
-  }
+  color: #00a5d2; /* Blue on hover */
 }
 
 /* Hide default video controls for welcome video */
