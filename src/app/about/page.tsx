@@ -10,7 +10,7 @@ export default async function About() {
   const [aboutUs, contact] = await Promise.all([getAboutUs(), getContact()]);
 
   return (
-    <div className="min-h-screen w-full bg-[#fcfcfc] px-8 py-8 md:px-16 md:py-12">
+    <div className="min-h-screen w-full bg-[#fcfcfc] px-8 py-8 md:px-16 md:py-12 overflow-hidden">
       {/* Logo Spacer */}
       <div className="mb-20"></div>
 
