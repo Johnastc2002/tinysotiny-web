@@ -98,7 +98,7 @@ export default function DetailCard({
                   exit={{ scale: 0.9, opacity: 0 }}
                   transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                   onMouseLeave={() => setCursor('default')}
-                  onMouseEnter={() => setCursor('label', 'open project')}
+                  onMouseEnter={() => setCursor('label')}
                   className={`
                 relative flex flex-col landscape:flex-row md:flex-row 
                 w-[60vw] h-[60vh] md:max-w-5xl

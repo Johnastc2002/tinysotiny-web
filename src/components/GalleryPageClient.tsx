@@ -818,6 +818,22 @@ function GalleryPageContent({
         )}
       </AnimatePresence>
 
+      {/* Drag & Zoom Instruction */}
+      <div
+        className={`fixed bottom-8 right-8 z-30 pointer-events-none transition-opacity duration-500 ${
+          viewMode === 'dot' && !searchParams.get('project') && !selectedProject
+            ? 'opacity-100'
+            : 'opacity-0'
+        }`}
+      >
+        <span
+          className="text-xs md:text-sm font-['Value_Sans'] font-normal tracking-widest uppercase"
+          style={{ color: isPlay ? '#B6B6B6' : '#0F2341' }}
+        >
+          DRAG & ZOOM TO EXPLORE
+        </span>
+      </div>
+
       <DetailCard
         isOpen={!!selectedProject && !searchParams.get('project')}
         onClose={handleCloseCard}
