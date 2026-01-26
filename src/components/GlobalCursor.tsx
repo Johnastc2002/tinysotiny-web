@@ -46,17 +46,14 @@ export default function GlobalCursor() {
       // Force a layout reflow to ensure the cursor style is applied
       void document.body.offsetHeight;
     };
-    const onBlur = () => removeCursorStyle();
 
     window.addEventListener('focus', onFocus);
-    window.addEventListener('blur', onBlur);
     
     // Apply immediately on mount too
     addCursorStyle(); // Always apply on mount, regardless of focus state, to be safe
 
     return () => {
       window.removeEventListener('focus', onFocus);
-      window.removeEventListener('blur', onBlur);
       removeCursorStyle();
     };
   }, [isMobile]);
