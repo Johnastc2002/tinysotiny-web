@@ -161,8 +161,16 @@ textarea,
   transition: color 0.3s ease;
 }
 
+/* Desktop: Hover effect */
 .desktop-rich-text .rich-text-link:hover {
   color: #00a5d2;
+}
+
+/* Mobile: Always apply color (no hover needed) */
+@media (max-width: 768px) {
+  .rich-text-link {
+    color: #00a5d2;
+  }
 }
 
 /* Hide default video controls for welcome video */
