@@ -5,7 +5,10 @@ import { AppConfig } from '@/types/app-config';
 import { AboutUsData, ContactData } from '@/types/about';
 import { ClientData, ImageMeta } from '@/types/client';
 import { DailyData } from '@/types/daily';
-import { documentToHtmlString, Options } from '@contentful/rich-text-html-renderer';
+import {
+  documentToHtmlString,
+  Options,
+} from '@contentful/rich-text-html-renderer';
 import { Document, INLINES } from '@contentful/rich-text-types';
 
 const SPACE_ID = process.env.CONTENTFUL_SPACE_ID;
@@ -14,7 +17,7 @@ const ENVIRONMENT = process.env.CONTENTFUL_ENVIRONMENT || 'master';
 
 if (!SPACE_ID || !ACCESS_TOKEN) {
   console.warn(
-    'Contentful Space ID or Access Token is missing. Please check your environment variables.'
+    'Contentful Space ID or Access Token is missing. Please check your environment variables.',
   );
 }
 
@@ -27,7 +30,7 @@ export const client = createClient({
 export const getEntries = async (
   content_type?: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  query?: Record<string, any>
+  query?: Record<string, any>,
 ) => {
   if (!SPACE_ID || !ACCESS_TOKEN) {
     throw new Error('Contentful credentials are not set');
@@ -55,14 +58,16 @@ const optimizeUrl = (url: string, contentType?: string) => {
     !contentType.includes('svg')
   ) {
     const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}w=1920&q=80`;
+    return `${url}${separator}w=2560&q=80`;
   }
   return url;
 };
 
-export const getSocialImageUrl = (url: string | undefined): string | undefined => {
+export const getSocialImageUrl = (
+  url: string | undefined,
+): string | undefined => {
   if (!url) return undefined;
-  
+
   // Helper to replace or append param
   const setParam = (u: string, key: string, value: string) => {
     const regex = new RegExp(`([?&])${key}=[^&]*`);
@@ -80,7 +85,7 @@ export const getSocialImageUrl = (url: string | undefined): string | undefined =
   newUrl = setParam(newUrl, 'f', 'faces'); // Focus on faces if present
   newUrl = setParam(newUrl, 'q', '80');
   newUrl = setParam(newUrl, 'fm', 'jpg'); // Force JPEG for maximum compatibility
-  
+
   return newUrl;
 };
 
@@ -119,7 +124,7 @@ const parseRichText = (document: any): string => {
     renderNode: {
       [INLINES.HYPERLINK]: (node, next) => {
         return `<a href="${node.data.uri}" target="_blank" rel="noopener noreferrer" class="rich-text-link">${next(
-          node.content
+          node.content,
         )}</a>`;
       },
     },
@@ -154,11 +159,11 @@ const mapProject = (entry: any): Project => {
     description: String(fields.description || ''),
     tags: tags as SearchTag[],
     bubble_thumbnail: getAssetUrl(
-      fields.bubbleThumbnail || fields.bubble_thumbnail
+      fields.bubbleThumbnail || fields.bubble_thumbnail,
     ),
     bubble_thumbnail_hover:
       getAssetUrl(
-        fields.bubbleThumbnailHover || fields.bubble_thumbnail_hover
+        fields.bubbleThumbnailHover || fields.bubble_thumbnail_hover,
       ) || undefined,
     thumbnails: (fields.thumbnails || [])
       .map(getAssetUrl)
@@ -187,12 +192,12 @@ const mapProject = (entry: any): Project => {
                 return {
                   type: 'vimeo',
                   url: String(
-                    entry.fields.vimeo_url || entry.fields.vimeoUrl || ''
+                    entry.fields.vimeo_url || entry.fields.vimeoUrl || '',
                   ),
                   external_url:
                     entry.fields.external_url || entry.fields.externalUrl
                       ? String(
-                          entry.fields.external_url || entry.fields.externalUrl
+                          entry.fields.external_url || entry.fields.externalUrl,
                         )
                       : undefined,
                 };
@@ -210,7 +215,7 @@ const mapProject = (entry: any): Project => {
                 external_url:
                   entry.fields.external_url || entry.fields.externalUrl
                     ? String(
-                        entry.fields.external_url || entry.fields.externalUrl
+                        entry.fields.external_url || entry.fields.externalUrl,
                       )
                     : undefined,
               };
@@ -228,7 +233,7 @@ const mapProject = (entry: any): Project => {
         fields.cardBgColor ||
         fields.card_background_color ||
         fields.cardBackgroundColor ||
-        ''
+        '',
     ),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     card_font_color: String(
@@ -237,14 +242,14 @@ const mapProject = (entry: any): Project => {
         fields.cardFontColor ||
         fields.card_text_color ||
         fields.cardTextColor ||
-        ''
+        '',
     ),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     card_tag_color: String(
       fields.card_tag_color ||
         fields['card_tag_color'] ||
         fields.cardTagColor ||
-        ''
+        '',
     ),
     description_2: String(fields.description_2 || fields.description2 || ''),
     projectType: (fields.projectType as ProjectType) || 'work',
@@ -279,7 +284,7 @@ const mapAboutUs = (entry: any): AboutUsData => {
       })
       .filter((img: ImageMeta) => img.url),
     firstParagraph: String(
-      fields.first_paragraph || fields.firstParagraph || ''
+      fields.first_paragraph || fields.firstParagraph || '',
     ),
     header: String(fields.header || ''),
     description2: String(fields.description_2 || fields.description2 || ''),
@@ -364,7 +369,7 @@ const mapDaily = (entry: any): DailyData => {
         fields.cardBgColor ||
         fields.card_background_color ||
         fields.cardBackgroundColor ||
-        ''
+        '',
     ),
     card_font_color: String(
       fields.card_font_color ||
@@ -372,7 +377,7 @@ const mapDaily = (entry: any): DailyData => {
         fields.cardFontColor ||
         fields.card_text_color ||
         fields.cardTextColor ||
-        ''
+        '',
     ),
   };
 };
@@ -398,7 +403,7 @@ export async function getFeaturedProjects(type?: ProjectType) {
 export async function getNonFeaturedProjects(
   page: number = 1,
   limit: number = 9,
-  type?: ProjectType
+  type?: ProjectType,
 ) {
   const skip = (page - 1) * limit;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -422,7 +427,7 @@ export async function getProjectsByTags(
   tags: string[],
   page: number = 1,
   limit: number = 9,
-  type?: ProjectType
+  type?: ProjectType,
 ) {
   // First, find the IDs of the tags that match the display names
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -473,7 +478,7 @@ export async function getProjectById(id: string): Promise<Project | null> {
 
 export async function getRecommendedProject(
   currentId: string,
-  projectType: ProjectType
+  projectType: ProjectType,
 ): Promise<Project | null> {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -557,7 +562,7 @@ export async function getAllClients(): Promise<ClientData[]> {
 
 export async function getDailyEntries(
   page: number = 1,
-  limit: number = 10
+  limit: number = 10,
 ): Promise<DailyData[]> {
   const skip = (page - 1) * limit;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -607,7 +612,7 @@ const mapGridFilter = (entry: any): GridFilter => {
 };
 
 export async function getGridFilter(
-  type?: ProjectType
+  type?: ProjectType,
 ): Promise<GridFilter | null> {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -658,7 +663,7 @@ const mapAppConfig = (entry: any): AppConfig => {
   return {
     welcome_video,
     show_play_grid: Boolean(
-      fields.show_play_grid || fields.showPlayGrid || false
+      fields.show_play_grid || fields.showPlayGrid || false,
     ),
     play_page_bg_media,
   };
