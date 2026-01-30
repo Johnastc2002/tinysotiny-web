@@ -129,7 +129,7 @@ export default function ProjectPageClient({
             {slides.map((slide, index) => (
               <div
                 key={slide.id}
-                className="relative h-full min-w-full w-screen shrink-0"
+                className="relative h-full min-w-full w-full shrink-0"
               >
                 {slide.type === 'banner' ? (
                   <SmartMedia
