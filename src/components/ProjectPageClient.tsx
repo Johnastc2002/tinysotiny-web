@@ -129,7 +129,7 @@ export default function ProjectPageClient({
             {slides.map((slide, index) => (
               <div
                 key={slide.id}
-                className="relative h-full min-w-full w-full shrink-0"
+                className="relative h-screen min-w-full w-full shrink-0 bg-black"
               >
                 {slide.type === 'banner' ? (
                   <SmartMedia
@@ -137,7 +137,7 @@ export default function ProjectPageClient({
                     type="image"
                     alt={`${project.title} Banner`}
                     fill
-                    className="object-cover"
+                    className="object-cover !bg-black"
                     priority={index === 0}
                   />
                 ) : (
