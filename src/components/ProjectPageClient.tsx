@@ -77,7 +77,7 @@ export default function ProjectPageClient({
   const x = useTransform(
     scrollYProgress,
     [0, 1],
-    ['0%', `-${(numSlides - 1) * 100}%`]
+    ['0%', `-${(numSlides - 1) * 100}%`],
   );
 
   // Helper to ensure color has # if it's a hex code
@@ -228,14 +228,10 @@ export default function ProjectPageClient({
                               <li
                                 key={index}
                                 className={`flex items-center leading-none text-xs font-['Value_Sans'] font-normal uppercase tracking-wide transition-colors ${
-                                  !cardFontColor
-                                    ? 'text-[#B6B6B6]'
-                                    : ''
+                                  !cardFontColor ? 'text-[#B6B6B6]' : ''
                                 }`}
                                 style={
-                                  cardFontColor
-                                    ? { color: cardFontColor }
-                                    : {}
+                                  cardFontColor ? { color: cardFontColor } : {}
                                 }
                               >
                                 <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />
@@ -293,7 +289,7 @@ export default function ProjectPageClient({
       {/* Content Section - Scrolls OVER the fixed banner */}
       <div className="relative z-10 bg-transparent">
         {/* Background Layer for the lower part */}
-        <div className="hidden md:block absolute top-[10vh] left-0 w-full bottom-0 bg-[#f8f8f8] -z-10" />
+        <div className="hidden md:block absolute top-32 left-0 w-full bottom-0 bg-[#f8f8f8] -z-10" />
 
         {/* Mobile Layout */}
         <div className="md:hidden w-full pt-[70vh]">
@@ -445,41 +441,41 @@ export default function ProjectPageClient({
               </div>
               <div className="relative z-10">
                 {/* Client Section */}
-              {project.clientName && (
-                <div>
-                  <span className="text-sm font-semibold uppercase tracking-wider text-[#B6B6B6] block mb-1">
-                    <span className="font-['Value_Sans'] font-normal">
-                      CLIENT
+                {project.clientName && (
+                  <div>
+                    <span className="text-sm font-semibold uppercase tracking-wider text-[#B6B6B6] block mb-1">
+                      <span className="font-['Value_Sans'] font-normal">
+                        CLIENT
+                      </span>
                     </span>
-                  </span>
-                  <span className="text-xl font-['Value_Serif'] font-medium text-[#B6B6B6]">
-                    {project.clientName}
-                  </span>
-                </div>
-              )}
-
-              {/* Services Section - Only for 'work' */}
-              {project.projectType === 'work' &&
-                project.services &&
-                project.services.length > 0 && (
-                  <div className="mt-12 flex flex-col items-end text-left">
-                    <div className="text-left">
-                      <h4 className="text-sm font-['Value_Sans'] font-normal text-[#B6B6B6] uppercase tracking-widest mb-2">
-                        SERVICES
-                      </h4>
-                      <ul className="space-y-0.5">
-                        {project.services.map((service, index) => (
-                          <li
-                            key={index}
-                            className="text-lg text-[#B6B6B6] font-['Value_Sans'] font-normal leading-relaxed lowercase"
-                          >
-                            {service}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    <span className="text-xl font-['Value_Serif'] font-medium text-[#B6B6B6]">
+                      {project.clientName}
+                    </span>
                   </div>
                 )}
+
+                {/* Services Section - Only for 'work' */}
+                {project.projectType === 'work' &&
+                  project.services &&
+                  project.services.length > 0 && (
+                    <div className="mt-12 flex flex-col items-end text-left">
+                      <div className="text-left">
+                        <h4 className="text-sm font-['Value_Sans'] font-normal text-[#B6B6B6] uppercase tracking-widest mb-2">
+                          SERVICES
+                        </h4>
+                        <ul className="space-y-0.5">
+                          {project.services.map((service, index) => (
+                            <li
+                              key={index}
+                              className="text-lg text-[#B6B6B6] font-['Value_Sans'] font-normal leading-relaxed lowercase"
+                            >
+                              {service}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
               </div>
             </div>
           </div>
@@ -521,39 +517,39 @@ export default function ProjectPageClient({
               </div>
               <div className="relative z-10">
                 {/* Client Section */}
-              {project.clientName && (
-                <div className="mb-8">
-                  <span className="text-sm font-semibold uppercase tracking-wider text-[#B6B6B6] block mb-1">
-                    <span className="font-['Value_Sans'] font-normal">
-                      CLIENT
+                {project.clientName && (
+                  <div className="mb-8">
+                    <span className="text-sm font-semibold uppercase tracking-wider text-[#B6B6B6] block mb-1">
+                      <span className="font-['Value_Sans'] font-normal">
+                        CLIENT
+                      </span>
                     </span>
-                  </span>
-                  <span className="text-xl md:text-2xl font-['Value_Serif'] font-medium text-[#B6B6B6]">
-                    {project.clientName}
-                  </span>
-                </div>
-              )}
-
-              {/* Services Section - Only for 'work' */}
-              {project.projectType === 'work' &&
-                project.services &&
-                project.services.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-['Value_Sans'] font-normal text-[#B6B6B6] uppercase tracking-widest mb-2">
-                      SERVICES
-                    </h4>
-                    <ul className="space-y-0.5">
-                      {project.services.map((service, index) => (
-                        <li
-                          key={index}
-                          className="text-xl text-[#B6B6B6] font-['Value_Sans'] font-normal leading-relaxed lowercase"
-                        >
-                          {service}
-                        </li>
-                      ))}
-                    </ul>
+                    <span className="text-xl md:text-2xl font-['Value_Serif'] font-medium text-[#B6B6B6]">
+                      {project.clientName}
+                    </span>
                   </div>
                 )}
+
+                {/* Services Section - Only for 'work' */}
+                {project.projectType === 'work' &&
+                  project.services &&
+                  project.services.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-['Value_Sans'] font-normal text-[#B6B6B6] uppercase tracking-widest mb-2">
+                        SERVICES
+                      </h4>
+                      <ul className="space-y-0.5">
+                        {project.services.map((service, index) => (
+                          <li
+                            key={index}
+                            className="text-xl text-[#B6B6B6] font-['Value_Sans'] font-normal leading-relaxed lowercase"
+                          >
+                            {service}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
               </div>
             </div>
           </div>
@@ -583,13 +579,13 @@ export default function ProjectPageClient({
                     count === 1
                       ? 'grid-cols-1'
                       : count === 2
-                      ? 'grid-cols-2'
-                      : 'grid-cols-3';
+                        ? 'grid-cols-2'
+                        : 'grid-cols-3';
 
                   const mediasToShow = row.medias.slice(0, count);
                   const placeHoldersCount = Math.max(
                     0,
-                    count - mediasToShow.length
+                    count - mediasToShow.length,
                   );
 
                   const isLastRow = rowIndex === project.media_rows.length - 1;
@@ -621,7 +617,7 @@ export default function ProjectPageClient({
                               className="object-cover"
                               mediaClassName="group-hover:scale-105 transition-transform duration-700"
                               sizes={`(max-width: 768px) 100vw, ${Math.floor(
-                                100 / count
+                                100 / count,
                               )}vw`}
                               externalUrl={media.external_url}
                               layout={row.row_layout}
@@ -634,7 +630,7 @@ export default function ProjectPageClient({
                               key={`placeholder-${pIndex}`}
                               className={`relative w-full ${aspectRatioClass} overflow-hidden rounded-lg bg-gray-50`}
                             />
-                          )
+                          ),
                         )}
                       </motion.div>
 
