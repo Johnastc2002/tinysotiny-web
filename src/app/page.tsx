@@ -10,7 +10,6 @@ export default async function Home() {
         mode="home"
         enableBlur={false}
         enableRefraction={true}
-        welcomeVideo={appConfig?.welcome_video?.url}
         showPlayGrid={appConfig?.show_play_grid}
       />
     </main>

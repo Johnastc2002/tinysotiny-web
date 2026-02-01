@@ -48,7 +48,7 @@ export default function GlobalCursor() {
     };
 
     window.addEventListener('focus', onFocus);
-    
+
     // Apply immediately on mount too
     addCursorStyle(); // Always apply on mount, regardless of focus state, to be safe
 

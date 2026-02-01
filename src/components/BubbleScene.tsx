@@ -16,7 +16,7 @@ import {
   Float,
 } from '@react-three/drei';
 import * as THREE from 'three';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { Project } from '@/types/project';
 import { useCursor } from '@/context/CursorContext';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -1389,6 +1389,8 @@ const MagneticCamera = ({
   return null;
 };
 
+import WelcomeAnimation from './WelcomeAnimation';
+
 export default function BubbleScene({
   mode = 'gallery',
   projects,
@@ -1398,7 +1400,7 @@ export default function BubbleScene({
   onOpenCard,
   enableBlur = false,
   paused = false,
-  welcomeVideo,
+  showPlayGrid,
   enableRefraction = false,
   rotationSpeed = 0.01,
   zoomSpeed = 0.5,
@@ -1412,7 +1414,6 @@ export default function BubbleScene({
   onOpenCard?: (project: Project) => void;
   enableBlur?: boolean;
   paused?: boolean;
-  welcomeVideo?: string;
   showPlayGrid?: boolean;
   enableRefraction?: boolean;
   rotationSpeed?: number;
@@ -1436,18 +1437,19 @@ export default function BubbleScene({
   }, [mode, projects]);
 
   useEffect(() => {
-    if (!welcomeVideo) return;
+    if (typeof window === 'undefined') return;
 
-    const lastVisit = localStorage.getItem('last_visit_date');
-    const today = new Date().toDateString();
+    // Debugging: Force welcome video to show every time
+    // const lastVisit = localStorage.getItem('last_visit_date');
+    // const today = new Date().toDateString();
 
-    if (lastVisit !== today) {
+    // if (lastVisit !== today) {
       setTimeout(() => setShowWelcomeVideo(true), 0);
-      localStorage.setItem('last_visit_date', today);
-    }
-  }, [welcomeVideo]);
+      // localStorage.setItem('last_visit_date', today);
+    // }
+  }, []);
 
-  const handleVideoEnd = () => {
+  const handleAnimationComplete = () => {
     setShowWelcomeVideo(false);
   };
 
@@ -1469,22 +1471,7 @@ export default function BubbleScene({
     <div className={`w-full h-screen cursor-none relative`}>
       <AnimatePresence>
         {showWelcomeVideo && (
-          <motion.div
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1 }}
-            className="fixed inset-0 z-50 bg-black flex items-center justify-center"
-          >
-            <video
-              src={welcomeVideo}
-              className="welcome-video w-full h-full object-cover"
-              autoPlay
-              muted
-              playsInline
-              controls={false}
-              onEnded={handleVideoEnd}
-            />
-          </motion.div>
+          <WelcomeAnimation onComplete={handleAnimationComplete} />
         )}
       </AnimatePresence>
       <Canvas

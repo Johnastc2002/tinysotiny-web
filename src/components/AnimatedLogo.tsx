@@ -39,14 +39,12 @@ const AnimatedLogo: React.FC<AnimatedLogoProps> = ({ shouldBeDark, isMobile }) =
         filter: shouldBeDark ? 'brightness(0) invert(1)' : 'none',
         overflow: 'hidden', // Crop the excess width
       }}
-      onMouseEnter={() => lottieRef.current?.play()}
-      onMouseLeave={() => lottieRef.current?.stop()}
     >
       <Lottie
         lottieRef={lottieRef}
         animationData={animationData}
         loop={true}
-        autoplay={false}
+        autoplay={true}
         // Force the Lottie to be the correct width for the height, ignoring container width constraint
         style={{ 
           height: '100%', 

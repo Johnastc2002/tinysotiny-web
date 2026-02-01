@@ -635,19 +635,7 @@ export async function getGridFilter(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapAppConfig = (entry: any): AppConfig => {
   const fields = entry.fields;
-  const welcomeVideoAsset = fields.welcome_video || fields.welcomeVideo;
   const playPageBgAsset = fields.play_page_bg_media || fields.playPageBgMedia;
-
-  let welcome_video;
-  if (welcomeVideoAsset) {
-    const meta = getAssetMetadata(welcomeVideoAsset);
-    welcome_video = {
-      url: meta.url,
-      width: meta.width,
-      height: meta.height,
-      type: meta.type,
-    };
-  }
 
   let play_page_bg_media;
   if (playPageBgAsset) {
@@ -661,7 +649,6 @@ const mapAppConfig = (entry: any): AppConfig => {
   }
 
   return {
-    welcome_video,
     show_play_grid: Boolean(
       fields.show_play_grid || fields.showPlayGrid || false,
     ),
