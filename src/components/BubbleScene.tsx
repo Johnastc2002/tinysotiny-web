@@ -1439,14 +1439,13 @@ export default function BubbleScene({
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // Debugging: Force welcome video to show every time
-    // const lastVisit = localStorage.getItem('last_visit_date');
-    // const today = new Date().toDateString();
+    const lastVisit = localStorage.getItem('last_visit_date');
+    const today = new Date().toDateString();
 
-    // if (lastVisit !== today) {
+    if (lastVisit !== today) {
       setTimeout(() => setShowWelcomeVideo(true), 0);
-      // localStorage.setItem('last_visit_date', today);
-    // }
+      localStorage.setItem('last_visit_date', today);
+    }
   }, []);
 
   const handleAnimationComplete = () => {
