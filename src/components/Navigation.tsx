@@ -19,6 +19,9 @@ interface NavigationItemProps {
   toggleMenu: () => void;
   isMobile: boolean;
   pathname: string;
+  isBlurred: boolean;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
 }
 
 interface NavigationSubItemProps {
@@ -26,6 +29,9 @@ interface NavigationSubItemProps {
   toggleMenu: () => void;
   isMobile: boolean;
   isActive: boolean;
+  isBlurred: boolean;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
 }
 
 function NavigationSubItem({
@@ -33,23 +39,23 @@ function NavigationSubItem({
   toggleMenu,
   isMobile,
   isActive,
+  isBlurred,
+  onMouseEnter,
+  onMouseLeave,
 }: NavigationSubItemProps) {
-  const [isHovered, setIsHovered] = useState(false);
-
   return (
     <Link
       href={`/${subItem}`}
       onClick={toggleMenu}
-      onMouseEnter={() => !isMobile && setIsHovered(true)}
-      onMouseLeave={() => !isMobile && setIsHovered(false)}
-      className={`text-2xl font-bold tracking-wider text-[#0F2341] transition-colors ${
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      className={`text-2xl font-bold tracking-wider text-[#0F2341] transition-all duration-300 ${
         !isMobile ? 'hover:text-gray-500' : ''
-      } md:text-3xl landscape:text-xl lg:[@media(min-height:720px)]:text-3xl!`}
+      } md:text-3xl landscape:text-xl lg:[@media(min-height:720px)]:text-3xl! ${
+        isBlurred ? 'blur-[2px] opacity-50' : 'blur-0 opacity-100'
+      }`}
       style={{
-        fontFamily:
-          isHovered || (isMobile && isActive)
-            ? "'Value Serif', serif"
-            : "'Value Sans', sans-serif",
+        fontFamily: "'Value Sans', sans-serif",
         fontWeight: 500,
         lineHeight: 1.2,
       }}
@@ -67,10 +73,13 @@ function NavigationItem({
   toggleMenu,
   isMobile,
   pathname,
+  isBlurred,
+  onMouseEnter,
+  onMouseLeave,
 }: NavigationItemProps) {
   // Initialize expanded state to false to prevent auto-expansion
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
+  const [hoveredSubItem, setHoveredSubItem] = useState<string | null>(null);
 
   const handleClick = (e: React.MouseEvent) => {
     if (isHome) {
@@ -89,20 +98,19 @@ function NavigationItem({
     <div className="flex flex-col landscape:flex-row lg:[@media(min-height:720px)]:flex-col landscape:items-baseline lg:[@media(min-height:720px)]:items-start items-start w-fit">
       <div
         className="relative group"
-        onMouseEnter={() => !isMobile && setIsHovered(true)}
-        onMouseLeave={() => !isMobile && setIsHovered(false)}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
       >
         {isHome ? (
           <button
             onClick={handleClick}
-            className={`text-4xl font-bold tracking-wider text-[#0F2341] transition-colors ${
+            className={`text-4xl font-bold tracking-wider text-[#0F2341] transition-all duration-300 ${
               !isMobile ? 'hover:text-gray-500' : ''
-            } md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl!`}
+            } md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl! ${
+              isBlurred ? 'blur-[2px] opacity-50' : 'blur-0 opacity-100'
+            }`}
             style={{
-              fontFamily:
-                isHovered || (isMobile && isActive)
-                  ? "'Value Serif', serif"
-                  : "'Value Sans', sans-serif",
+              fontFamily: "'Value Sans', sans-serif",
               fontWeight: 500, // Medium weight
               lineHeight: 1.2,
             }}
@@ -112,15 +120,14 @@ function NavigationItem({
         ) : (
           <Link
             href={href}
-            className={`text-4xl font-bold tracking-wider text-[#0F2341] transition-colors ${
+            className={`text-4xl font-bold tracking-wider text-[#0F2341] transition-all duration-300 ${
               !isMobile ? 'hover:text-gray-500' : ''
-            } md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl!`}
+            } md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl! ${
+              isBlurred ? 'blur-[2px] opacity-50' : 'blur-0 opacity-100'
+            }`}
             onClick={toggleMenu}
             style={{
-              fontFamily:
-                isHovered || (isMobile && isActive)
-                  ? "'Value Serif', serif"
-                  : "'Value Sans', sans-serif",
+              fontFamily: "'Value Sans', sans-serif",
               fontWeight: 500, // Medium weight
               lineHeight: 1.2,
             }}
@@ -131,9 +138,11 @@ function NavigationItem({
 
         {isActive && (
           <span
-            className={`absolute -top-2 -right-3 h-1.5 w-1.5 rounded-full bg-[#0F2341] transition-colors ${
+            className={`absolute -top-2 -right-3 h-1.5 w-1.5 rounded-full bg-[#0F2341] transition-all duration-300 ${
               !isMobile ? 'group-hover:bg-gray-500' : ''
-            } lg:[@media(min-height:720px)]:-top-2 lg:[@media(min-height:720px)]:-right-4`}
+            } lg:[@media(min-height:720px)]:-top-2 lg:[@media(min-height:720px)]:-right-4 ${
+              isBlurred ? 'opacity-50 blur-[1px]' : 'opacity-100 blur-0'
+            }`}
           />
         )}
       </div>
@@ -147,13 +156,23 @@ function NavigationItem({
           }`}
         >
           {['work', 'play'].map((subItem) => {
+            const isSubActive = pathname === `/${subItem}`;
+            const activeSubItem = ['work', 'play'].find(s => pathname === `/${s}`);
+            
+            const shouldSubBlur = isMobile
+                ? (activeSubItem && !isSubActive)
+                : (hoveredSubItem && hoveredSubItem !== subItem);
+
             return (
               <NavigationSubItem
                 key={subItem}
                 subItem={subItem}
                 toggleMenu={toggleMenu}
                 isMobile={isMobile}
-                isActive={pathname === `/${subItem}`}
+                isActive={isSubActive}
+                isBlurred={!!shouldSubBlur}
+                onMouseEnter={() => !isMobile && setHoveredSubItem(subItem)}
+                onMouseLeave={() => !isMobile && setHoveredSubItem(null)}
               />
             );
           })}
@@ -165,6 +184,7 @@ function NavigationItem({
 
 export default function Navigation({ contact }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isDarkPage = pathname === '/play' || pathname?.startsWith('/play/');
@@ -179,6 +199,14 @@ export default function Navigation({ contact }: NavigationProps) {
   const isMobile = useIsMobile();
 
   const toggleMenu = () => setIsOpen(!isOpen);
+
+  const items = ['HOME', 'ABOUT', 'CLIENT', 'DAILY'];
+  const activeItemName = items.find(item => {
+    const isHome = item === 'HOME';
+    const href = isHome ? '/' : `/${item.toLowerCase()}`;
+    if (isHome) return ['/', '/work', '/play'].includes(pathname);
+    return pathname.startsWith(href);
+  });
 
   return (
     <>
@@ -292,13 +320,18 @@ export default function Navigation({ contact }: NavigationProps) {
           {/* Menu Items */}
           <div className="flex min-h-full flex-col justify-center landscape:justify-start landscape:pt-12 px-12 md:px-24 landscape:px-16 landscape:w-auto lg:[@media(min-height:720px)]:flex-none lg:[@media(min-height:720px)]:justify-center lg:[@media(min-height:720px)]:pt-0 lg:[@media(min-height:720px)]:w-full pb-16 landscape:pb-12 lg:[@media(min-height:720px)]:px-24! lg:[@media(min-height:720px)]:pb-24!">
             <nav className="flex flex-col gap-6 landscape:gap-4 lg:[@media(min-height:720px)]:gap-8!">
-              {['HOME', 'ABOUT', 'CLIENT', 'DAILY'].map((item) => {
+              {items.map((item) => {
                 const isHome = item === 'HOME';
                 const href = isHome ? '/' : `/${item.toLowerCase()}`;
                 const isHomeActive = ['/', '/work', '/play'].includes(pathname);
                 const isActive = isHome
                   ? isHomeActive
                   : pathname.startsWith(href);
+
+                const isAnyHovered = hoveredItem !== null;
+                const shouldBlur = isMobile
+                    ? (activeItemName && activeItemName !== item)
+                    : (isAnyHovered && hoveredItem !== item);
 
                 return (
                   <NavigationItem
@@ -310,6 +343,9 @@ export default function Navigation({ contact }: NavigationProps) {
                     toggleMenu={toggleMenu}
                     isMobile={isMobile}
                     pathname={pathname}
+                    isBlurred={!!shouldBlur}
+                    onMouseEnter={() => !isMobile && setHoveredItem(item)}
+                    onMouseLeave={() => !isMobile && setHoveredItem(null)}
                   />
                 );
               })}
