@@ -28,7 +28,7 @@ export default function WelcomeAnimation({ onComplete }: WelcomeAnimationProps) 
       transition={{ duration: 1.2, ease: "easeInOut" }}
       className="fixed inset-0 z-[200] bg-[#efefef] flex items-center justify-center overflow-hidden"
     >
-      <div className="relative w-1/2 h-1/2 md:w-1/3 md:h-1/3">
+      <div className="relative w-1/3 h-1/3 md:w-1/5 md:h-1/5">
         {/* Assuming the SVG is placed in public/opening.svg */}
         <Image
           src={uniqueSrc}
