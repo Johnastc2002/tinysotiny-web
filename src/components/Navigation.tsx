@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { ContactData } from '@/types/about';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import AnimatedLogo from './AnimatedLogo';
@@ -22,6 +22,8 @@ interface NavigationItemProps {
   isBlurred: boolean;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  navigatingItem: string | null;
+  onMobileClick: (e: React.MouseEvent, href: string, item: string) => void;
 }
 
 interface NavigationSubItemProps {
@@ -32,6 +34,7 @@ interface NavigationSubItemProps {
   isBlurred: boolean;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  onMobileClick: (e: React.MouseEvent, href: string, item: string) => void;
 }
 
 function NavigationSubItem({
@@ -42,11 +45,18 @@ function NavigationSubItem({
   isBlurred,
   onMouseEnter,
   onMouseLeave,
+  onMobileClick,
 }: NavigationSubItemProps) {
   return (
     <Link
       href={`/${subItem}`}
-      onClick={toggleMenu}
+      onClick={(e) => {
+        if (isMobile) {
+          onMobileClick(e, `/${subItem}`, subItem);
+        } else {
+          toggleMenu();
+        }
+      }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       className={`text-2xl font-bold tracking-wider text-[#0F2341] transition-all duration-300 ${
@@ -76,6 +86,8 @@ function NavigationItem({
   isBlurred,
   onMouseEnter,
   onMouseLeave,
+  navigatingItem,
+  onMobileClick,
 }: NavigationItemProps) {
   // Initialize expanded state to false to prevent auto-expansion
   const [isExpanded, setIsExpanded] = useState(false);
@@ -87,7 +99,11 @@ function NavigationItem({
       // Always toggle expansion for home
       setIsExpanded(!isExpanded);
     } else {
-      toggleMenu();
+      if (isMobile) {
+        onMobileClick(e, href, item);
+      } else {
+        toggleMenu();
+      }
     }
   };
 
@@ -125,7 +141,13 @@ function NavigationItem({
             } md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl! ${
               isBlurred ? 'blur-[2px] opacity-50' : 'blur-0 opacity-100'
             }`}
-            onClick={toggleMenu}
+            onClick={(e) => {
+              if (isMobile) {
+                onMobileClick(e, href, item);
+              } else {
+                toggleMenu();
+              }
+            }}
             style={{
               fontFamily: "'Value Sans', sans-serif",
               fontWeight: 500, // Medium weight
@@ -157,10 +179,9 @@ function NavigationItem({
         >
           {['work', 'play'].map((subItem) => {
             const isSubActive = pathname === `/${subItem}`;
-            const activeSubItem = ['work', 'play'].find(s => pathname === `/${s}`);
             
             const shouldSubBlur = isMobile
-                ? (activeSubItem && !isSubActive)
+                ? (navigatingItem && navigatingItem !== subItem)
                 : (hoveredSubItem && hoveredSubItem !== subItem);
 
             return (
@@ -173,6 +194,7 @@ function NavigationItem({
                 isBlurred={!!shouldSubBlur}
                 onMouseEnter={() => !isMobile && setHoveredSubItem(subItem)}
                 onMouseLeave={() => !isMobile && setHoveredSubItem(null)}
+                onMobileClick={onMobileClick}
               />
             );
           })}
@@ -183,8 +205,10 @@ function NavigationItem({
 }
 
 export default function Navigation({ contact }: NavigationProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [navigatingItem, setNavigatingItem] = useState<string | null>(null);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isDarkPage = pathname === '/play' || pathname?.startsWith('/play/');
@@ -200,13 +224,20 @@ export default function Navigation({ contact }: NavigationProps) {
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
+  const handleMobileClick = (e: React.MouseEvent, href: string, item: string) => {
+    if (!isMobile) return;
+    
+    e.preventDefault();
+    setNavigatingItem(item);
+    
+    setTimeout(() => {
+      router.push(href);
+      setIsOpen(false);
+      setNavigatingItem(null);
+    }, 500);
+  };
+
   const items = ['HOME', 'ABOUT', 'CLIENT', 'DAILY'];
-  const activeItemName = items.find(item => {
-    const isHome = item === 'HOME';
-    const href = isHome ? '/' : `/${item.toLowerCase()}`;
-    if (isHome) return ['/', '/work', '/play'].includes(pathname);
-    return pathname.startsWith(href);
-  });
 
   return (
     <>
@@ -330,7 +361,7 @@ export default function Navigation({ contact }: NavigationProps) {
 
                 const isAnyHovered = hoveredItem !== null;
                 const shouldBlur = isMobile
-                    ? (activeItemName && activeItemName !== item)
+                    ? (navigatingItem && navigatingItem !== item)
                     : (isAnyHovered && hoveredItem !== item);
 
                 return (
@@ -346,6 +377,8 @@ export default function Navigation({ contact }: NavigationProps) {
                     isBlurred={!!shouldBlur}
                     onMouseEnter={() => !isMobile && setHoveredItem(item)}
                     onMouseLeave={() => !isMobile && setHoveredItem(null)}
+                    navigatingItem={navigatingItem}
+                    onMobileClick={handleMobileClick}
                   />
                 );
               })}
