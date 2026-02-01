@@ -51,9 +51,9 @@ export const BubbleRefractionProvider = ({
     });
     // Ensure depth texture uses NearestFilter to avoid WebGL errors (Linear depth is often not supported)
     if (target.depthTexture) {
-      target.depthTexture.type = THREE.UnsignedIntType; 
-      target.depthTexture.minFilter = THREE.NearestFilter; 
-      target.depthTexture.magFilter = THREE.NearestFilter; 
+      target.depthTexture.type = THREE.UnsignedIntType;
+      target.depthTexture.minFilter = THREE.NearestFilter;
+      target.depthTexture.magFilter = THREE.NearestFilter;
     }
 
     return target;
@@ -64,7 +64,7 @@ export const BubbleRefractionProvider = ({
     const pixelRatio = gl.getPixelRatio();
     fbo.setSize(
       Math.floor(size.width * pixelRatio),
-      Math.floor(size.height * pixelRatio)
+      Math.floor(size.height * pixelRatio),
     );
   }, [size, gl, fbo]);
 
@@ -116,8 +116,12 @@ export const BubbleRefractionProvider = ({
   }, 1); // Priority 1: Run after animations, take over render loop to ensure sync
 
   const resolution = useMemo(
-    () => new THREE.Vector2(size.width * gl.getPixelRatio(), size.height * gl.getPixelRatio()),
-    [size, gl]
+    () =>
+      new THREE.Vector2(
+        size.width * gl.getPixelRatio(),
+        size.height * gl.getPixelRatio(),
+      ),
+    [size, gl],
   );
 
   return (
@@ -142,7 +146,7 @@ export const useBubbleRefraction = (
   ref: React.RefObject<THREE.Object3D | null>,
   _radiusScale: number = 1.0,
   isRefractive: boolean = false,
-  enabled: boolean = true
+  enabled: boolean = true,
 ) => {
   const context = useContext(RefractionContext);
   // Remove unused _radiusScale to fix lint warning
@@ -198,7 +202,7 @@ const RefractionShaderMaterialImpl = shaderMaterial(
       vProjZ = vec4(projectionMatrix[2][2], projectionMatrix[3][2], projectionMatrix[2][3], projectionMatrix[3][3]);
     }
   `,
-    // Fragment Shader
+  // Fragment Shader
   `
     uniform sampler2D tDiffuse;
     uniform sampler2D tDepth;
@@ -352,7 +356,8 @@ const RefractionShaderMaterialImpl = shaderMaterial(
         // Radial gradient: 100% at center, 20% at edge
         // Overall strength: 30%
         float normDist = dist * 2.0; // 0.0 to 1.0
-        float gradientMask = mix(0.6, 0.2, normDist); // 1.0 to 0.2
+        // Lighter gradient core (0.45 instead of 0.6)
+        float gradientMask = mix(0.4, 0.2, normDist); // 1.0 to 0.2
         float tintStrength = 0.3; 
         
         // Apply tint using MULTIPLY blend to ensure it darkens the bubble (glass filter effect)
@@ -367,7 +372,7 @@ const RefractionShaderMaterialImpl = shaderMaterial(
     
     gl_FragColor = vec4(col, finalAlpha);
     }
-  `
+  `,
 );
 
 extend({ RefractionShaderMaterialImpl });
@@ -408,7 +413,7 @@ export const RefractiveBubbleMaterial = ({
       cameraFar={camera.far}
       transparent
       depthWrite={false} // Ensure transparent object doesn't write to depth
-      depthTest={true}   // Ensure transparent object tests against depth
+      depthTest={true} // Ensure transparent object tests against depth
       uColor={colorUniform}
       {...props}
     />

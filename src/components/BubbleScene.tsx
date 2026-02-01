@@ -2,12 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  Canvas,
-  useThree,
-  useFrame,
-  ThreeEvent,
-} from '@react-three/fiber';
+import { Canvas, useThree, useFrame, ThreeEvent } from '@react-three/fiber';
 import {
   OrbitControls,
   useTexture,
@@ -74,7 +69,7 @@ interface BubbleData {
 }
 
 const useSoftCircleTexture = (
-  type: 'solid' | 'glass' | 'image' | 'play_gradient' = 'glass'
+  type: 'solid' | 'glass' | 'image' | 'play_gradient' = 'glass',
 ) => {
   return useMemo(() => {
     if (typeof document === 'undefined') return null;
@@ -110,7 +105,7 @@ const checkCollision = (
   position: [number, number, number],
   radius: number,
   existingBubbles: BubbleData[],
-  padding: number = 0.5
+  padding: number = 0.5,
 ): boolean => {
   for (const bubble of existingBubbles) {
     const dx = position[0] - bubble.position[0];
@@ -129,7 +124,7 @@ const checkCollision = (
 const generateBubbles = (
   count: number,
   mode: 'home' | 'gallery',
-  projects: Project[] = []
+  projects: Project[] = [],
 ) => {
   const temp: BubbleData[] = [];
   // Use seeded RNG for deterministic layout
@@ -297,7 +292,7 @@ const Bubble = ({
       return new THREE.Vector3(
         (Math.random() - 0.5) * 0.5,
         (Math.random() - 0.5) * 0.5,
-        (Math.random() - 0.5) * 0.5
+        (Math.random() - 0.5) * 0.5,
       );
     }
     return new THREE.Vector3(...position);
@@ -305,7 +300,7 @@ const Bubble = ({
 
   const targetPosition = useMemo(
     () => new THREE.Vector3(...position),
-    [position]
+    [position],
   );
   const [startExplosion, setStartExplosion] = useState(!enableExplosion);
 
@@ -365,7 +360,7 @@ const Bubble = ({
   };
 
   const softTexture = useSoftCircleTexture(
-    isGradient ? 'play_gradient' : type === 'glass' ? 'glass' : 'solid'
+    isGradient ? 'play_gradient' : type === 'glass' ? 'glass' : 'solid',
   );
 
   // Conditionally call useTexture only if type is 'image' and imageUrl is present
@@ -580,7 +575,7 @@ const ImageBubble = ({
         materialRef.current.opacity = THREE.MathUtils.lerp(
           materialRef.current.opacity,
           1,
-          delta * 2
+          delta * 2,
         );
         if (materialRef.current.opacity > 0.99) {
           materialRef.current.opacity = 1;
@@ -635,7 +630,7 @@ const ImageBubble = ({
                 `
                 #include <uv_vertex>
                 vPosUv = uv;
-                `
+                `,
               );
 
               shader.fragmentShader =
@@ -700,7 +695,7 @@ const ImageBubble = ({
                 if (dist > 0.495) alpha = 0.0;
                 
                 diffuseColor.a *= alpha;
-                `
+                `,
               );
               shaderRef.current = shader;
             }}
@@ -731,7 +726,7 @@ const ImageBubble = ({
                   `
                    #include <uv_vertex>
                    vPosUv = uv;
-                   `
+                   `,
                 );
 
                 shader.fragmentShader =
@@ -762,7 +757,7 @@ const ImageBubble = ({
                    if (dist > 0.495) alpha = 0.0;
                    
                    gl_FragColor.a = alpha;
-                   `
+                   `,
                 );
                 overlayShaderRef.current = shader;
               }}
@@ -816,7 +811,7 @@ const ColorBubble = ({
     id?.toString() || 'unknown',
     meshRef,
     1.0,
-    !!isRefractive
+    !!isRefractive,
   );
 
   const shaderRef = useRef<Shader>(null);
@@ -857,7 +852,7 @@ const ColorBubble = ({
       fs.currentOpacity = THREE.MathUtils.lerp(
         fs.currentOpacity,
         target,
-        delta * 2.0
+        delta * 2.0,
       );
 
       const mat = meshRef.current.material as THREE.Material;
@@ -917,7 +912,7 @@ const ColorBubble = ({
       `
       #include <uv_vertex>
       vPosUv = uv;
-      `
+      `,
     );
 
     shader.fragmentShader =
@@ -964,7 +959,7 @@ const ColorBubble = ({
       `
       ${replaceString}
       ${featherLogic}
-      `
+      `,
     );
 
     shaderRef.current = shader;
@@ -1267,18 +1262,18 @@ const ControlsSpeedAdjuster = () => {
 
   useFrame(() => {
     if (!controls || !('target' in controls)) return;
-    
+
     // Cast controls to any or proper type to access target and speeds
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const orbitControls = controls as any;
 
     const dist = camera.position.distanceTo(orbitControls.target);
-    
+
     // Linear scaling: speed = dist * factor
     // Base: dist 20 -> speed 0.5 => factor = 0.025
     // Adjusted: dist 20 -> speed 0.3 => factor = 0.015 for more precision
     let targetSpeed = dist * 0.015;
-    
+
     // Clamp
     targetSpeed = Math.max(0.1, Math.min(targetSpeed, 2.0));
 
@@ -1308,7 +1303,8 @@ const MagneticCamera = ({
   const pos = useMemo(() => new THREE.Vector3(), []);
 
   useFrame(() => {
-    if (userInteractionRef.current || !controls || !('target' in controls)) return;
+    if (userInteractionRef.current || !controls || !('target' in controls))
+      return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const orbitControls = controls as any;
     const target = orbitControls.target as THREE.Vector3;
@@ -1452,12 +1448,15 @@ export default function BubbleScene({
     setShowWelcomeVideo(false);
   };
 
-  const glConfig = useMemo(() => ({
-    antialias: true,
-    toneMapping: THREE.NoToneMapping,
-    alpha: transparent,
-    preserveDrawingBuffer: true,
-  }), [transparent]);
+  const glConfig = useMemo(
+    () => ({
+      antialias: true,
+      toneMapping: THREE.NoToneMapping,
+      alpha: transparent,
+      preserveDrawingBuffer: true,
+    }),
+    [transparent],
+  );
 
   // Reset cursor when navigating away or component unmounts
   useEffect(() => {
