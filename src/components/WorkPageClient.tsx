@@ -378,7 +378,7 @@ function ProjectCard({ project }: { project: Project }) {
             src={imageUrl}
             alt={project.title}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-cover scale-[1.01] transition-transform duration-500 group-hover:scale-105"
             sizes="(max-width: 768px) 50vw, 33vw"
           />
         ) : (

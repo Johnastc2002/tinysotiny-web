@@ -123,7 +123,7 @@ export default function DetailCard({
                           src={data.imageUrl}
                           alt={data.title}
                           fill
-                          className={`object-cover z-10 group-hover:scale-105 transition-transform duration-700 ${
+                          className={`object-cover z-10 scale-[1.01] group-hover:scale-105 transition-transform duration-700 ${
                             isImageLoaded ? 'opacity-100' : 'opacity-0'
                           } transition-opacity duration-500`}
                           sizes="(max-width: 768px) 100vw, 50vw"
