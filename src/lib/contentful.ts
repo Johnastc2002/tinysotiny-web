@@ -288,7 +288,10 @@ const mapAboutUs = (entry: any): AboutUsData => {
     ),
     header: String(fields.header || ''),
     description2: String(fields.description_2 || fields.description2 || ''),
-    categories: (fields.categories || []).map(String),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    categories: (fields.categories || []).map((cat: any) => ({
+      name: String(cat.fields?.name || ''),
+    })),
     founderImage: getAssetUrl(fields.founder_image || fields.founderImage),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     founders: (fields.founders || []).map((founder: any) => ({

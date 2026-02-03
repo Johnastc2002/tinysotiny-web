@@ -11,13 +11,17 @@ export interface Founder {
   role: string;
 }
 
+export interface Category {
+  name: string;
+}
+
 export interface AboutUsData {
   slogan: string;
   sloganImages?: ImageMeta[];
   firstParagraph: string; // This is "Long text" in Contentful
   header: string;
   description2: string;
-  categories: string[];
+  categories: Category[];
   founderImage?: string;
   founders?: Founder[];
 }

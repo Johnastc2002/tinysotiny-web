@@ -53,7 +53,7 @@ export default async function About() {
                 <div key={index} className="flex items-center gap-3">
                   <span className="h-2 w-2 min-w-2 md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
                   <span className="text-xs md:text-sm font-['Value_Sans'] font-normal tracking-widest text-[#0F2341] uppercase whitespace-nowrap">
-                    {category}
+                    {category.name}
                   </span>
                 </div>
               ))}
