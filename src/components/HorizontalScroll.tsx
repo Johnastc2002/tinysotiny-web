@@ -5,6 +5,8 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { DailyData } from '@/types/daily';
 import SmartMedia from '@/components/SmartMedia';
 
+import CategorySVG from '@/components/CategorySVG';
+
 interface HorizontalScrollProps {
   daily: DailyData;
   scrollContainerRef?: React.RefObject<HTMLElement>;
@@ -149,6 +151,16 @@ export default function HorizontalScroll({
           </p>
         </div>
 
+        {/* Category 1 Mobile */}
+        {daily.detail_category && (
+          <div className="relative w-full h-32 -mt-8 -mb-16 z-10 flex items-center justify-center">
+            <CategorySVG
+              category={daily.detail_category}
+              className="w-full h-full opacity-100"
+            />
+          </div>
+        )}
+
         {/* First 3 Images */}
         <div className="flex flex-col gap-4 px-8 pt-8 bg-white pb-0">
           {daily.medias?.slice(0, 3).map((media, idx) => (
@@ -168,8 +180,16 @@ export default function HorizontalScroll({
         </div>
 
         {/* Description 2 */}
-        <div className="px-8 py-8 bg-white wrap-break-word pb-32">
-          <p className="text-gray-600 leading-loose wrap-break-word whitespace-pre-wrap font-['Value_Sans'] font-medium">
+        <div className="px-8 py-8 bg-white wrap-break-word pb-32 -mb-32 relative overflow-hidden min-h-[40vh]">
+          {daily.detail_category_2 && (
+            <div className="absolute inset-0 pt-12 z-0 flex items-start justify-center pointer-events-none">
+              <CategorySVG
+                category={daily.detail_category_2}
+                className="w-full h-full opacity-100 object-cover"
+              />
+            </div>
+          )}
+          <p className="text-gray-600 leading-loose wrap-break-word whitespace-pre-wrap font-['Value_Sans'] font-medium relative z-10">
             {daily.description2 ||
               daily.description ||
               'More details coming soon...'}
@@ -302,8 +322,16 @@ export default function HorizontalScroll({
             {/* Section 2: Image Grid (White) */}
             {/* Removed overflow-hidden to allow image to overlap previous section */}
             {/* Added z-20 to ensure it (and its negative margin image) sits on top of Section 1 */}
-            <section className="relative flex h-screen w-auto shrink-0 items-center justify-center bg-white z-20">
-              <div className="flex gap-8 md:gap-8 items-center px-8 md:px-8 h-full bg-white">
+            <section className="relative flex h-screen w-auto shrink-0 items-center justify-center  z-20">
+              <div className="flex gap-8 md:gap-8 items-center px-8 md:px-8 h-full relative">
+                {daily.detail_category && (
+                  <div className="absolute bottom-0 left-0 pl-[10vw] z-0 pointer-events-none opacity-100 flex items-end h-full -mb-64">
+                    <CategorySVG
+                      category={daily.detail_category}
+                      className="w-[40rem] h-[50rem] opacity-100"
+                    />
+                  </div>
+                )}
                 {/* Map through first few medias or placeholders */}
                 {daily.medias &&
                   daily.medias.slice(0, 3).map((media, idx) => (
@@ -347,8 +375,16 @@ export default function HorizontalScroll({
             {/* Reduced width to 60vw to bring next section closer */}
             {/* Added z-10 to allow Section 4 to overlap it if needed */}
             <section className="relative flex h-screen w-auto shrink-0 items-center justify-center bg-white z-10">
-              <div className="flex flex-col md:flex-row items-center gap-10 pl-12 pr-32 wrap-break-word">
-                <div className="flex flex-col space-y-6 max-w-xl">
+              <div className="flex flex-col md:flex-row items-center gap-10 pl-12 pr-32 wrap-break-word relative">
+                {daily.detail_category_2 && (
+                  <div className="absolute -top-[50vh] right-0 pr-8 z-0 pointer-events-none opacity-100 flex items-start h-full">
+                    <CategorySVG
+                      category={daily.detail_category_2}
+                      className="w-[30rem] h-[20rem] opacity-100"
+                    />
+                  </div>
+                )}
+                <div className="flex flex-col space-y-6 max-w-xl z-10">
                   <p className="text-gray-600 leading-loose wrap-break-word whitespace-pre-wrap font-['Value_Sans'] font-medium">
                     {daily.description2 ||
                       daily.description ||

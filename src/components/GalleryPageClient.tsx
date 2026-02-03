@@ -19,6 +19,7 @@ import ProjectPageClient from '@/components/ProjectPageClient';
 import { useCursor } from '@/context/CursorContext';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import SmartMedia from '@/components/SmartMedia';
+import CategorySVG from '@/components/CategorySVG';
 
 interface GalleryPageClientProps {
   initialFeaturedProjects: Project[];
@@ -84,6 +85,15 @@ function GalleryPageContent({
   );
   const [isBubblePaused, setIsBubblePaused] = useState(false);
   const isMobile = useIsMobile();
+
+  const [randomCategory, setRandomCategory] = useState<string | null>(null);
+  const [randomSide, setRandomSide] = useState<'left' | 'right'>('left');
+
+  useEffect(() => {
+    const categories = ['PHOTOGRAPHY', 'MOTION GRAPHICS', 'VIDEOGRAPHY', 'BRANDING'];
+    setRandomCategory(categories[Math.floor(Math.random() * categories.length)]);
+    setRandomSide(Math.random() > 0.5 ? 'right' : 'left');
+  }, []);
 
   useEffect(() => {
     // Pause bubbles ONLY if full project overlay is open
@@ -893,6 +903,26 @@ function GalleryPageContent({
             </div>
           </div>
         </div>
+
+        {/* Random Category Overlay */}
+        {viewMode === 'grid' && randomCategory && (
+          <div className="fixed inset-0 z-20 pointer-events-none flex justify-center">
+            <div className="w-full max-w-7xl px-2 md:px-12 pt-24">
+              <div className="relative w-full h-full">
+                <div
+                  className={`absolute top-0 ${
+                    randomSide === 'left' ? 'left-0' : 'right-0'
+                  } w-[70%]`}
+                >
+                  <CategorySVG
+                    category={{ name: randomCategory }}
+                    className="w-full h-auto"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

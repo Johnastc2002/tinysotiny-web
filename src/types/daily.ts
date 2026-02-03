@@ -1,3 +1,5 @@
+import { Category } from './about';
+
 export interface DailyMedia {
   url: string;
   width: number;
@@ -16,4 +18,6 @@ export interface DailyData {
   createdAt: string; // useful for sorting or display if needed
   card_bg_color?: string;
   card_font_color?: string;
+  detail_category?: Category;
+  detail_category_2?: Category;
 }

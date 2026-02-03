@@ -15,13 +15,13 @@ const CategorySVG: React.FC<CategorySVGProps> = ({ category, className }) => {
 
   switch (normalizedName) {
     case 'PHOTOGRAPHY':
-      return <div className={`${className} border border-red-500`}><PhotographyAnimation /></div>;
+      return <div className={className}><PhotographyAnimation /></div>;
     case 'MOTION GRAPHICS':
-      return <div className={`${className} border border-red-500`}><MotionGraphicsAnimation /></div>;
+      return <div className={className}><MotionGraphicsAnimation /></div>;
     case 'VIDEOGRAPHY':
-      return <div className={`${className} border border-red-500`}><VideographyAnimation /></div>;
+      return <div className={className}><VideographyAnimation /></div>;
     case 'BRANDING':
-      return <div className={`${className} border border-red-500`}><BrandingAnimation /></div>;
+      return <div className={className}><BrandingAnimation /></div>;
     default:
       return null;
   }

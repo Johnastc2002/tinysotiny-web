@@ -411,6 +411,26 @@ const mapDaily = (entry: any): DailyData => {
         fields.cardTextColor ||
         '',
     ),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    detail_category:
+      fields.detail_category || fields.detailCategory
+        ? {
+            name: String(
+              (fields.detail_category || fields.detailCategory).fields?.name ||
+                '',
+            ),
+          }
+        : undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    detail_category_2:
+      fields.detail_category_2 || fields.detailCategory2
+        ? {
+            name: String(
+              (fields.detail_category_2 || fields.detailCategory2).fields
+                ?.name || '',
+            ),
+          }
+        : undefined,
   };
 };
 

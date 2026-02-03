@@ -29,10 +29,10 @@ export default function WorkPageClient({
 
   // Projects state
   const [nonFeaturedProjects, setNonFeaturedProjects] = useState<Project[]>(
-    initialNonFeaturedProjects
+    initialNonFeaturedProjects,
   );
   const [filteredProjects, setFilteredProjects] = useState<Project[] | null>(
-    null
+    null,
   );
 
   // Pagination state
@@ -69,7 +69,7 @@ export default function WorkPageClient({
     setSelectedTags((prev) =>
       prev.includes(tagId)
         ? prev.filter((id) => id !== tagId)
-        : [...prev, tagId]
+        : [...prev, tagId],
     );
   };
 
@@ -83,7 +83,7 @@ export default function WorkPageClient({
           const newProjects = await getFilteredProjectsAction(
             appliedTags,
             page,
-            projectType
+            projectType,
           );
 
           if (newProjects.length === 0) {
@@ -144,7 +144,7 @@ export default function WorkPageClient({
           const newProjects = await getFilteredProjectsAction(
             appliedTags,
             1,
-            projectType
+            projectType,
           );
           setFilteredProjects(newProjects);
           setHasMore(newProjects.length >= 12);
@@ -180,7 +180,7 @@ export default function WorkPageClient({
               const newProjects = await getFilteredProjectsAction(
                 appliedTags,
                 page,
-                projectType
+                projectType,
               );
               if (newProjects.length === 0) {
                 setHasMore(false);
@@ -195,7 +195,7 @@ export default function WorkPageClient({
               // Load more non-featured (default)
               const newProjects = await getMoreNonFeaturedProjects(
                 page,
-                projectType
+                projectType,
               );
               if (newProjects.length === 0) {
                 setHasMore(false);
@@ -211,7 +211,7 @@ export default function WorkPageClient({
           }
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     if (observerTarget.current) {
