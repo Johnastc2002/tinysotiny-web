@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useCursor } from '@/context/CursorContext';
 import { SearchTag } from '@/types/project';
+import { Category } from '@/types/about';
+import CategorySVG from './CategorySVG';
 
 export interface DetailCardData {
   id: string;
@@ -19,6 +21,7 @@ export interface DetailCardData {
   cardTagColor?: string;
   thumbnails?: string[];
   tags?: SearchTag[];
+  cardCategory?: Category;
 }
 
 interface DetailCardProps {
@@ -148,118 +151,130 @@ export default function DetailCard({
                   </div>
 
                   {/* Right Side - Content */}
-                  <div className="flex w-full landscape:w-1/2 md:w-1/2 flex-col hover:bg-gray-50 transition-colors flex-none landscape:flex-none md:flex-none landscape:h-full md:h-full landscape:overflow-y-auto md:overflow-y-auto bg-transparent z-10">
-                    {/* Top Section - Description */}
-                    <div
-                      className="flex-1 px-6 pt-3 pb-6 landscape:p-6 md:p-10 flex flex-col transition-colors duration-300 min-h-min relative"
-                      style={{
-                        backgroundColor: bgColor || '#E5E5E5',
-                      }}
-                    >
-                      <div className="flex-1 flex flex-col justify-start md:justify-center">
-                        {data.topLabel && (
-                          <div className="mb-2 md:mb-4">
-                            <span
-                              className={`text-[10px] md:text-sm font-semibold uppercase tracking-wider ${
-                                !fontColor ? 'text-gray-500' : ''
-                              }`}
-                              style={
-                                fontColor
-                                  ? { color: fontColor, opacity: 0.7 }
-                                  : {}
-                              }
-                            >
-                              {data.topLabel}
-                            </span>
-                          </div>
-                        )}
-                        <h2
-                          className={`mb-2 md:mb-4 text-2xl md:text-4xl font-['Value_Serif'] font-medium leading-tight ${
-                            !fontColor ? 'text-[#0F2341]' : ''
-                          }`}
-                          style={fontColor ? { color: fontColor } : {}}
-                        >
-                          {data.title}
-                        </h2>
-                        <p
-                          className={`text-xs md:text-sm leading-relaxed max-w-md font-['Value_Sans'] font-normal line-clamp-3 md:line-clamp-6 text-ellipsis overflow-hidden ${
-                            !fontColor ? 'text-[#0F2341]' : ''
-                          }`}
-                          style={
-                            fontColor ? { color: fontColor, opacity: 0.9 } : {}
-                          }
-                        >
-                          {data.description}
-                        </p>
-
-                        {/* Mobile: Tags moved here under description */}
-                        <div className="mt-4 md:hidden landscape:hidden">
-                          {/* Clone bottomContent but style it differently if needed, or assume it's just content */}
-                          {/* We need to apply font color to children if possible, but they are ReactNodes. */}
-                          {/* Assuming bottomContent is structured for styling or we wrap it */}
-                          <div
-                            style={
-                              tagColor
-                                ? { color: tagColor }
-                                : fontColor
-                                ? { color: fontColor }
-                                : { color: '#0F2341' }
-                            }
-                          >
-                            {data.bottomContent}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Desktop: Tags moved here if showing second thumbnail */}
-                      {showSecondThumbnail && data.tags && (
-                        <ul className="hidden landscape:flex md:flex flex-wrap gap-x-4 gap-y-2 mt-8 md:mt-0 pt-4 p-0 list-none shrink-0">
-                          {data.tags.map((tag, index) => (
-                            <li
-                              key={index}
-                              className={`flex items-center leading-none text-xs font-['Value_Sans'] font-normal uppercase tracking-wide transition-colors ${
-                                !fontColor
-                                  ? 'text-[#B6B6B6]'
-                                  : 'text-current'
-                              }`}
-                              style={
-                                fontColor
-                                  ? { color: fontColor }
-                                  : {}
-                              }
-                            >
-                              <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />
-                              {tag.display_name}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+                  <div className="grid grid-cols-1 grid-rows-1 w-full landscape:w-1/2 md:w-1/2 hover:bg-gray-50 transition-colors flex-none landscape:flex-none md:flex-none landscape:h-full md:h-full landscape:overflow-y-auto md:overflow-y-auto bg-transparent z-10 relative">
+                    {/* Layer 1: Backgrounds */}
+                    <div className="col-start-1 row-start-1 flex flex-col z-0 pointer-events-none">
+                      <div
+                        className="flex-1 transition-colors duration-300"
+                        style={{
+                          backgroundColor: bgColor || '#E5E5E5',
+                        }}
+                      />
+                      <div className="hidden landscape:block md:block min-h-[30%] bg-white shrink-0" />
                     </div>
 
-                    {/* Bottom Section - Tags/Points (Desktop Only) */}
-                    <div
-                      className={`hidden landscape:flex md:flex bg-white text-[#B6B6B6] ${
-                        showSecondThumbnail
-                          ? 'relative p-0'
-                          : 'px-10 flex-col justify-center'
-                      } min-h-[30%] overflow-hidden shrink-0`}
-                    >
-                      {showSecondThumbnail &&
-                      data.thumbnails &&
-                      data.thumbnails[1] ? (
-                        <div className="relative w-full h-full">
-                          <Image
-                            src={data.thumbnails[1]}
-                            alt={data.title}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 768px) 100vw, 50vw"
-                            priority
-                          />
+                    {/* Layer 2: SVG Overlay */}
+                    {data.cardCategory && (
+                      <div className="col-start-1 row-start-1 z-30 pointer-events-none hidden landscape:flex md:flex items-end justify-center">
+                        <CategorySVG
+                          category={data.cardCategory}
+                          className="w-full h-[60%] opacity-100"
+                        />
+                      </div>
+                    )}
+
+                    {/* Layer 3: Content */}
+                    <div className="col-start-1 row-start-1 flex flex-col z-20 pointer-events-auto">
+                      {/* Top Section - Description */}
+                      <div className="flex-1 px-6 pt-3 pb-6 landscape:p-6 md:p-10 flex flex-col min-h-min relative">
+                        <div className="flex-1 flex flex-col justify-start md:justify-center">
+                          {data.topLabel && (
+                            <div className="mb-2 md:mb-4">
+                              <span
+                                className={`text-[10px] md:text-sm font-semibold uppercase tracking-wider ${
+                                  !fontColor ? 'text-gray-500' : ''
+                                }`}
+                                style={
+                                  fontColor
+                                    ? { color: fontColor, opacity: 0.7 }
+                                    : {}
+                                }
+                              >
+                                {data.topLabel}
+                              </span>
+                            </div>
+                          )}
+                          <h2
+                            className={`mb-2 md:mb-4 text-2xl md:text-4xl font-['Value_Serif'] font-medium leading-tight ${
+                              !fontColor ? 'text-[#0F2341]' : ''
+                            }`}
+                            style={fontColor ? { color: fontColor } : {}}
+                          >
+                            {data.title}
+                          </h2>
+                          <p
+                            className={`text-xs md:text-sm leading-relaxed max-w-md font-['Value_Sans'] font-normal line-clamp-3 md:line-clamp-6 text-ellipsis overflow-hidden ${
+                              !fontColor ? 'text-[#0F2341]' : ''
+                            }`}
+                            style={
+                              fontColor
+                                ? { color: fontColor, opacity: 0.9 }
+                                : {}
+                            }
+                          >
+                            {data.description}
+                          </p>
+
+                          {/* Mobile: Tags moved here under description */}
+                          <div className="mt-4 md:hidden landscape:hidden">
+                            <div
+                              style={
+                                tagColor
+                                  ? { color: tagColor }
+                                  : fontColor
+                                  ? { color: fontColor }
+                                  : { color: '#0F2341' }
+                              }
+                            >
+                              {data.bottomContent}
+                            </div>
+                          </div>
                         </div>
-                      ) : (
-                        data.bottomContent
-                      )}
+
+                        {/* Desktop: Tags moved here if showing second thumbnail */}
+                        {showSecondThumbnail && data.tags && (
+                          <ul className="hidden landscape:flex md:flex flex-wrap gap-x-4 gap-y-2 mt-8 md:mt-0 pt-4 p-0 list-none shrink-0">
+                            {data.tags.map((tag, index) => (
+                              <li
+                                key={index}
+                                className={`flex items-center leading-none text-xs font-['Value_Sans'] font-normal uppercase tracking-wide transition-colors ${
+                                  !fontColor ? 'text-[#B6B6B6]' : 'text-current'
+                                }`}
+                                style={fontColor ? { color: fontColor } : {}}
+                              >
+                                <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />
+                                {tag.display_name}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+
+                      {/* Bottom Section - Tags/Points (Desktop Only) */}
+                      <div
+                        className={`hidden landscape:flex md:flex text-[#B6B6B6] ${
+                          showSecondThumbnail
+                            ? 'relative p-0'
+                            : 'px-10 flex-col justify-center'
+                        } min-h-[30%] overflow-hidden shrink-0`}
+                      >
+                        {showSecondThumbnail &&
+                        data.thumbnails &&
+                        data.thumbnails[1] ? (
+                          <div className="relative w-full h-full">
+                            <Image
+                              src={data.thumbnails[1]}
+                              alt={data.title}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 768px) 100vw, 50vw"
+                              priority
+                            />
+                          </div>
+                        ) : (
+                          data.bottomContent
+                        )}
+                      </div>
                     </div>
                   </div>
                 </motion.div>

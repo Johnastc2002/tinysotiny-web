@@ -253,6 +253,35 @@ const mapProject = (entry: any): Project => {
     ),
     description_2: String(fields.description_2 || fields.description2 || ''),
     projectType: (fields.projectType as ProjectType) || 'work',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    card_category:
+      fields.card_category || fields.cardCategory
+        ? {
+            name: String(
+              (fields.card_category || fields.cardCategory).fields?.name || '',
+            ),
+          }
+        : undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    detail_category:
+      fields.detail_category || fields.detailCategory
+        ? {
+            name: String(
+              (fields.detail_category || fields.detailCategory).fields?.name ||
+                '',
+            ),
+          }
+        : undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    detail_category_2:
+      fields.detail_category_2 || fields.detailCategory2
+        ? {
+            name: String(
+              (fields.detail_category_2 || fields.detailCategory2).fields
+                ?.name || '',
+            ),
+          }
+        : undefined,
     services: (fields.services || []).map(String),
   };
 };

@@ -282,6 +282,7 @@ function GalleryPageContent({
         cardBgColor: selectedProject.card_bg_color,
         cardFontColor: selectedProject.card_font_color,
         cardTagColor: selectedProject.card_tag_color,
+        cardCategory: selectedProject.card_category,
       }
     : null;
 

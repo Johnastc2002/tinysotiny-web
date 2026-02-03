@@ -10,10 +10,7 @@ import { useCursor } from '@/context/CursorContext';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 import SmartMedia from '@/components/SmartMedia';
-import MotionGraphicsAnimation from '@/components/MotionGraphicsAnimation';
-import BrandingAnimation from '@/components/BrandingAnimation';
-import PhotographyAnimation from '@/components/PhotographyAnimation';
-import VideographyAnimation from '@/components/VideographyAnimation';
+import CategorySVG from '@/components/CategorySVG';
 
 interface ProjectPageClientProps {
   project: Project;
@@ -434,10 +431,9 @@ export default function ProjectPageClient({
             {/* Client & Services Section (Mobile) */}
             <div className="px-8 pt-12 bg-[#f8f8f8] relative overflow-hidden">
               <div className="absolute inset-0 z-0 pointer-events-none">
-                <MotionGraphicsAnimation />
-                {/* <BrandingAnimation /> */}
-                {/* <PhotographyAnimation /> */}
-                {/* <VideographyAnimation /> */}
+                {project.detail_category && (
+                  <CategorySVG category={project.detail_category} />
+                )}
               </div>
               <div className="relative z-10">
                 {/* Client Section */}
@@ -510,10 +506,9 @@ export default function ProjectPageClient({
             {/* Right Column: Client & Services Section (Desktop) - Outside the white box */}
             <div className="w-full md:w-[40%] pt-16 pl-12 pb-0 pointer-events-auto flex flex-col justify-end relative overflow-hidden">
               <div className="absolute inset-0 z-0 pointer-events-none">
-                <MotionGraphicsAnimation />
-                {/* <BrandingAnimation /> */}
-                {/* <PhotographyAnimation /> */}
-                {/* <VideographyAnimation /> */}
+                {project.detail_category && (
+                  <CategorySVG category={project.detail_category} />
+                )}
               </div>
               <div className="relative z-10">
                 {/* Client Section */}
@@ -641,11 +636,21 @@ export default function ProjectPageClient({
                           whileInView={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.6, delay: 0.2 }}
                           viewport={{ once: true }}
-                          className="w-full pb-16 flex justify-start px-0 overflow-hidden"
+                          className="w-full pb-16 flex flex-col md:flex-row relative overflow-hidden"
                         >
-                          <p className="text-base text-gray-700 leading-relaxed max-w-full text-left font-['Value_Sans'] font-medium wrap-break-word whitespace-pre-wrap">
-                            {project.description_2}
-                          </p>
+                          <div className="w-full md:w-1/2 relative z-10">
+                            <p className="text-base text-gray-700 leading-relaxed max-w-full text-left font-['Value_Sans'] font-medium wrap-break-word whitespace-pre-wrap">
+                              {project.description_2}
+                            </p>
+                          </div>
+                          {project.detail_category_2 && (
+                          <div className="absolute inset-0 md:static md:w-1/2 z-0 md:z-auto flex items-center justify-center">
+                            <CategorySVG
+                              category={project.detail_category_2}
+                              className="w-full h-full opacity-100"
+                            />
+                          </div>
+                          )}
                         </motion.div>
                       )}
                     </React.Fragment>

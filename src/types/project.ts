@@ -1,3 +1,5 @@
+import { Category } from './about';
+
 export interface ContentfulMediaItem {
   url: string;
   type: 'image' | 'video';
@@ -37,6 +39,9 @@ export interface Project {
   card_font_color?: string;
   card_tag_color?: string;
   services?: string[];
+  card_category?: Category;
+  detail_category?: Category;
+  detail_category_2?: Category;
 }
 
 export interface SearchTag {
