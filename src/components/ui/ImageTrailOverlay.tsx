@@ -28,6 +28,23 @@ interface ImageTrailOverlayProps {
   isRightSide?: boolean; // Optional: Force direction or let component decide?
 }
 
+// Helper to get image dimensions
+const getImageDimensions = (img: ImageMeta | undefined) => {
+  if (typeof window === 'undefined') return { width: 0, height: 0 };
+  const isSmall = window.innerWidth < 768;
+  const baseSize = isSmall ? 150 : 200;
+  
+  if (!img) return { width: 0, height: 0 };
+  
+  const aspectRatio = img.width / img.height;
+  if (aspectRatio > 1) {
+    return { width: baseSize * 1.2, height: (baseSize * 1.2) / aspectRatio };
+  } else {
+    const h = baseSize * 1.25;
+    return { width: h * aspectRatio, height: h };
+  }
+};
+
 const SnakeSegment = ({
   index,
   images,
@@ -42,6 +59,7 @@ const SnakeSegment = ({
   diffX?: number;
 }) => {
   const img = images[index];
+  const { width, height } = getImageDimensions(img);
 
   // Use state to store stable random values for THIS segment, initialized lazily
   const [randomY] = useState(() => {
@@ -49,26 +67,6 @@ const SnakeSegment = ({
     const maxY = 110;
     return Math.random() * (maxY * 2) - maxY;
   });
-
-  // Determine size
-  const isSmall = typeof window !== 'undefined' && window.innerWidth < 768;
-  const baseSize = isSmall ? 150 : 200;
-
-  let width = 0;
-  let height = 0;
-
-  if (img) {
-    const aspectRatio = img.width / img.height;
-    const isLandscape = aspectRatio > 1;
-
-    if (isLandscape) {
-      width = baseSize * 1.2;
-      height = width / aspectRatio;
-    } else {
-      height = baseSize * 1.25;
-      width = height * aspectRatio;
-    }
-  }
 
   // Snake physics configuration
   const springConfig = { damping: 20, stiffness: 200, mass: 0.5 };
@@ -126,6 +124,25 @@ const SnakeSegment = ({
   );
 };
 
+// Helper to calculate total width of the snake
+const calculateTotalWidth = (images: ImageMeta[]) => {
+  const overlapFactor = 0.8;
+  let totalWidth = 0;
+  
+  images.forEach((img, index) => {
+    const { width } = getImageDimensions(img);
+    
+    // Add spacing (for all except last, but effectively the chain length is sum of spacings + last width)
+    if (index < images.length - 1) {
+      totalWidth += width * overlapFactor;
+    } else {
+      totalWidth += width;
+    }
+  });
+  
+  return totalWidth;
+};
+
 export const ImageTrailOverlay = ({
   images,
   initialX,
@@ -137,20 +154,13 @@ export const ImageTrailOverlay = ({
   // Create local motion values initialized to the specific start position of THIS interaction
   const x = useMotionValue(initialX);
   const y = useMotionValue(initialY);
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   // Sync with parent mouse values, but clamp to bounds
   useEffect(() => {
     const updateX = (latestX: number) => {
       // Clamp to bounds to prevent overflow, but allow full range within bounds
       let newX = Math.min(Math.max(latestX, bounds.minX), bounds.maxX);
-      
-      // Additional safety clamp to viewport if window is available
-      if (typeof window !== 'undefined') {
-        const viewportWidth = window.innerWidth;
-        // Assuming overlay is full width, clamp to [0, viewportWidth] roughly
-        // But x is relative to container. We need to be careful.
-        // For now, rely on bounds being correct.
-      }
       x.set(newX);
     };
     const updateY = (latestY: number) => {
@@ -169,35 +179,84 @@ export const ImageTrailOverlay = ({
   const [isRightSide, setIsRightSide] = useState(false);
 
   useEffect(() => {
-    // Determine if cursor is on the right side of the screen/bounds to offset images to the left
-    const checkSide = () => {
-      if (typeof window !== 'undefined') {
+    const checkDirection = () => {
+      if (typeof window === 'undefined' || !containerRef.current) return;
+      
+      const rect = containerRef.current.getBoundingClientRect();
+      const currentX = x.get(); // relative to container
+      const viewportX = rect.left + currentX;
+      const totalWidth = calculateTotalWidth(images);
+      const padding = 40; // Safety buffer
+      
+      // Calculate available space
+      const spaceRight = window.innerWidth - viewportX;
+      const spaceLeft = viewportX;
+      
+      // Calculate width of first image to be precise
+      const { width: firstImgWidth } = getImageDimensions(images[0]);
+      
+      // Space needed to the right (if we go right)
+      // We need room for the full chain starting from x.
+      const canRightCheck = spaceRight >= (totalWidth + padding);
+
+      // Space needed to the left (if we go left)
+      // The leftmost edge would be x - (totalWidth - firstImgWidth).
+      const canLeftCheck = viewportX >= (totalWidth + padding);
+
+      // Priority Logic:
+      // 1. If only one side fits, pick that side.
+      // 2. If both fit, use standard center logic.
+      // 3. If neither fit, pick side with MORE space.
+      
+      if (canRightCheck && !canLeftCheck) {
+        setIsRightSide(false); // Force Right (diffX positive)
+      } else if (canLeftCheck && !canRightCheck) {
+        setIsRightSide(true); // Force Left (diffX negative)
+      } else if (canRightCheck && canLeftCheck) {
+        // Both fit, use cursor position preference
         const center = (bounds.minX + bounds.maxX) / 2;
-        setIsRightSide(x.get() > center);
+        setIsRightSide(currentX > center);
+      } else {
+        // Neither fit fully. Pick the side with MORE space.
+        if (spaceLeft > spaceRight) {
+          setIsRightSide(true); // Go Left
+        } else {
+          setIsRightSide(false); // Go Right
+        }
       }
     };
-    checkSide();
-    const unsub = x.on('change', () => {
-      if (typeof window !== 'undefined') {
-        const center = (bounds.minX + bounds.maxX) / 2;
-        setIsRightSide(x.get() > center);
-      }
-    });
-    return unsub;
-  }, [x, bounds]);
+
+    checkDirection();
+    const unsub = x.on('change', checkDirection);
+    window.addEventListener('resize', checkDirection);
+    return () => {
+      unsub();
+      window.removeEventListener('resize', checkDirection);
+    };
+  }, [x, bounds, images]);
 
   if (!images || images.length === 0) return null;
 
   // Stagger direction based on screen side
   const offsetDistance = 200;
   const diffX = isRightSide ? -offsetDistance : offsetDistance;
+  
+  // Calculate offset to shift the chain origin
+  // If going Left (isRightSide=true), we want the first image to end at the cursor.
+  // So we shift it left by its width + padding.
+  // If going Right, we shift it right by padding.
+  const { width: firstWidth } = getImageDimensions(images[0]);
+  const offsetX = isRightSide ? -(firstWidth + 20) : 20;
+  
+  // Create a transformed motion value for the first segment
+  const startX = useTransform(x, (v) => v + offsetX);
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-50 overflow-visible">
+    <div ref={containerRef} className="pointer-events-none absolute inset-0 z-50 overflow-visible">
       <SnakeSegment
         index={0}
         images={images}
-        targetX={x}
+        targetX={startX}
         targetY={y}
         diffX={diffX}
       />
