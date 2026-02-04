@@ -198,7 +198,7 @@ function DailyListContent({ initialItems }: DailyListProps) {
       </AnimatePresence>
 
       <div className="w-full max-w-2xl flex flex-col gap-16 md:gap-24 pb-20">
-        <div className="h-6 md:h-8" /> {/* Spacer */}
+        {/* <div className="h-6 md:h-8" /> Spacer removed */}
         {items.map((item) => (
           <DailyCard key={item.id} item={item} onClick={updateUrlWithDaily} />
         ))}
@@ -246,7 +246,7 @@ function DailyCard({
               src={item.thumbnail.url}
               alt={item.title}
               fill
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              className="object-cover transition-transform duration-700"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </div>

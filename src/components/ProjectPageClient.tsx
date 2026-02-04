@@ -89,6 +89,16 @@ export default function ProjectPageClient({
   const cardFontColor = formatColor(project.card_font_color);
   const cardTagColor = formatColor(project.card_tag_color);
 
+  const nextCardBgColor = recommendedProject
+    ? formatColor(recommendedProject.card_bg_color)
+    : undefined;
+  const nextCardFontColor = recommendedProject
+    ? formatColor(recommendedProject.card_font_color)
+    : undefined;
+  const nextCardTagColor = recommendedProject
+    ? formatColor(recommendedProject.card_tag_color)
+    : undefined;
+
   // Check if we should show the split layout (2nd thumbnail instead of tags at bottom)
   const showSecondThumbnail =
     project.thumbnails && project.thumbnails.length > 1;
@@ -107,7 +117,7 @@ export default function ProjectPageClient({
             priority
           />
         )}
-        <div className="absolute bottom-4 left-4 z-10 text-[10px] md:text-xs font-['Value_Serif'] font-medium text-[#0F2341]">
+        <div className="absolute bottom-4 left-4 z-10 text-[7px] md:text-[9px] font-['Value_Serif'] font-medium text-[#0F2341]">
           © tinysotiny.co. All rights reserved.
         </div>
       </div>
@@ -152,7 +162,7 @@ export default function ProjectPageClient({
                           priority
                         />
                       )}
-                      <div className="absolute bottom-4 left-4 z-10 text-[10px] md:text-xs font-['Value_Serif'] font-medium text-[#0F2341]">
+                      <div className="absolute bottom-4 left-4 z-10 text-[7px] md:text-[9px] font-['Value_Serif'] font-medium text-[#0F2341]">
                         © tinysotiny.co. All rights reserved.
                       </div>
                     </div>
@@ -610,7 +620,7 @@ export default function ProjectPageClient({
                               alt={`Gallery image ${rowIndex}-${mediaIndex}`}
                               fill
                               className="object-cover"
-                              mediaClassName="group-hover:scale-105 transition-transform duration-700"
+                              mediaClassName="transition-transform duration-700"
                               sizes={`(max-width: 768px) 100vw, ${Math.floor(
                                 100 / count,
                               )}vw`}
@@ -639,7 +649,7 @@ export default function ProjectPageClient({
                           className="w-full pb-16 flex flex-col md:flex-row relative overflow-hidden"
                         >
                           <div className="w-full md:w-1/2 relative z-10">
-                            <p className="text-base text-gray-700 leading-relaxed max-w-full text-left font-['Value_Sans'] font-medium wrap-break-word whitespace-pre-wrap">
+                            <p className="text-lg text-gray-700 leading-relaxed max-w-full text-left font-['Value_Sans'] font-medium wrap-break-word whitespace-pre-wrap">
                               {project.description_2}
                             </p>
                           </div>
@@ -672,7 +682,7 @@ export default function ProjectPageClient({
               onMouseLeave={() => setCursor('default')}
               style={{
                 cursor: 'none',
-                backgroundColor: cardBgColor || '#E5E5E5',
+                backgroundColor: nextCardBgColor || '#E5E5E5',
               }}
               className="block w-full rounded-t-3xl p-12 md:p-24 transition-all duration-300 group cursor-none hover:brightness-95"
             >
@@ -681,7 +691,7 @@ export default function ProjectPageClient({
                   <span
                     className="text-sm tracking-widest uppercase font-['Value_Sans'] font-normal leading-none"
                     style={{
-                      color: cardTagColor || '#B6B6B6',
+                      color: nextCardTagColor || '#B6B6B6',
                     }}
                   >
                     Next Project
@@ -694,7 +704,7 @@ export default function ProjectPageClient({
                     xmlns="http://www.w3.org/2000/svg"
                     className="block"
                     style={{
-                      color: cardTagColor || '#B6B6B6',
+                      color: nextCardTagColor || '#B6B6B6',
                     }}
                   >
                     <path
@@ -709,7 +719,7 @@ export default function ProjectPageClient({
                 <h3
                   className="text-4xl md:text-6xl font-['Value_Serif'] font-medium leading-tight max-w-4xl"
                   style={{
-                    color: cardFontColor || '#0F2341',
+                    color: nextCardFontColor || '#0F2341',
                   }}
                 >
                   {recommendedProject.title}

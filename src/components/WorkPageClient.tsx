@@ -272,7 +272,7 @@ export default function WorkPageClient({
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
           <button
             onClick={() => setIsFilterOpen(true)}
-            className="px-6 py-3 rounded-full bg-white/30 backdrop-blur-xl border border-white/40 text-[#0F2341] font-medium text-xs hover:bg-white/50 transition-all uppercase tracking-widest hover:scale-105"
+            className="px-6 py-3 rounded-full bg-white/30 backdrop-blur-xl border border-white/40 text-[#0F2341] font-medium text-xs hover:bg-white/50 transition-all uppercase tracking-widest"
           >
             Filters
             {appliedTags.length > 0 && (
@@ -378,7 +378,7 @@ function ProjectCard({ project }: { project: Project }) {
             src={imageUrl}
             alt={project.title}
             fill
-            className="object-cover scale-[1.01] transition-transform duration-500 group-hover:scale-105"
+            className="object-cover scale-[1.01] transition-transform duration-500"
             sizes="(max-width: 768px) 50vw, 33vw"
           />
         ) : (

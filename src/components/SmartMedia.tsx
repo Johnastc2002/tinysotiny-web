@@ -50,7 +50,7 @@ const VisitWebsiteButton = ({
     href={url}
     target="_blank"
     rel="noopener noreferrer"
-    className={`flex-none text-[#b6b6b6] hover:text-white focus:outline-none transition-transform hover:scale-105 border border-[#b6b6b6] hover:border-white rounded-full flex items-center group/visit bg-black/30 backdrop-blur-sm box-border ${className}`}
+    className={`flex-none text-[#b6b6b6] hover:text-white focus:outline-none transition-transform border border-[#b6b6b6] hover:border-white rounded-full flex items-center group/visit bg-black/30 backdrop-blur-sm box-border ${className}`}
     style={{
       paddingLeft: config ? `${config.paddingX}px` : undefined,
       paddingRight: config ? `${config.paddingX}px` : undefined,
@@ -794,7 +794,7 @@ export default function SmartMedia({
                 {/* Play/Pause Button */}
                 <button
                   onClick={toggleVimeo}
-                  className="flex-none text-white hover:text-gray-200 focus:outline-none transition-transform hover:scale-110"
+                  className="flex-none text-white hover:text-gray-200 focus:outline-none transition-transform"
                   aria-label={isPlaying ? 'Pause' : 'Play'}
                 >
                   {isPlaying ? (
@@ -849,7 +849,7 @@ export default function SmartMedia({
                     <>
                       <button
                         onClick={toggleCaptions}
-                        className={`flex-none focus:outline-none transition-all duration-200 hover:scale-110 flex items-center justify-center group/cc text-white/60 hover:text-white`}
+                        className={`flex-none focus:outline-none transition-all duration-200 flex items-center justify-center group/cc text-white/60 hover:text-white`}
                         aria-label="Toggle Captions"
                       >
                         <svg
@@ -917,7 +917,7 @@ export default function SmartMedia({
                             setShowSubtitleMenu(!showSubtitleMenu);
                             showControlsTemporary();
                           }}
-                          className={`flex-none hover:text-gray-200 focus:outline-none transition-transform hover:scale-110 flex items-center justify-center ${
+                          className={`flex-none hover:text-gray-200 focus:outline-none transition-transform flex items-center justify-center ${
                             showSubtitleMenu ? 'text-white' : 'text-white/60'
                           }`}
                           aria-label="Subtitle Language"
@@ -982,7 +982,7 @@ export default function SmartMedia({
                   {/* Exit Fullscreen (Moved inside right group for consistent spacing) */}
                   <button
                     onClick={handleFullscreen}
-                    className="flex-none text-white/60 hover:text-white focus:outline-none transition-transform hover:scale-110"
+                    className="flex-none text-white/60 hover:text-white focus:outline-none transition-transform"
                     aria-label="Exit Fullscreen"
                   >
                     <svg
@@ -1032,7 +1032,7 @@ export default function SmartMedia({
                   </div>
                 ) : (
                   <div
-                    className="bg-black/30 rounded-full backdrop-blur-sm relative z-10 flex items-center justify-center text-[#b6b6b6] hover:text-white border border-[#b6b6b6] hover:border-white transition-transform hover:scale-105"
+                    className="bg-black/30 rounded-full backdrop-blur-sm relative z-10 flex items-center justify-center text-[#b6b6b6] hover:text-white border border-[#b6b6b6] hover:border-white transition-transform"
                     style={{
                       width: `${buttonConfig.playButtonSize}px`,
                       height: `${buttonConfig.playButtonSize}px`,
@@ -1100,7 +1100,7 @@ export default function SmartMedia({
                     e.stopPropagation();
                     handleFullscreen();
                   }}
-                  className={`bg-black/30 rounded-full backdrop-blur-sm pointer-events-auto flex items-center justify-center text-[#b6b6b6] hover:text-white border border-[#b6b6b6] hover:border-white transition-transform hover:scale-105`}
+                  className={`bg-black/30 rounded-full backdrop-blur-sm pointer-events-auto flex items-center justify-center text-[#b6b6b6] hover:text-white border border-[#b6b6b6] hover:border-white transition-transform`}
                   style={{
                     width: `${buttonConfig.size}px`,
                     height: `${buttonConfig.size}px`,
@@ -1182,7 +1182,7 @@ export default function SmartMedia({
             }`}
           >
             <div
-              className="bg-black/30 rounded-full backdrop-blur-sm flex items-center justify-center text-[#b6b6b6] hover:text-white border border-[#b6b6b6] hover:border-white transition-transform hover:scale-105"
+              className="bg-black/30 rounded-full backdrop-blur-sm flex items-center justify-center text-[#b6b6b6] hover:text-white border border-[#b6b6b6] hover:border-white transition-transform"
               style={{
                 width: `${buttonConfig.playButtonSize}px`,
                 height: `${buttonConfig.playButtonSize}px`,

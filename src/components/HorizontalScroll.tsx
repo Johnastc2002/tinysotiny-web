@@ -127,7 +127,7 @@ export default function HorizontalScroll({
               />
             </div>
           )}
-          <div className="absolute bottom-4 left-4 z-10 text-[10px] md:text-xs font-['Value_Serif'] font-medium text-[#0F2341]">
+          <div className="absolute bottom-4 left-4 z-10 text-[7px] md:text-[9px] font-['Value_Serif'] font-medium text-[#0F2341]">
             © tinysotiny.co. All rights reserved.
           </div>
         </div>
@@ -235,9 +235,37 @@ export default function HorizontalScroll({
 
         {/* Last Section */}
         <div
-          className="relative w-full h-[20vh] bg-[#0F2341] z-0 -mt-24"
+          className="relative w-full h-64 bg-[#0F2341] z-0 -mt-24 flex flex-col items-center justify-end pb-4"
           style={{ backgroundColor: cardBgColor || '#0F2341' }}
-        />
+        >
+          <div
+            className="mb-2 z-10 text-[10px] font-['Value_Serif'] font-medium"
+            style={{ color: cardFontColor || '#ffffff' }}
+          >
+            © tinysotiny.co. All rights reserved.
+          </div>
+          <button
+            onClick={onClose}
+            className="p-4 hover:opacity-70 transition-opacity"
+            aria-label="Close"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 6L6 18M6 6L18 18"
+                stroke={cardFontColor || 'white'}
+                strokeWidth="1"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div
@@ -264,7 +292,7 @@ export default function HorizontalScroll({
             >
               <div className="flex items-stretch h-full relative z-10 gap-1 md:gap-2">
                 {/* Text Container */}
-                <div className="flex flex-col justify-center space-y-6 w-[40vw] min-w-[300px] pl-8 md:pl-16 pr-8 md:pr-12 shrink-0 z-20">
+                <div className="flex flex-col justify-center space-y-0 w-[40vw] min-w-[300px] pl-8 md:pl-16 pr-8 md:pr-12 shrink-0 z-20">
                   <h1
                     className="text-5xl md:text-7xl font-['Value_Serif'] font-medium leading-tight wrap-break-word"
                     style={{ color: cardFontColor }}
@@ -456,7 +484,7 @@ export default function HorizontalScroll({
             {/* Section 5: Fin (Navy) */}
             {/* Added z-10 to stay under Section 4's last image */}
             <section
-              className="relative flex h-screen shrink-0 items-center justify-end pr-20 bg-[#0F2341] text-white z-10"
+              className="relative flex h-screen shrink-0 items-center justify-center bg-[#0F2341] text-white z-10"
               style={{
                 backgroundColor: cardBgColor || '#0F2341',
                 width: lastSectionWidth,

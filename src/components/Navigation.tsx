@@ -59,9 +59,7 @@ function NavigationSubItem({
       }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className={`text-2xl font-bold tracking-wider text-[#0F2341] transition-all duration-300 ${
-        !isMobile ? 'hover:text-gray-500' : ''
-      } md:text-3xl landscape:text-xl lg:[@media(min-height:720px)]:text-3xl! ${
+      className={`text-2xl font-bold tracking-wider text-[#0F2341] transition-all duration-300 md:text-3xl landscape:text-xl lg:[@media(min-height:720px)]:text-3xl! ${
         isBlurred ? 'blur-[2px] opacity-50' : 'blur-0 opacity-100'
       }`}
       style={{
@@ -120,9 +118,7 @@ function NavigationItem({
         {isHome ? (
           <button
             onClick={handleClick}
-            className={`text-4xl font-bold tracking-wider text-[#0F2341] transition-all duration-300 ${
-              !isMobile ? 'hover:text-gray-500' : ''
-            } md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl! ${
+            className={`text-4xl font-bold tracking-wider text-[#0F2341] transition-all duration-300 md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl! ${
               isBlurred ? 'blur-[2px] opacity-50' : 'blur-0 opacity-100'
             }`}
             style={{
@@ -136,9 +132,7 @@ function NavigationItem({
         ) : (
           <Link
             href={href}
-            className={`text-4xl font-bold tracking-wider text-[#0F2341] transition-all duration-300 ${
-              !isMobile ? 'hover:text-gray-500' : ''
-            } md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl! ${
+            className={`text-4xl font-bold tracking-wider text-[#0F2341] transition-all duration-300 md:text-5xl landscape:text-3xl lg:[@media(min-height:720px)]:text-5xl! ${
               isBlurred ? 'blur-[2px] opacity-50' : 'blur-0 opacity-100'
             }`}
             onClick={(e) => {
@@ -160,9 +154,7 @@ function NavigationItem({
 
         {isActive && (
           <span
-            className={`absolute -top-2 -right-3 h-1.5 w-1.5 rounded-full bg-[#0F2341] transition-all duration-300 ${
-              !isMobile ? 'group-hover:bg-gray-500' : ''
-            } lg:[@media(min-height:720px)]:-top-2 lg:[@media(min-height:720px)]:-right-4 ${
+            className={`absolute -top-2 -right-3 h-1.5 w-1.5 rounded-full bg-[#0F2341] transition-all duration-300 lg:[@media(min-height:720px)]:-top-2 lg:[@media(min-height:720px)]:-right-4 ${
               isBlurred ? 'opacity-50 blur-[1px]' : 'opacity-100 blur-0'
             }`}
           />
@@ -179,10 +171,10 @@ function NavigationItem({
         >
           {['work', 'play'].map((subItem) => {
             const isSubActive = pathname === `/${subItem}`;
-            
+
             const shouldSubBlur = isMobile
-                ? (navigatingItem && navigatingItem !== subItem)
-                : (hoveredSubItem && hoveredSubItem !== subItem);
+              ? navigatingItem && navigatingItem !== subItem
+              : hoveredSubItem && hoveredSubItem !== subItem;
 
             return (
               <NavigationSubItem
@@ -224,12 +216,16 @@ export default function Navigation({ contact }: NavigationProps) {
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
-  const handleMobileClick = (e: React.MouseEvent, href: string, item: string) => {
+  const handleMobileClick = (
+    e: React.MouseEvent,
+    href: string,
+    item: string,
+  ) => {
     if (!isMobile) return;
-    
+
     e.preventDefault();
     setNavigatingItem(item);
-    
+
     setTimeout(() => {
       router.push(href);
       setIsOpen(false);
@@ -248,7 +244,7 @@ export default function Navigation({ contact }: NavigationProps) {
           isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
         style={{
-          top: isMobile ? '2.25rem' : '2rem',
+          top: isMobile ? '1.125rem' : '1rem',
           left: '1.5rem',
           height: isMobile ? '2.5rem' : '3rem',
           display: 'flex',
@@ -262,7 +258,7 @@ export default function Navigation({ contact }: NavigationProps) {
       <button
         onClick={toggleMenu}
         style={{
-          top: isMobile ? '2.25rem' : '2rem',
+          top: isMobile ? '1.125rem' : '1rem',
           right: '1.5rem',
           height: isMobile ? '2.5rem' : '3rem',
           width: isMobile ? '2.5rem' : '3rem',
@@ -272,7 +268,10 @@ export default function Navigation({ contact }: NavigationProps) {
         }`}
         aria-label="Open Menu"
       >
-        <div className="flex flex-col" style={{ gap: isMobile ? '3px' : '4px' }}>
+        <div
+          className="flex flex-col"
+          style={{ gap: isMobile ? '3px' : '4px' }}
+        >
           <span
             className={`rounded-full transition-colors ${
               shouldBeDark ? 'bg-white' : 'bg-[#B6B6B6]'
@@ -361,8 +360,8 @@ export default function Navigation({ contact }: NavigationProps) {
 
                 const isAnyHovered = hoveredItem !== null;
                 const shouldBlur = isMobile
-                    ? (navigatingItem && navigatingItem !== item)
-                    : (isAnyHovered && hoveredItem !== item);
+                  ? navigatingItem && navigatingItem !== item
+                  : isAnyHovered && hoveredItem !== item;
 
                 return (
                   <NavigationItem
@@ -401,7 +400,7 @@ export default function Navigation({ contact }: NavigationProps) {
             >
               INSTAGRAM
             </Link>
-            <div className="flex gap-6 lg:gap-8">
+            <div className="flex gap-6 lg:gap-8 mr-15">
               <Link
                 href={`mailto:${contact?.email || 'hello@tinysotiny.com'}`}
                 className={`text-xs font-semibold tracking-widest text-[#B6B6B6] ${

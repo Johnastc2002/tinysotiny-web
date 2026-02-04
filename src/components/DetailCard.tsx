@@ -93,16 +93,16 @@ export default function DetailCard({
             }}
             onClick={onClose}
           >
-              <div className="min-h-full flex items-center justify-center p-12 landscape:p-4 md:p-0">
-                <motion.div
-                  key={data.id} // Add key to force proper AnimatePresence behavior on ID change
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.9, opacity: 0 }}
-                  transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                  onMouseLeave={() => setCursor('default')}
-                  onMouseEnter={() => setCursor('label')}
-                  className={`
+            <div className="min-h-full flex items-center justify-center p-12 landscape:p-4 md:p-0">
+              <motion.div
+                key={data.id} // Add key to force proper AnimatePresence behavior on ID change
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                onMouseLeave={() => setCursor('default')}
+                onMouseEnter={() => setCursor('label')}
+                className={`
                 relative flex flex-col landscape:flex-row md:flex-row 
                 w-[60vw] h-[60vh] md:max-w-5xl
                 overflow-hidden 
@@ -110,132 +110,130 @@ export default function DetailCard({
                 rounded-4xl md:rounded-4xl 
                 cursor-none
               `}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCardClick();
-                  }}
-                >
-                  {/* Left Side - Image */}
-                  <div className="relative w-full landscape:w-1/2 md:w-1/2 flex-1 landscape:flex-none md:flex-none min-h-0 landscape:h-full md:h-full bg-gray-100 group overflow-hidden">
-                    {data.imageUrl ? (
-                      <>
-                        <Image
-                          src={data.imageUrl}
-                          alt={data.title}
-                          fill
-                          className={`object-cover z-10 scale-[1.01] group-hover:scale-105 transition-transform duration-700 ${
-                            isImageLoaded ? 'opacity-100' : 'opacity-0'
-                          } transition-opacity duration-500`}
-                          sizes="(max-width: 768px) 100vw, 50vw"
-                          onLoad={() => setIsImageLoaded(true)}
-                          onError={() => setIsImageLoaded(true)} // Ensure placeholder clears even on error
-                          priority
-                          unoptimized={true} // Bypass Next.js image optimization
-                        />
-                        <div
-                          className={`absolute inset-0 bg-gray-100 z-20 transition-all duration-700 group-hover:scale-105 ${
-                            isImageLoaded
-                              ? 'opacity-0 pointer-events-none'
-                              : 'opacity-100'
-                          }`}
-                        />
-                      </>
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                        <span className="text-gray-400">No Image</span>
-                      </div>
-                    )}
-                    <div className="absolute bottom-4 left-4 z-30 text-[10px] md:text-xs font-['Value_Serif'] font-medium text-[#0F2341]">
-                      © tinysotiny.co. All rights reserved.
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCardClick();
+                }}
+              >
+                {/* Left Side - Image */}
+                <div className="relative w-full landscape:w-1/2 md:w-1/2 flex-1 landscape:flex-none md:flex-none min-h-0 landscape:h-full md:h-full bg-gray-100 group overflow-hidden">
+                  {data.imageUrl ? (
+                    <>
+                      <Image
+                        src={data.imageUrl}
+                        alt={data.title}
+                        fill
+                        className={`object-cover z-10 scale-[1.01] transition-transform duration-700 ${
+                          isImageLoaded ? 'opacity-100' : 'opacity-0'
+                        } transition-opacity duration-500`}
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        onLoad={() => setIsImageLoaded(true)}
+                        onError={() => setIsImageLoaded(true)} // Ensure placeholder clears even on error
+                        priority
+                        unoptimized={true} // Bypass Next.js image optimization
+                      />
+                      <div
+                        className={`absolute inset-0 bg-gray-100 z-20 transition-all duration-700 ${
+                          isImageLoaded
+                            ? 'opacity-0 pointer-events-none'
+                            : 'opacity-100'
+                        }`}
+                      />
+                    </>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                      <span className="text-gray-400">No Image</span>
                     </div>
+                  )}
+                  <div className="absolute bottom-4 left-4 z-30 text-[7px] md:text-[9px] font-['Value_Serif'] font-medium text-[#0F2341]">
+                    © tinysotiny.co. All rights reserved.
+                  </div>
+                </div>
+
+                {/* Right Side - Content */}
+                <div className="grid grid-cols-1 grid-rows-1 w-full landscape:w-1/2 md:w-1/2 hover:bg-gray-50 transition-colors flex-none landscape:flex-none md:flex-none landscape:h-full md:h-full landscape:overflow-y-auto md:overflow-y-auto bg-transparent z-10 relative">
+                  {/* Layer 1: Backgrounds */}
+                  <div className="col-start-1 row-start-1 flex flex-col z-0 pointer-events-none">
+                    <div
+                      className="flex-1 transition-colors duration-300"
+                      style={{
+                        backgroundColor: bgColor || '#E5E5E5',
+                      }}
+                    />
+                    <div className="hidden landscape:block md:block min-h-[30%] bg-white shrink-0" />
                   </div>
 
-                  {/* Right Side - Content */}
-                  <div className="grid grid-cols-1 grid-rows-1 w-full landscape:w-1/2 md:w-1/2 hover:bg-gray-50 transition-colors flex-none landscape:flex-none md:flex-none landscape:h-full md:h-full landscape:overflow-y-auto md:overflow-y-auto bg-transparent z-10 relative">
-                    {/* Layer 1: Backgrounds */}
-                    <div className="col-start-1 row-start-1 flex flex-col z-0 pointer-events-none">
-                      <div
-                        className="flex-1 transition-colors duration-300"
-                        style={{
-                          backgroundColor: bgColor || '#E5E5E5',
-                        }}
+                  {/* Layer 2: SVG Overlay */}
+                  {data.cardCategory && (
+                    <div className="col-start-1 row-start-1 z-30 pointer-events-none hidden landscape:flex md:flex items-end justify-center">
+                      <CategorySVG
+                        category={data.cardCategory}
+                        className="w-full h-[60%] opacity-100"
                       />
-                      <div className="hidden landscape:block md:block min-h-[30%] bg-white shrink-0" />
                     </div>
+                  )}
 
-                    {/* Layer 2: SVG Overlay */}
-                    {data.cardCategory && (
-                      <div className="col-start-1 row-start-1 z-30 pointer-events-none hidden landscape:flex md:flex items-end justify-center">
-                        <CategorySVG
-                          category={data.cardCategory}
-                          className="w-full h-[60%] opacity-100"
-                        />
-                      </div>
-                    )}
-
-                    {/* Layer 3: Content */}
-                    <div className="col-start-1 row-start-1 flex flex-col z-20 pointer-events-auto">
-                      {/* Top Section - Description */}
-                      <div className="flex-1 px-6 pt-3 pb-6 landscape:p-6 md:p-10 flex flex-col min-h-min relative">
-                        <div className="flex-1 flex flex-col justify-start md:justify-center">
-                          {data.topLabel && (
-                            <div className="mb-2 md:mb-4">
-                              <span
-                                className={`text-[10px] md:text-sm font-semibold uppercase tracking-wider ${
-                                  !fontColor ? 'text-gray-500' : ''
-                                }`}
-                                style={
-                                  fontColor
-                                    ? { color: fontColor, opacity: 0.7 }
-                                    : {}
-                                }
-                              >
-                                {data.topLabel}
-                              </span>
-                            </div>
-                          )}
-                          <h2
-                            className={`mb-2 md:mb-4 text-2xl md:text-4xl font-['Value_Serif'] font-medium leading-tight ${
-                              !fontColor ? 'text-[#0F2341]' : ''
-                            }`}
-                            style={fontColor ? { color: fontColor } : {}}
-                          >
-                            {data.title}
-                          </h2>
-                          <p
-                            className={`text-xs md:text-sm leading-relaxed max-w-md font-['Value_Sans'] font-normal line-clamp-3 md:line-clamp-6 text-ellipsis overflow-hidden ${
-                              !fontColor ? 'text-[#0F2341]' : ''
-                            }`}
-                            style={
-                              fontColor
-                                ? { color: fontColor, opacity: 0.9 }
-                                : {}
-                            }
-                          >
-                            {data.description}
-                          </p>
-
-                          {/* Mobile: Tags moved here under description */}
-                          <div className="mt-4 md:hidden landscape:hidden">
-                            <div
+                  {/* Layer 3: Content */}
+                  <div className="col-start-1 row-start-1 flex flex-col z-20 pointer-events-auto">
+                    {/* Top Section - Description */}
+                    <div className="flex-1 px-4 pt-3 pb-4 landscape:p-6 md:p-10 flex flex-col min-h-min relative">
+                        <div className="flex-1 flex flex-col justify-center">
+                        {data.topLabel && (
+                          <div className="mb-2 md:mb-4">
+                            <span
+                              className={`text-[10px] md:text-sm font-semibold uppercase tracking-wider ${
+                                !fontColor ? 'text-gray-500' : ''
+                              }`}
                               style={
-                                tagColor
-                                  ? { color: tagColor }
-                                  : fontColor
-                                  ? { color: fontColor }
-                                  : { color: '#0F2341' }
+                                fontColor
+                                  ? { color: fontColor, opacity: 0.7 }
+                                  : {}
                               }
                             >
-                              {data.bottomContent}
-                            </div>
+                              {data.topLabel}
+                            </span>
+                          </div>
+                        )}
+                        <h2
+                          className={`mb-2 md:mb-4 text-2xl md:text-4xl font-['Value_Serif'] font-medium leading-tight ${
+                            !fontColor ? 'text-[#0F2341]' : ''
+                          }`}
+                          style={fontColor ? { color: fontColor } : {}}
+                        >
+                          {data.title}
+                        </h2>
+                        <p
+                          className={`text-xs md:text-sm leading-relaxed max-w-md font-['Value_Sans'] font-normal line-clamp-3 md:line-clamp-6 text-ellipsis overflow-hidden ${
+                            !fontColor ? 'text-[#0F2341]' : ''
+                          }`}
+                          style={
+                            fontColor ? { color: fontColor, opacity: 0.9 } : {}
+                          }
+                        >
+                          {data.description}
+                        </p>
+
+                        {/* Mobile: Tags moved here under description */}
+                        <div className="mt-4 md:hidden landscape:hidden">
+                          <div
+                            style={
+                              tagColor
+                                ? { color: tagColor }
+                                : fontColor
+                                  ? { color: fontColor }
+                                  : { color: '#0F2341' }
+                            }
+                          >
+                            {data.bottomContent}
                           </div>
                         </div>
+                      </div>
 
-                        {/* Desktop: Tags moved here if showing second thumbnail */}
+                      {/* Desktop: Tags moved here if showing second thumbnail */}
                         {showSecondThumbnail && data.tags && (
-                          <ul className="hidden landscape:flex md:flex flex-wrap gap-x-4 gap-y-2 mt-8 md:mt-0 pt-4 p-0 list-none shrink-0">
+                          <div className="hidden landscape:flex md:flex flex-wrap gap-x-4 gap-y-2 mt-8 md:mt-0 pt-4 p-0 list-none shrink-0 w-full">
                             {data.tags.map((tag, index) => (
-                              <li
+                              <div
                                 key={index}
                                 className={`flex items-center leading-none text-xs font-['Value_Sans'] font-normal uppercase tracking-wide transition-colors ${
                                   !fontColor ? 'text-[#B6B6B6]' : 'text-current'
@@ -243,42 +241,42 @@ export default function DetailCard({
                                 style={fontColor ? { color: fontColor } : {}}
                               >
                                 <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />
-                                {tag.display_name}
-                              </li>
+                                <span className="whitespace-nowrap">{tag.display_name}</span>
+                              </div>
                             ))}
-                          </ul>
-                        )}
-                      </div>
-
-                      {/* Bottom Section - Tags/Points (Desktop Only) */}
-                      <div
-                        className={`hidden landscape:flex md:flex text-[#B6B6B6] ${
-                          showSecondThumbnail
-                            ? 'relative p-0'
-                            : 'px-10 flex-col justify-center'
-                        } min-h-[30%] overflow-hidden shrink-0`}
-                      >
-                        {showSecondThumbnail &&
-                        data.thumbnails &&
-                        data.thumbnails[1] ? (
-                          <div className="relative w-full h-full">
-                            <Image
-                              src={data.thumbnails[1]}
-                              alt={data.title}
-                              fill
-                              className="object-cover"
-                              sizes="(max-width: 768px) 100vw, 50vw"
-                              priority
-                            />
                           </div>
-                        ) : (
-                          data.bottomContent
                         )}
-                      </div>
+                    </div>
+
+                    {/* Bottom Section - Tags/Points (Desktop Only) */}
+                    <div
+                      className={`hidden landscape:flex md:flex text-[#B6B6B6] ${
+                        showSecondThumbnail
+                          ? 'relative p-0'
+                          : 'px-10 flex-col justify-end pb-10'
+                      } min-h-[30%] overflow-hidden shrink-0`}
+                    >
+                      {showSecondThumbnail &&
+                      data.thumbnails &&
+                      data.thumbnails[1] ? (
+                        <div className="relative w-full h-full">
+                          <Image
+                            src={data.thumbnails[1]}
+                            alt={data.title}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, 50vw"
+                            priority
+                          />
+                        </div>
+                      ) : (
+                        data.bottomContent
+                      )}
                     </div>
                   </div>
-                </motion.div>
-              </div>
+                </div>
+              </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

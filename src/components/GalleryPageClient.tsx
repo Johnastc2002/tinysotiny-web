@@ -277,7 +277,7 @@ function GalleryPageContent({
           </>
         ) : null,
         bottomContent: (
-          <ul className="flex flex-wrap gap-x-4 gap-y-2 md:block md:space-y-3 m-0 p-0">
+          <ul className="flex flex-wrap gap-x-4 gap-y-2 m-0 p-0">
             {selectedProject.tags.map((tag, index) => (
               <li
                 key={index}
@@ -832,14 +832,14 @@ function GalleryPageContent({
 
       {/* Drag & Zoom Instruction */}
       <div
-        className={`fixed bottom-8 right-8 z-30 pointer-events-none transition-opacity duration-500 ${
+        className={`fixed bottom-4 right-8 z-30 pointer-events-none transition-opacity duration-500 ${
           viewMode === 'dot' && !searchParams.get('project') && !selectedProject
             ? 'opacity-100'
             : 'opacity-0'
         }`}
       >
         <span
-          className="text-xs md:text-sm font-['Value_Sans'] font-normal tracking-widest uppercase"
+          className="text-[10px] font-['Value_Sans'] font-normal tracking-widest uppercase"
           style={{ color: isPlay ? '#B6B6B6' : '#0F2341' }}
         >
           DRAG & ZOOM TO EXPLORE
@@ -983,7 +983,7 @@ function ProjectCard({ project }: { project: Project }) {
               src={imageUrl}
               alt={project.title}
               fill
-              className="object-cover scale-[1.01] transition-transform duration-500 group-hover:scale-105"
+              className="object-cover scale-[1.01] transition-transform duration-500"
               sizes="(max-width: 768px) 50vw, 33vw"
             />
           ) : (
@@ -1019,7 +1019,7 @@ function ProjectCard({ project }: { project: Project }) {
             {project.tags.slice(0, 2).map((tag, i) => (
               <span
                 key={i}
-                className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-white/20 backdrop-blur-sm text-[9px] md:text-[10px] uppercase tracking-wide font-['Value_Sans'] font-normal text-white"
+                className="inline-flex items-center justify-center leading-none pt-[3px] pb-[1px] px-2 md:px-3 md:pt-[5px] md:pb-[3px] rounded-full bg-white/20 backdrop-blur-sm text-[9px] md:text-[10px] uppercase tracking-wide font-['Value_Sans'] font-normal text-white"
               >
                 {tag.display_name}
               </span>

@@ -28,7 +28,7 @@ export default async function About() {
               slogan={aboutUs?.slogan || ''}
               images={aboutUs?.sloganImages}
             />
-            <p className="max-w-xl text-lg leading-relaxed text-[#0F2341] md:text-xl font-['Value_Sans'] font-normal">
+            <p className="max-w-xl text-base leading-relaxed text-[#0F2341] md:text-lg font-['Value_Sans'] font-normal">
               {aboutUs?.firstParagraph}
             </p>
           </div>
@@ -39,11 +39,11 @@ export default async function About() {
           <div className="hidden md:col-span-5 md:block h-32 md:h-0"></div>
 
           {/* Secondary Content Section */}
-          <div className="md:col-span-7 md:pr-16 pl-6 md:pl-0 mt-16 md:mt-32">
-            <h2 className="mb-6 font-['Value_Sans'] font-medium italic text-3xl text-[#0F2341] md:text-4xl">
+          <div className="md:col-span-7 md:pr-16 pl-6 md:pl-0 mt-8 md:mt-16">
+            <h2 className="mb-6 font-['Value_Sans'] font-medium italic text-2xl text-[#0F2341] md:text-3xl">
               {aboutUs?.header}
             </h2>
-            <p className="mb-12 max-w-2xl text-base leading-relaxed text-[#0F2341] md:text-lg font-['Value_Sans'] font-normal">
+            <p className="mb-12 max-w-2xl text-sm leading-relaxed text-[#0F2341] md:text-base font-['Value_Sans'] font-normal">
               {aboutUs?.description2}
             </p>
 
@@ -52,7 +52,7 @@ export default async function About() {
               {aboutUs?.categories?.map((category, index) => (
                 <div key={index} className="flex items-center gap-3">
                   <span className="h-2 w-2 min-w-2 md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
-                  <span className="text-xs md:text-sm font-['Value_Sans'] font-normal tracking-widest text-[#0F2341] uppercase whitespace-nowrap">
+                  <span className="text-[10px] md:text-xs font-['Value_Sans'] font-normal tracking-widest text-[#0F2341] uppercase whitespace-nowrap">
                     {category.name}
                   </span>
                 </div>
@@ -64,7 +64,7 @@ export default async function About() {
               {contact?.instagram && (
                 <Link
                   href={contact.instagram}
-                  className="text-sm font-['Value_Sans'] font-medium tracking-widest text-[#0F2341] uppercase hover:opacity-70"
+                  className="text-xs font-['Value_Sans'] font-medium tracking-widest text-[#0F2341] uppercase hover:opacity-70"
                 >
                   Instagram
                 </Link>
@@ -73,7 +73,7 @@ export default async function About() {
                 {contact?.email && (
                   <Link
                     href={`mailto:${contact.email}`}
-                    className="text-sm font-['Value_Sans'] font-medium tracking-widest text-[#0F2341] uppercase hover:opacity-70"
+                    className="text-xs font-['Value_Sans'] font-medium tracking-widest text-[#0F2341] uppercase hover:opacity-70"
                   >
                     Email
                   </Link>
@@ -81,7 +81,7 @@ export default async function About() {
                 {contact?.phone && (
                   <Link
                     href={`tel:${contact.phone}`}
-                    className="text-sm font-['Value_Sans'] font-medium tracking-widest text-[#0F2341] uppercase hover:opacity-70"
+                    className="text-xs font-['Value_Sans'] font-medium tracking-widest text-[#0F2341] uppercase hover:opacity-70"
                   >
                     Phone
                   </Link>
