@@ -84,7 +84,7 @@ export default async function Daily() {
     <div
       className="min-h-screen w-full bg-[#fcfcfc] px-8 md:px-16 md:py-12 flex flex-col pb-[env(safe-area-inset-bottom)] pl-[calc(2rem+env(safe-area-inset-left))] pr-[calc(2rem+env(safe-area-inset-right))]"
       style={{
-        paddingTop: 'calc(2rem + env(safe-area-inset-top))',
+        paddingTop: 'calc(32px + env(safe-area-inset-top))',
       }}
     >
       {/* Logo Spacer */}
