@@ -905,7 +905,7 @@ function GalleryPageContent({
           <div
             className="w-full min-h-full px-2 md:px-12 pb-32"
             style={{
-              paddingTop: 'calc(96px + env(safe-area-inset-top))',
+              paddingTop: 'calc(6rem + env(safe-area-inset-top, 0px))',
             }}
           >
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
