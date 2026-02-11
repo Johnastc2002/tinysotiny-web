@@ -87,7 +87,9 @@ export default async function RootLayout({
       >
         <CursorProvider>
           <VideoProvider>
-            <ThemeColorManager />
+            <Suspense fallback={null}>
+              <ThemeColorManager />
+            </Suspense>
             <GlobalCursor />
             <Suspense fallback={null}>
               <Navigation contact={contact} />
