@@ -4,8 +4,8 @@
   "description": "tiny details matter.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#fcfcfc",
+  "theme_color": "#fcfcfc",
   "icons": [
     {
       "src": "/app-logo.png",

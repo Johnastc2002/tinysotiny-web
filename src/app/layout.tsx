@@ -7,6 +7,7 @@ import { getContact } from '@/lib/contentful';
 import { VideoProvider } from '@/context/VideoContext';
 import { CursorProvider } from '@/context/CursorContext';
 import GlobalCursor from '@/components/GlobalCursor';
+import ThemeColorManager from '@/components/ThemeColorManager';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -24,7 +25,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  themeColor: '#efefef',
+  themeColor: '#fcfcfc',
 };
 
 export const metadata: Metadata = {
@@ -64,7 +65,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     title: 'tinysotiny',
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default',
     startupImage: ['/app-logo.png'],
   },
   manifest: '/manifest.json',
@@ -86,6 +87,7 @@ export default async function RootLayout({
       >
         <CursorProvider>
           <VideoProvider>
+            <ThemeColorManager />
             <GlobalCursor />
             <Suspense fallback={null}>
               <Navigation contact={contact} />

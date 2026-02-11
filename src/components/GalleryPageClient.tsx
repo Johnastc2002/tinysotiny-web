@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useState, useRef, useEffect, Suspense, useCallback } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  Suspense,
+  useCallback,
+} from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Project, GridFilter, ContentfulMediaItem } from '@/types/project';
 import BubbleScene from '@/components/BubbleScene';
@@ -53,10 +59,10 @@ function GalleryPageContent({
 
   // Projects state
   const [nonFeaturedProjects, setNonFeaturedProjects] = useState<Project[]>(
-    initialNonFeaturedProjects
+    initialNonFeaturedProjects,
   );
   const [filteredProjects, setFilteredProjects] = useState<Project[] | null>(
-    null
+    null,
   );
 
   // Pagination state
@@ -78,10 +84,10 @@ function GalleryPageContent({
   // Full Project Details State
   const [fullProject, setFullProject] = useState<Project | null>(null);
   const [recommendedProject, setRecommendedProject] = useState<Project | null>(
-    null
+    null,
   );
   const [overlayContainer, setOverlayContainer] = useState<HTMLElement | null>(
-    null
+    null,
   );
   const [isBubblePaused, setIsBubblePaused] = useState(false);
   const isMobile = useIsMobile();
@@ -90,8 +96,15 @@ function GalleryPageContent({
   const [randomSide, setRandomSide] = useState<'left' | 'right'>('left');
 
   useEffect(() => {
-    const categories = ['PHOTOGRAPHY', 'MOTION GRAPHICS', 'VIDEOGRAPHY', 'BRANDING'];
-    setRandomCategory(categories[Math.floor(Math.random() * categories.length)]);
+    const categories = [
+      'PHOTOGRAPHY',
+      'MOTION GRAPHICS',
+      'VIDEOGRAPHY',
+      'BRANDING',
+    ];
+    setRandomCategory(
+      categories[Math.floor(Math.random() * categories.length)],
+    );
     setRandomSide(Math.random() > 0.5 ? 'right' : 'left');
   }, []);
 
@@ -195,7 +208,7 @@ function GalleryPageContent({
             setFullProject(project);
             const recommended = await getRecommendedProjectAction(
               project.id,
-              projectType
+              projectType,
             );
             setRecommendedProject(recommended);
 
@@ -315,17 +328,20 @@ function GalleryPageContent({
   };
 
   // Update URL when opening DetailCard (Bubble Click)
-  const handleOpenCard = useCallback((project: Project) => {
-    // Check if card is already open or url param exists
-    const currentCardId = searchParams.get('card');
-    if (currentCardId === project.id) return;
+  const handleOpenCard = useCallback(
+    (project: Project) => {
+      // Check if card is already open or url param exists
+      const currentCardId = searchParams.get('card');
+      if (currentCardId === project.id) return;
 
-    // We only update the URL. The useEffect above will handle setting the state.
-    // This prevents race conditions where state is set but URL param hasn't propagated yet.
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('card', project.id);
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [searchParams, pathname, router]);
+      // We only update the URL. The useEffect above will handle setting the state.
+      // This prevents race conditions where state is set but URL param hasn't propagated yet.
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('card', project.id);
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, pathname, router],
+  );
 
   // Intercept DetailCard open to just update URL for simple card or keep separate?
   // The user says "when the user press the project detail... navigate to it".
@@ -364,7 +380,7 @@ function GalleryPageContent({
     setSelectedTags((prev) =>
       prev.includes(tagId)
         ? prev.filter((id) => id !== tagId)
-        : [...prev, tagId]
+        : [...prev, tagId],
     );
   };
 
@@ -378,7 +394,7 @@ function GalleryPageContent({
           const newProjects = await getFilteredProjectsAction(
             appliedTags,
             page,
-            projectType
+            projectType,
           );
 
           if (newProjects.length === 0) {
@@ -428,7 +444,7 @@ function GalleryPageContent({
           const newProjects = await getFilteredProjectsAction(
             appliedTags,
             1,
-            projectType
+            projectType,
           );
           setFilteredProjects(newProjects);
           setHasMore(newProjects.length >= 12);
@@ -481,7 +497,7 @@ function GalleryPageContent({
               const newProjects = await getFilteredProjectsAction(
                 appliedTags,
                 page,
-                projectType
+                projectType,
               );
               if (newProjects.length === 0) {
                 setHasMore(false);
@@ -496,7 +512,7 @@ function GalleryPageContent({
               // Load more non-featured (default)
               const newProjects = await getMoreNonFeaturedProjects(
                 page,
-                projectType
+                projectType,
               );
               if (newProjects.length === 0) {
                 setHasMore(false);
@@ -512,7 +528,7 @@ function GalleryPageContent({
           }
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     if (observerTarget.current) {
@@ -553,25 +569,24 @@ function GalleryPageContent({
       {/* Play Page Background Media - Only show if NOT handled by BubbleScene (e.g. image or vimeo, or if we want to layer it) */}
       {/* Actually, if we move it to BubbleScene, we should hide this one to avoid double playing/layering issues */}
       {/* But BubbleScene only covers the canvas area. If canvas is full screen, it's fine. */}
-      {isPlay &&
-        playPageBgMedia && (
-          <div className="fixed inset-0 z-0 pointer-events-none">
-            <SmartMedia
-              url={playPageBgMedia.url}
-              type={playPageBgMedia.type}
-              width={playPageBgMedia.width}
-              height={playPageBgMedia.height}
-              alt="Play Page Background"
-              fill
-              className="w-full h-full object-cover"
-              autoplay
-              mute
-              priority
-              hideOverlay
-              mediaClassName="welcome-video"
-            />
-          </div>
-        )}
+      {isPlay && playPageBgMedia && (
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <SmartMedia
+            url={playPageBgMedia.url}
+            type={playPageBgMedia.type}
+            width={playPageBgMedia.width}
+            height={playPageBgMedia.height}
+            alt="Play Page Background"
+            fill
+            className="w-full h-full object-cover"
+            autoplay
+            mute
+            priority
+            hideOverlay
+            mediaClassName="welcome-video"
+          />
+        </div>
+      )}
 
       <DetailCard
         isOpen={!!selectedProject && !searchParams.get('project')}
@@ -887,7 +902,12 @@ function GalleryPageContent({
               : 'opacity-0 z-0 pointer-events-none'
           }`}
         >
-          <div className="w-full min-h-full pt-24 px-2 md:px-12 pb-32">
+          <div
+            className="w-full min-h-full px-2 md:px-12 pb-32"
+            style={{
+              paddingTop: 'calc(6rem + env(safe-area-inset-top))',
+            }}
+          >
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
               {displayedProjects.map((project) => (
                 <ProjectCard key={project.id} project={project} />

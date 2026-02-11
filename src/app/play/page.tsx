@@ -1,4 +1,4 @@
-import { Metadata, ResolvingMetadata } from 'next';
+import { Metadata, ResolvingMetadata, Viewport } from 'next';
 import {
   getFeaturedProjects,
   getNonFeaturedProjects,
@@ -11,20 +11,24 @@ import GalleryPageClient from '@/components/GalleryPageClient';
 
 export const revalidate = 60; // Revalidate every 60 seconds
 
+export const viewport: Viewport = {
+  themeColor: '#000000',
+};
+
 type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
 export async function generateMetadata(
   { searchParams }: Props,
-  parent: ResolvingMetadata
+  parent: ResolvingMetadata,
 ): Promise<Metadata> {
   const params = await searchParams;
   const projectId = params.project;
 
   if (typeof projectId === 'string') {
     const project = await getProjectById(projectId);
-    
+
     if (project) {
       let thumbnail = project.thumbnails?.[0] || project.bubble_thumbnail;
 

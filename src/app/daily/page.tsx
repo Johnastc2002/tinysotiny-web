@@ -1,4 +1,4 @@
-import { Metadata, ResolvingMetadata } from 'next';
+import { Metadata, ResolvingMetadata, Viewport } from 'next';
 import React from 'react';
 import {
   getDailyEntries,
@@ -8,6 +8,10 @@ import {
 import DailyList from '@/components/DailyList';
 
 export const revalidate = 3600; // Revalidate every hour
+
+export const viewport: Viewport = {
+  themeColor: '#fcfcfc',
+};
 
 type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -77,7 +81,12 @@ export default async function Daily() {
   const initialItems = await getDailyEntries(1, 10);
 
   return (
-    <div className="min-h-screen w-full bg-[#fcfcfc] px-8 md:px-16 md:py-12 flex flex-col pt-24 md:pt-24">
+    <div
+      className="min-h-screen w-full bg-[#fcfcfc] px-8 md:px-16 md:py-12 flex flex-col pb-[env(safe-area-inset-bottom)] pl-[calc(2rem+env(safe-area-inset-left))] pr-[calc(2rem+env(safe-area-inset-right))]"
+      style={{
+        paddingTop: 'calc(2rem + env(safe-area-inset-top))',
+      }}
+    >
       {/* Logo Spacer */}
       {/* <div className="mb-12 md:mb-20"></div> */}
 

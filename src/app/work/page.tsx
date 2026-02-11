@@ -1,4 +1,4 @@
-import { Metadata, ResolvingMetadata } from 'next';
+import { Metadata, ResolvingMetadata, Viewport } from 'next';
 import {
   getFeaturedProjects,
   getNonFeaturedProjects,
@@ -9,6 +9,10 @@ import {
 import GalleryPageClient from '@/components/GalleryPageClient';
 
 export const revalidate = 60; // Revalidate every 60 seconds
+
+export const viewport: Viewport = {
+  themeColor: '#efefef',
+};
 
 type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;

@@ -1,3 +1,4 @@
+import type { Viewport } from 'next';
 import React from 'react';
 import Link from 'next/link';
 import { getAboutUs, getContact } from '@/lib/contentful';
@@ -6,11 +7,15 @@ import SloganHover from '@/components/SloganHover';
 
 export const revalidate = 3600; // Revalidate every hour
 
+export const viewport: Viewport = {
+  themeColor: '#fcfcfc',
+};
+
 export default async function About() {
   const [aboutUs, contact] = await Promise.all([getAboutUs(), getContact()]);
 
   return (
-    <div className="min-h-screen w-full bg-[#fcfcfc] px-8 py-8 md:px-16 md:py-12 overflow-hidden">
+    <div className="min-h-screen w-full bg-[#fcfcfc] px-8 py-8 md:px-16 md:py-12 overflow-hidden pt-[calc(2rem+env(safe-area-inset-top))] pb-[calc(2rem+env(safe-area-inset-bottom))] pl-[calc(2rem+env(safe-area-inset-left))] pr-[calc(2rem+env(safe-area-inset-right))] md:pt-[calc(3rem+env(safe-area-inset-top))]">
       {/* Logo Spacer */}
       <div className="mb-20"></div>
 

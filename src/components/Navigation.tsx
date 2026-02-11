@@ -244,8 +244,8 @@ export default function Navigation({ contact }: NavigationProps) {
           isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
         style={{
-          top: isMobile ? '1.125rem' : '1rem',
-          left: '1.5rem',
+          top: isMobile ? 'calc(env(safe-area-inset-top) + 1.125rem)' : 'calc(env(safe-area-inset-top) + 1rem)',
+          left: 'calc(env(safe-area-inset-left) + 1.5rem)',
           height: isMobile ? '2.5rem' : '3rem',
           display: 'flex',
           alignItems: 'center',
@@ -258,8 +258,8 @@ export default function Navigation({ contact }: NavigationProps) {
       <button
         onClick={toggleMenu}
         style={{
-          top: isMobile ? '1.125rem' : '1rem',
-          right: '1.5rem',
+          top: isMobile ? 'calc(env(safe-area-inset-top) + 1.125rem)' : 'calc(env(safe-area-inset-top) + 1rem)',
+          right: 'calc(env(safe-area-inset-right) + 1.5rem)',
           height: isMobile ? '2.5rem' : '3rem',
           width: isMobile ? '2.5rem' : '3rem',
         }}
@@ -306,9 +306,11 @@ export default function Navigation({ contact }: NavigationProps) {
       >
         {/* Close Button - Fixed relative to card */}
         <div
-          className="absolute z-50 flex items-center justify-center 
-          top-8 right-6
-          lg:[@media(min-height:720px)]:top-8! lg:[@media(min-height:720px)]:right-6!"
+          className="absolute z-50 flex items-center justify-center"
+          style={{
+            top: 'calc(env(safe-area-inset-top) + 2rem)',
+            right: 'calc(env(safe-area-inset-right) + 1.5rem)',
+          }}
         >
           <button
             onClick={toggleMenu}
@@ -346,7 +348,15 @@ export default function Navigation({ contact }: NavigationProps) {
         </div>
 
         {/* Scrollable Content Wrapper */}
-        <div className="w-full h-full overflow-y-auto overflow-x-hidden relative flex flex-col">
+        <div 
+          className="w-full h-full overflow-y-auto overflow-x-hidden relative flex flex-col"
+          style={{
+            paddingTop: 'env(safe-area-inset-top)',
+            paddingBottom: 'env(safe-area-inset-bottom)',
+            paddingLeft: 'env(safe-area-inset-left)',
+            paddingRight: 'env(safe-area-inset-right)',
+          }}
+        >
           {/* Menu Items */}
           <div className="flex min-h-full flex-col justify-center landscape:justify-start landscape:pt-12 px-12 md:px-24 landscape:px-16 landscape:w-auto lg:[@media(min-height:720px)]:flex-none lg:[@media(min-height:720px)]:justify-center lg:[@media(min-height:720px)]:pt-0 lg:[@media(min-height:720px)]:w-full pb-16 landscape:pb-12 lg:[@media(min-height:720px)]:px-24! lg:[@media(min-height:720px)]:pb-24!">
             <nav className="flex flex-col gap-6 landscape:gap-4 lg:[@media(min-height:720px)]:gap-8!">
