@@ -954,7 +954,7 @@ function GalleryPageContent({
             explosionDelay={explosionDelay}
             transparent={isPlay}
             onOpenCard={handleOpenCard}
-            enableBlur={true}
+            enableBlur={false}
             paused={isBubblePaused}
             rotationSpeed={0.01}
             zoomSpeed={0.5}
