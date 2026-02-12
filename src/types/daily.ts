@@ -20,4 +20,5 @@ export interface DailyData {
   card_font_color?: string;
   detail_category?: Category;
   detail_category_2?: Category;
+  slug: string;
 }

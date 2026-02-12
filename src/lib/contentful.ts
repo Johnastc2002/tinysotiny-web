@@ -390,6 +390,7 @@ const mapDaily = (entry: any): DailyData => {
   return {
     id: entry.sys.id,
     title: String(fields.title || ''),
+    slug: String(fields.slug || ''),
     thumbnail: thumbnail,
     description: String(fields.description || ''),
     medias: mappedMedias,
@@ -663,6 +664,25 @@ export async function getDailyEntryById(id: string): Promise<DailyData | null> {
     return null;
   } catch (error) {
     console.error(`Error fetching daily entry with id ${id}:`, error);
+    return null;
+  }
+}
+
+export async function getDailyEntryBySlug(slug: string): Promise<DailyData | null> {
+  try {
+    const entries = await getEntries('daily', {
+      'fields.slug': slug,
+      include: 3,
+      limit: 1,
+    });
+
+    if (entries.items.length > 0) {
+      return mapDaily(entries.items[0]);
+    }
+
+    return null;
+  } catch (error) {
+    console.error(`Error fetching daily entry with slug ${slug}:`, error);
     return null;
   }
 }

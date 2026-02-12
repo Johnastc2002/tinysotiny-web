@@ -3,6 +3,7 @@
 import {
   getDailyEntries,
   getDailyEntryById,
+  getDailyEntryBySlug,
   getNonFeaturedProjects,
   getProjectsByTags,
   getProjectById,
@@ -17,6 +18,10 @@ export async function getDailyEntriesAction(page: number) {
 
 export async function getDailyEntryByIdAction(id: string) {
   return await getDailyEntryById(id);
+}
+
+export async function getDailyEntryBySlugAction(slug: string) {
+  return await getDailyEntryBySlug(slug);
 }
 
 export async function getMoreNonFeaturedProjects(

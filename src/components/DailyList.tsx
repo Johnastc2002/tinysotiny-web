@@ -8,10 +8,10 @@ import React, {
   useCallback,
   Suspense,
 } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname, useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DailyData } from '@/types/daily';
-import { getDailyEntriesAction, getDailyEntryByIdAction } from '@/app/actions';
+import { getDailyEntriesAction, getDailyEntryByIdAction, getDailyEntryBySlugAction } from '@/app/actions';
 import Image from 'next/image';
 import LoadingSpinner from './LoadingSpinner';
 import HorizontalScroll from '@/components/HorizontalScroll';
@@ -19,12 +19,15 @@ import { useCursor } from '@/context/CursorContext';
 
 interface DailyListProps {
   initialItems: DailyData[];
+  initialSelectedDaily?: DailyData | null;
 }
 
-function DailyListContent({ initialItems }: DailyListProps) {
+function DailyListContent({ initialItems, initialSelectedDaily = null }: DailyListProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const params = useParams();
+  const slug = params?.slug as string[] | undefined;
 
   const [items, setItems] = useState<DailyData[]>(initialItems);
   const [page, setPage] = useState(2); // Start from page 2 since page 1 is passed as initialItems
@@ -33,7 +36,7 @@ function DailyListContent({ initialItems }: DailyListProps) {
   const loaderRef = useRef<HTMLDivElement>(null);
 
   // Overlay state
-  const [selectedDaily, setSelectedDaily] = useState<DailyData | null>(null);
+  const [selectedDaily, setSelectedDaily] = useState<DailyData | null>(initialSelectedDaily);
   const [overlayContainer, setOverlayContainer] = useState<HTMLElement | null>(
     null
   );
@@ -44,7 +47,32 @@ function DailyListContent({ initialItems }: DailyListProps) {
   // Handle URL param for daily detail
   useEffect(() => {
     const dailyId = searchParams.get('daily');
-    if (dailyId) {
+    const dailySlug = slug?.[0];
+
+    if (dailySlug) {
+      // Slug based logic
+      isManualClose.current = false;
+
+      // If we already have the correct daily loaded (e.g. from server props), skip fetch
+      if (selectedDaily && selectedDaily.slug === dailySlug) {
+        return;
+      }
+
+      const fetchDaily = async () => {
+        try {
+          const daily = await getDailyEntryBySlugAction(dailySlug);
+          if (daily) {
+            React.startTransition(() => {
+              setSelectedDaily(daily);
+            });
+            document.body.style.overflow = 'hidden';
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      };
+      fetchDaily();
+    } else if (dailyId) {
       // Reset manual close ref when opening a daily entry
       isManualClose.current = false;
 
@@ -80,7 +108,7 @@ function DailyListContent({ initialItems }: DailyListProps) {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [searchParams, items]);
+  }, [searchParams, items, slug]);
 
   // Scroll reset for overlay
   useEffect(() => {
@@ -90,11 +118,27 @@ function DailyListContent({ initialItems }: DailyListProps) {
   }, [selectedDaily, overlayContainer]);
 
   const updateUrlWithDaily = useCallback(
-    (dailyId: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set('daily', dailyId);
-      // Push to history so back button works
-      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    (dailyIdOrItem: string | DailyData) => {
+      if (typeof dailyIdOrItem === 'string') {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('daily', dailyIdOrItem);
+        // Push to history so back button works
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      } else {
+        const daily = dailyIdOrItem;
+        if (daily.slug) {
+          const params = new URLSearchParams(searchParams.toString());
+          params.delete('daily');
+          const queryString = params.toString();
+          const url = queryString ? `/daily/${daily.slug}?${queryString}` : `/daily/${daily.slug}`;
+          router.push(url, { scroll: false });
+        } else {
+          // Fallback to ID
+          const params = new URLSearchParams(searchParams.toString());
+          params.set('daily', daily.id);
+          router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        }
+      }
     },
     [pathname, router, searchParams]
   );
@@ -103,7 +147,13 @@ function DailyListContent({ initialItems }: DailyListProps) {
     isManualClose.current = true;
     const params = new URLSearchParams(searchParams.toString());
     params.delete('daily');
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    
+    // If we are on a slug page, go back to /daily
+    if (slug?.[0]) {
+       router.push(`/daily?${params.toString()}`, { scroll: false });
+    } else {
+       router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    }
   };
 
   const loadMore = useCallback(() => {
@@ -149,7 +199,7 @@ function DailyListContent({ initialItems }: DailyListProps) {
   return (
     <>
       <AnimatePresence mode="wait">
-        {selectedDaily && searchParams.get('daily') && (
+        {selectedDaily && (searchParams.get('daily') || slug?.[0]) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -200,7 +250,7 @@ function DailyListContent({ initialItems }: DailyListProps) {
       <div className="w-full max-w-2xl flex flex-col gap-16 md:gap-24 pb-20">
         {/* <div className="h-6 md:h-8" /> Spacer removed */}
         {items.map((item) => (
-          <DailyCard key={item.id} item={item} onClick={updateUrlWithDaily} />
+          <DailyCard key={item.id} item={item} onClick={() => updateUrlWithDaily(item)} />
         ))}
         {/* Loading Indicator */}
         {hasMore && (
@@ -218,14 +268,14 @@ function DailyCard({
   onClick,
 }: {
   item: DailyData;
-  onClick: (id: string) => void;
+  onClick: (item: DailyData) => void;
 }) {
   const { setCursor } = useCursor();
 
   return (
     <>
       <div
-        onClick={() => onClick(item.id)}
+        onClick={() => onClick(item)}
         onMouseEnter={() => setCursor('label')}
         onMouseLeave={() => setCursor('default')}
         className="flex flex-col items-center gap-3 cursor-none group w-full"
