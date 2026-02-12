@@ -98,9 +98,9 @@ export default async function Daily({ params, searchParams }: Props) {
 
   return (
     <div
-      className="min-h-screen w-full bg-[#fcfcfc] px-8 md:px-16 md:py-12 flex flex-col pb-[env(safe-area-inset-bottom)] pl-[calc(2rem+env(safe-area-inset-left))] pr-[calc(2rem+env(safe-area-inset-right))]"
+      className="min-h-screen w-full bg-[#fcfcfc] px-8 md:px-16 md:pb-12 flex flex-col pb-[env(safe-area-inset-bottom)] pl-[calc(2rem+env(safe-area-inset-left))] pr-[calc(2rem+env(safe-area-inset-right))]"
       style={{
-        paddingTop: 'calc(2rem + env(safe-area-inset-top, 0px))',
+        paddingTop: 'calc(6rem + env(safe-area-inset-top, 0px))',
       }}
     >
       {/* Logo Spacer */}
