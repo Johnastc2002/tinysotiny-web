@@ -197,10 +197,10 @@ const generateBubbles = (
     // However, collision check with empty 'temp' always passes.
 
     while (i < totalBubbles && attempts < 1000) {
-      const x = (rng() - 0.5) * 20;
-      const y = (rng() - 0.5) * 20;
-      const z = (rng() - 0.5) * 20;
-      const scale = 0.8 + rng() * 2.0; // Wider random range
+      const x = (rng() - 0.5) * 15; // Decreased spread from 20 to 15
+      const y = (rng() - 0.5) * 15;
+      const z = (rng() - 0.5) * 15;
+      const scale = 0.6 + rng() * 1.4; // Reduced from 0.8 + rng() * 2.0
 
       const position: [number, number, number] = [x, y, z];
 
@@ -211,7 +211,7 @@ const generateBubbles = (
           temp.push({
             id: i,
             position,
-            scale: Math.max(scale, 1.0), // Allow slightly smaller but ensure visibility
+            scale: Math.max(scale, 1.0), // Reduced minimum scale from 1.0 to 0.8
             imageUrl: project.bubble_thumbnail,
             imageHoverUrl: project.bubble_thumbnail_hover,
             type: 'image',
