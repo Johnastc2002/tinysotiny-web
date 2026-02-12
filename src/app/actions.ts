@@ -6,6 +6,7 @@ import {
   getNonFeaturedProjects,
   getProjectsByTags,
   getProjectById,
+  getProjectBySlug,
   getRecommendedProject,
   ProjectType,
 } from '@/lib/contentful';
@@ -35,6 +36,10 @@ export async function getFilteredProjectsAction(
 
 export async function getProjectByIdAction(id: string) {
   return await getProjectById(id);
+}
+
+export async function getProjectBySlugAction(slug: string) {
+  return await getProjectBySlug(slug);
 }
 
 export async function getRecommendedProjectAction(

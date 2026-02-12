@@ -31,9 +31,21 @@ export default function ProjectPageClient({
   const { setCursor } = useCursor();
   const isMobile = useIsMobile();
 
-  const getRecommendedHref = (id: string) => {
+  const getRecommendedHref = (project: Project) => {
+    if (project.slug) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('project');
+      params.delete('card');
+      
+      const type = project.projectType === 'work' ? 'work' : 'play';
+      const basePath = `/${type}`;
+      const queryString = params.toString();
+      
+      return queryString ? `${basePath}/${project.slug}?${queryString}` : `${basePath}/${project.slug}`;
+    }
+
     const params = new URLSearchParams(searchParams.toString());
-    params.set('project', id);
+    params.set('project', project.id);
     return `?${params.toString()}`;
   };
 
@@ -675,7 +687,7 @@ export default function ProjectPageClient({
         {recommendedProject && (
           <div className="w-full px-4 pt-8 md:px-8 z-10 relative mt-0 bg-[#f8f8f8] md:bg-transparent pb-0">
             <Link
-              href={getRecommendedHref(recommendedProject.id)}
+              href={getRecommendedHref(recommendedProject)}
               scroll={false}
               onClick={handleNextProject}
               onMouseEnter={() => setCursor('label')}

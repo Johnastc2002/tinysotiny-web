@@ -42,6 +42,7 @@ export interface Project {
   card_category?: Category;
   detail_category?: Category;
   detail_category_2?: Category;
+  slug: string;
 }
 
 export interface SearchTag {

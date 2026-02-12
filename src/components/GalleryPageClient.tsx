@@ -7,7 +7,7 @@ import React, {
   Suspense,
   useCallback,
 } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname, useParams } from 'next/navigation';
 import { Project, GridFilter, ContentfulMediaItem } from '@/types/project';
 import BubbleScene from '@/components/BubbleScene';
 import Link from 'next/link';
@@ -16,6 +16,7 @@ import {
   getMoreNonFeaturedProjects,
   getFilteredProjectsAction,
   getProjectByIdAction,
+  getProjectBySlugAction, // Add this
   getRecommendedProjectAction,
 } from '@/app/actions';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -36,6 +37,8 @@ interface GalleryPageClientProps {
   explosionDelay?: number;
   showPlayGrid?: boolean;
   playPageBgMedia?: ContentfulMediaItem;
+  initialFullProject?: Project | null;
+  initialRecommendedProject?: Project | null;
 }
 
 function GalleryPageContent({
@@ -47,10 +50,14 @@ function GalleryPageContent({
   explosionDelay = 0,
   showPlayGrid = true,
   playPageBgMedia,
+  initialFullProject = null,
+  initialRecommendedProject = null,
 }: GalleryPageClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const params = useParams();
+  const slug = params?.slug as string[] | undefined;
 
   const [viewMode, setViewMode] = useState<'dot' | 'grid'>('dot');
 
@@ -82,9 +89,9 @@ function GalleryPageContent({
   const isManualClose = useRef(false);
 
   // Full Project Details State
-  const [fullProject, setFullProject] = useState<Project | null>(null);
+  const [fullProject, setFullProject] = useState<Project | null>(initialFullProject);
   const [recommendedProject, setRecommendedProject] = useState<Project | null>(
-    null,
+    initialRecommendedProject,
   );
   const [overlayContainer, setOverlayContainer] = useState<HTMLElement | null>(
     null,
@@ -196,7 +203,38 @@ function GalleryPageContent({
   // Handle Project URL Param (Full Detail)
   useEffect(() => {
     const projectId = searchParams.get('project');
-    if (projectId) {
+    const projectSlug = slug?.[0];
+
+    if (projectSlug) {
+      // Slug based logic
+      isManualClose.current = false;
+
+      // If we already have the correct project loaded (e.g. from server props), skip fetch
+      if (fullProject && fullProject.slug === projectSlug) {
+        // Just ensure recommended is loaded if missing
+        if (!recommendedProject) {
+           getRecommendedProjectAction(fullProject.id, projectType).then(setRecommendedProject);
+        }
+        return;
+      }
+
+      const fetchProjectDetails = async () => {
+        try {
+          const project = await getProjectBySlugAction(projectSlug);
+          if (project) {
+            setFullProject(project);
+            const recommended = await getRecommendedProjectAction(
+              project.id,
+              projectType,
+            );
+            setRecommendedProject(recommended);
+          }
+        } catch (error) {
+          console.error('Error fetching project details:', error);
+        }
+      };
+      fetchProjectDetails();
+    } else if (projectId) {
       // Reset manual close ref when opening a project
       isManualClose.current = false;
 
@@ -232,7 +270,7 @@ function GalleryPageContent({
     return () => {
       // document.body.style.overflow = '';
     };
-  }, [searchParams, projectType]);
+  }, [searchParams, projectType, slug, fullProject, recommendedProject]);
 
   // Sync state to URL
   useEffect(() => {
@@ -318,13 +356,28 @@ function GalleryPageContent({
     }
   };
 
-  const updateUrlWithProject = (projectId: string) => {
-    // Keep preview card open (don't set null)
-    const params = new URLSearchParams(searchParams.toString());
-    // Keep card param if exists (don't delete)
+  const updateUrlWithProject = (projectIdOrProject: string | Project) => {
+    if (typeof projectIdOrProject === 'string') {
+      // Keep preview card open (don't set null)
+      const params = new URLSearchParams(searchParams.toString());
+      // Keep card param if exists (don't delete)
 
-    params.set('project', projectId);
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      params.set('project', projectIdOrProject);
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    } else {
+      const project = projectIdOrProject;
+      const slug = project.slug;
+      const basePath = `/${projectType}`;
+      const newPath = `${basePath}/${slug}`;
+      
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('project');
+      params.delete('card');
+      
+      const queryString = params.toString();
+      const url = queryString ? `${newPath}?${queryString}` : newPath;
+      router.push(url, { scroll: false });
+    }
   };
 
   // Update URL when opening DetailCard (Bubble Click)
@@ -558,11 +611,11 @@ function GalleryPageContent({
   // Determine dynamic background color for BubbleScene
   // Work page: Always #efefef
   // Play page: Transparent (undefined) normally, but Black when card is open to prevent transition glitches
-  const sceneBackgroundColor = isPlay
-    ? searchParams.get('card')
-      ? '#000000'
-      : undefined
-    : '#efefef';
+  // const sceneBackgroundColor = isPlay
+  //   ? searchParams.get('card')
+  //     ? '#000000'
+  //     : undefined
+  //   : '#efefef';
 
   return (
     <div className={`relative w-full min-h-screen ${bgClass}`}>
@@ -589,16 +642,24 @@ function GalleryPageContent({
       )}
 
       <DetailCard
-        isOpen={!!selectedProject && !searchParams.get('project')}
+        isOpen={!!selectedProject && !searchParams.get('project') && !slug?.[0]}
         onClose={handleCloseCard}
         data={cardData}
         basePath="/project"
-        onCardClick={(id) => updateUrlWithProject(id)}
+        onCardClick={(id) => {
+          const allProjects = [...initialFeaturedProjects, ...nonFeaturedProjects, ...(filteredProjects || [])];
+          const project = allProjects.find(p => p.id === id);
+          if (project) {
+            updateUrlWithProject(project);
+          } else {
+            updateUrlWithProject(id);
+          }
+        }}
       />
 
       {/* Full Project Overlay */}
       <AnimatePresence mode="wait">
-        {fullProject && searchParams.get('project') && (
+        {fullProject && (searchParams.get('project') || slug?.[0]) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -862,18 +923,26 @@ function GalleryPageContent({
       </div>
 
       <DetailCard
-        isOpen={!!selectedProject && !searchParams.get('project')}
+        isOpen={!!selectedProject && !searchParams.get('project') && !slug?.[0]}
         onClose={handleCloseCard}
         data={cardData}
         basePath="/project"
-        onCardClick={(id) => updateUrlWithProject(id)}
+        onCardClick={(id) => {
+          const allProjects = [...initialFeaturedProjects, ...nonFeaturedProjects, ...(filteredProjects || [])];
+          const project = allProjects.find(p => p.id === id);
+          if (project) {
+            updateUrlWithProject(project);
+          } else {
+            updateUrlWithProject(id);
+          }
+        }}
       />
 
       <div className="w-full h-full relative">
         {/* Dot View (Always Mounted, Hidden via CSS) */}
         <div
           className={`h-screen w-full overflow-hidden fixed top-0 left-0 transition-opacity duration-500 ${
-            viewMode === 'dot' && !searchParams.get('project')
+            viewMode === 'dot' && !searchParams.get('project') && !slug?.[0]
               ? 'opacity-100 z-10'
               : 'opacity-0 z-0 pointer-events-none'
           }`}
@@ -984,6 +1053,16 @@ function ProjectCard({ project }: { project: Project }) {
 
   const getHref = () => {
     const params = new URLSearchParams(searchParams.toString());
+    // Use slug if available
+    if (project.slug) {
+      params.delete('project');
+      params.delete('card');
+      const basePath = project.projectType === 'work' ? '/work' : '/play';
+      const queryString = params.toString();
+      return queryString ? `${basePath}/${project.slug}?${queryString}` : `${basePath}/${project.slug}`;
+    }
+    
+    // Fallback
     params.set('project', project.id);
     return `?${params.toString()}`;
   };

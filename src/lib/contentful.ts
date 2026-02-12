@@ -155,6 +155,7 @@ const mapProject = (entry: any): Project => {
   return {
     id: entry.sys.id,
     title: String(fields.title || ''),
+    slug: String(fields.slug || ''),
     clientName: String(fields.clientName || ''),
     description: String(fields.description || ''),
     tags: tags as SearchTag[],
@@ -524,6 +525,25 @@ export async function getProjectById(id: string): Promise<Project | null> {
     return null;
   } catch (error) {
     console.error(`Error fetching project with id ${id}:`, error);
+    return null;
+  }
+}
+
+export async function getProjectBySlug(slug: string): Promise<Project | null> {
+  try {
+    const entries = await getEntries('project', {
+      'fields.slug': slug,
+      include: 3,
+      limit: 1,
+    });
+
+    if (entries.items.length > 0) {
+      return mapProject(entries.items[0]);
+    }
+
+    return null;
+  } catch (error) {
+    console.error(`Error fetching project with slug ${slug}:`, error);
     return null;
   }
 }
