@@ -30,11 +30,9 @@ interface MediaItemProps {
 }
 
 interface VisitButtonConfig {
-  fontSize: number;
+  size: number;
   iconSize: number;
-  paddingX: number;
-  paddingY: number;
-  gap: number;
+  padding: number;
 }
 
 const VisitWebsiteButton = ({
@@ -50,28 +48,22 @@ const VisitWebsiteButton = ({
     href={url}
     target="_blank"
     rel="noopener noreferrer"
-    className={`flex-none text-[#b6b6b6] hover:text-white focus:outline-none transition-transform border border-[#b6b6b6] hover:border-white rounded-full flex items-center group/visit bg-black/30 backdrop-blur-sm box-border ${className}`}
-    style={{
-      paddingLeft: config ? `${config.paddingX}px` : undefined,
-      paddingRight: config ? `${config.paddingX}px` : undefined,
-      paddingTop: config ? `${config.paddingY}px` : undefined,
-      paddingBottom: config ? `${config.paddingY}px` : undefined,
-      gap: config ? `${config.gap}px` : undefined,
-    }}
+    className={`flex-none text-[#b6b6b6] hover:text-white focus:outline-none transition-transform border border-[#b6b6b6] hover:border-white rounded-full flex items-center justify-center group/visit bg-black/30 backdrop-blur-sm box-border ${className}`}
+    style={
+      config
+        ? {
+            width: `${config.size}px`,
+            height: `${config.size}px`,
+            padding: `${config.padding}px`,
+          }
+        : undefined
+    }
     onClick={(e) => e.stopPropagation()}
     aria-label="Visit Website"
   >
-    <span
-      className="font-['Value_Sans'] font-medium tracking-wider leading-none pt-px"
-      style={{
-        fontSize: config ? `${config.fontSize}px` : undefined,
-      }}
-    >
-      VISIT WEBSITE
-    </span>
     <svg
-      width={config ? config.iconSize : 12}
-      height={config ? config.iconSize : 12}
+      width={config ? config.iconSize : 14}
+      height={config ? config.iconSize : 14}
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -131,11 +123,9 @@ export default function SmartMedia({
     playButtonSize: 64, // default play button size
     playIconSize: 32, // default play icon size
     visitButton: {
-      fontSize: 12,
-      iconSize: 12,
-      paddingX: 16,
-      paddingY: 6,
-      gap: 8,
+      size: 36,
+      iconSize: 20,
+      padding: 8,
     },
   });
   const [shouldLoad, setShouldLoad] = useState(type !== 'vimeo'); // Default to load non-vimeo
@@ -668,24 +658,11 @@ export default function SmartMedia({
           const playButtonSize = Math.max(48, Math.min(96, minDim * 0.25));
           const playIconSize = playButtonSize * 0.5; // 50% of button size
 
-          // Interpolation for Visit Button
-          // Map size range [16, 48] to:
-          // fontSize: [7, 12]
-          // iconSize: [6, 12]
-          // paddingX: [6, 16]
-          // paddingY: [1, 6]
-          // gap: [2, 8]
-          const t = (size - 16) / (48 - 16); // 0 to 1
-          const lerp = (min: number, max: number, t: number) =>
-            min + (max - min) * t;
-
-          const isV3 = layout === 'V-3';
+          // Interpolation for Visit Button (now matches Fullscreen button style)
           const visitButton = {
-            fontSize: isV3 ? lerp(5, 9, t) : lerp(7, 12, t),
-            iconSize: isV3 ? lerp(4, 8, t) : lerp(6, 12, t),
-            paddingX: isV3 ? lerp(4, 10, t) : lerp(6, 16, t),
-            paddingY: isV3 ? lerp(1, 4, t) : lerp(1, 6, t),
-            gap: isV3 ? lerp(1, 4, t) : lerp(2, 8, t),
+            size,
+            iconSize,
+            padding,
           };
 
           setButtonConfig({
@@ -841,7 +818,6 @@ export default function SmartMedia({
                   {externalUrl && (
                     <VisitWebsiteButton
                       url={externalUrl}
-                      config={buttonConfig.visitButton}
                       className="bg-transparent! backdrop-blur-none! hover:text-white! hover:border-white! text-white/60! border-white/60! h-[26px]! px-3! box-border"
                     />
                   )}

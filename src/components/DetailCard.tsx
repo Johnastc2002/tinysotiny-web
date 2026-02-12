@@ -103,11 +103,13 @@ export default function DetailCard({
                 onMouseLeave={() => setCursor('default')}
                 onMouseEnter={() => setCursor('label')}
                 className={`
-                relative flex flex-col landscape:flex-row md:flex-row 
-                w-[60vw] h-[60vh] md:max-w-5xl
+                relative flex 
+                portrait:flex-col landscape:flex-row
+                portrait:w-[90vw] portrait:h-auto portrait:aspect-2/3
+                landscape:w-auto landscape:h-[90vh] landscape:aspect-3/2
                 overflow-hidden 
                 bg-transparent
-                rounded-4xl md:rounded-4xl 
+                rounded-4xl
                 cursor-none
               `}
                 onClick={(e) => {
@@ -116,7 +118,7 @@ export default function DetailCard({
                 }}
               >
                 {/* Left Side - Image */}
-                <div className="relative w-full landscape:w-1/2 md:w-1/2 flex-1 landscape:flex-none md:flex-none min-h-0 landscape:h-full md:h-full bg-gray-100 group overflow-hidden">
+                <div className="relative bg-gray-100 group overflow-hidden min-h-0 portrait:w-full portrait:h-auto portrait:flex-1 landscape:w-1/2 landscape:h-full landscape:flex-none">
                   {data.imageUrl ? (
                     <>
                       <Image
@@ -151,7 +153,7 @@ export default function DetailCard({
                 </div>
 
                 {/* Right Side - Content */}
-                <div className="grid grid-cols-1 grid-rows-1 w-full landscape:w-1/2 md:w-1/2 hover:bg-gray-50 transition-colors flex-none landscape:flex-none md:flex-none landscape:h-full md:h-full landscape:overflow-y-auto md:overflow-y-auto bg-transparent z-10 relative">
+                <div className="grid grid-cols-1 grid-rows-1 hover:bg-gray-50 transition-colors bg-transparent z-10 relative portrait:w-full portrait:h-auto portrait:max-h-[50%] portrait:flex-none portrait:overflow-y-auto landscape:w-1/2 landscape:h-full landscape:flex-none landscape:overflow-y-auto">
                   {/* Layer 1: Backgrounds */}
                   <div className="col-start-1 row-start-1 flex flex-col z-0 pointer-events-none">
                     <div
@@ -160,12 +162,12 @@ export default function DetailCard({
                         backgroundColor: bgColor || '#E5E5E5',
                       }}
                     />
-                    <div className="hidden landscape:block md:block min-h-[30%] bg-white shrink-0" />
+                    <div className="hidden landscape:block min-h-[30%] bg-white shrink-0" />
                   </div>
 
                   {/* Layer 2: SVG Overlay */}
                   {data.cardCategory && (
-                    <div className="col-start-1 row-start-1 z-30 pointer-events-none hidden landscape:flex md:flex items-end justify-center">
+                    <div className="col-start-1 row-start-1 z-30 pointer-events-none hidden landscape:flex items-end justify-center">
                       <CategorySVG
                         category={data.cardCategory}
                         className="w-full h-[60%] opacity-100"
@@ -176,8 +178,8 @@ export default function DetailCard({
                   {/* Layer 3: Content */}
                   <div className="col-start-1 row-start-1 flex flex-col z-20 pointer-events-auto">
                     {/* Top Section - Description */}
-                    <div className="flex-1 px-4 pt-3 pb-4 landscape:p-6 md:p-10 flex flex-col min-h-min relative">
-                        <div className="flex-1 flex flex-col justify-center">
+                    <div className="flex-1 p-4 landscape:p-10 portrait:p-6 flex flex-col min-h-min relative">
+                      <div className="flex-1 flex flex-col landscape:justify-center">
                         {data.topLabel && (
                           <div className="mb-2 md:mb-4">
                             <span
@@ -214,7 +216,7 @@ export default function DetailCard({
                         </p>
 
                         {/* Mobile: Tags moved here under description */}
-                        <div className="mt-4 md:hidden landscape:hidden">
+                        <div className="mt-4 landscape:hidden">
                           <div
                             style={
                               tagColor
@@ -230,27 +232,29 @@ export default function DetailCard({
                       </div>
 
                       {/* Desktop: Tags moved here if showing second thumbnail */}
-                        {showSecondThumbnail && data.tags && (
-                          <div className="hidden landscape:flex md:flex flex-wrap gap-x-4 gap-y-2 mt-8 md:mt-0 pt-4 p-0 list-none shrink-0 w-full">
-                            {data.tags.map((tag, index) => (
-                              <div
-                                key={index}
-                                className={`flex items-center leading-none text-xs font-['Value_Sans'] font-normal uppercase tracking-wide transition-colors ${
-                                  !fontColor ? 'text-[#B6B6B6]' : 'text-current'
-                                }`}
-                                style={fontColor ? { color: fontColor } : {}}
-                              >
-                                <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />
-                                <span className="whitespace-nowrap">{tag.display_name}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                      {showSecondThumbnail && data.tags && (
+                        <div className="hidden landscape:flex flex-wrap gap-x-4 gap-y-2 mt-8 pt-4 p-0 list-none shrink-0 w-full">
+                          {data.tags.slice(0, 4).map((tag, index) => (
+                            <div
+                              key={index}
+                              className={`flex items-center leading-none text-xs font-['Value_Sans'] font-normal uppercase tracking-wide transition-colors ${
+                                !fontColor ? 'text-[#B6B6B6]' : 'text-current'
+                              }`}
+                              style={fontColor ? { color: fontColor } : {}}
+                            >
+                              <div className="w-2 h-2 rounded-full bg-current mr-2 shrink-0 mb-0.5" />
+                              <span className="whitespace-nowrap">
+                                {tag.display_name}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* Bottom Section - Tags/Points (Desktop Only) */}
                     <div
-                      className={`hidden landscape:flex md:flex text-[#B6B6B6] ${
+                      className={`hidden landscape:flex text-[#B6B6B6] ${
                         showSecondThumbnail
                           ? 'relative p-0'
                           : 'px-10 flex-col justify-end pb-10'
@@ -275,6 +279,31 @@ export default function DetailCard({
                     </div>
                   </div>
                 </div>
+
+                {/* Close Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClose();
+                  }}
+                  onMouseEnter={() => setCursor('default')}
+                  className="absolute top-3 right-3 z-50 flex items-center justify-center w-12 h-12 text-[#b6b6b6] hover:text-[#FFFFFF] transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
               </motion.div>
             </div>
           </motion.div>

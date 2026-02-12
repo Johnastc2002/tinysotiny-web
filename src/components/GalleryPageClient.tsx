@@ -329,7 +329,7 @@ function GalleryPageContent({
         ) : null,
         bottomContent: (
           <ul className="flex flex-wrap gap-x-4 gap-y-2 m-0 p-0">
-            {selectedProject.tags.map((tag, index) => (
+            {selectedProject.tags.slice(0, 4).map((tag, index) => (
               <li
                 key={index}
                 className="flex items-center leading-none text-[10px] md:text-xs font-['Value_Sans'] font-normal uppercase tracking-wide transition-colors text-current"
