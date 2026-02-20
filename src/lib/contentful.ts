@@ -284,6 +284,9 @@ const mapProject = (entry: any): Project => {
           }
         : undefined,
     services: (fields.services || []).map(String),
+    card_description: String(
+      fields.card_description || fields.cardDescription || '',
+    ),
   };
 };
 

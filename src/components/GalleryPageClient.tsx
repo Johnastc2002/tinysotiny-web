@@ -344,6 +344,7 @@ function GalleryPageContent({
         cardFontColor: selectedProject.card_font_color,
         cardTagColor: selectedProject.card_tag_color,
         cardCategory: selectedProject.card_category,
+        cardDescription: selectedProject.card_description,
       }
     : null;
 

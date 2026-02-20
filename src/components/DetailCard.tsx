@@ -22,6 +22,7 @@ export interface DetailCardData {
   thumbnails?: string[];
   tags?: SearchTag[];
   cardCategory?: Category;
+  cardDescription?: string;
 }
 
 interface DetailCardProps {
@@ -212,7 +213,7 @@ export default function DetailCard({
                             fontColor ? { color: fontColor, opacity: 0.9 } : {}
                           }
                         >
-                          {data.description}
+                          {data.cardDescription || data.description}
                         </p>
 
                         {/* Mobile: Tags moved here under description */}

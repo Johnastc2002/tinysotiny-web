@@ -43,6 +43,7 @@ export interface Project {
   detail_category?: Category;
   detail_category_2?: Category;
   slug: string;
+  card_description?: string;
 }
 
 export interface SearchTag {
