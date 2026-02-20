@@ -32,8 +32,8 @@ export default function AboutSlideOver({
         onClick={() => !isOpen && window.innerWidth >= 768 && setIsOpen(true)}
         className={`
             md:fixed md:top-1/2 md:right-0 md:-translate-y-1/2 z-40
-            relative mt-16 md:mt-0
-            w-full md:w-[85vw] md:max-w-none h-auto md:h-[85vh]
+            relative mt-16 md:mt-0 mx-auto
+            w-[85vw] aspect-2/3 md:aspect-auto md:w-[85vw] md:max-w-none md:h-[85vh]
             bg-white rounded-3xl overflow-hidden
             flex flex-col md:flex-row
             transition-transform duration-700 ease-in-out
@@ -70,7 +70,7 @@ export default function AboutSlideOver({
         </button>
 
         {/* Left Side - Image/Grey Area */}
-        <div className="w-full md:w-1/2 h-[400px] md:h-full relative bg-gray-200">
+        <div className="w-full md:w-1/2 flex-1 md:flex-none h-auto md:h-full relative bg-gray-200 min-h-0">
           {founderImage ? (
             <Image
               src={founderImage}
@@ -92,26 +92,26 @@ export default function AboutSlideOver({
         </div>
 
         {/* Right Side - Info */}
-        <div className="w-full md:w-1/2 h-auto md:h-full bg-[#0F2341] text-white p-8 md:p-16 flex flex-col justify-center relative">
+        <div className="w-full md:w-1/2 h-auto md:h-full shrink-0 md:shrink-0 bg-[#0F2341] text-white p-6 md:p-16 flex flex-col justify-center relative">
           <div
-            className={`space-y-8 md:space-y-16 transition-opacity duration-700 delay-100 opacity-100 md:opacity-0 ${
+            className={`space-y-4 md:space-y-16 transition-opacity duration-700 delay-100 opacity-100 md:opacity-0 ${
               isOpen ? 'md:opacity-100' : ''
             }`}
           >
-            <div className="text-xs font-medium tracking-[0.2em] uppercase opacity-70">
+            <div className="text-[10px] md:text-xs font-medium tracking-[0.2em] uppercase opacity-70">
               <span className="font-['Value_Sans'] font-normal">
                 Founder /{' '}
               </span>
               <span className="font-['Value_Serif'] font-medium">About Us</span>
             </div>
 
-            <div className="space-y-8 md:space-y-12">
+            <div className="space-y-4 md:space-y-12">
               {founders?.map((founder, index) => (
                 <div key={index}>
-                  <h3 className="font-['Value_Serif'] font-medium text-3xl md:text-6xl mb-2 md:mb-3 text-white">
+                  <h3 className="font-['Value_Serif'] font-medium text-2xl md:text-6xl mb-2 md:mb-3 text-white">
                     {founder.name}
                   </h3>
-                  <p className="text-xs md:text-base font-['Value_Sans'] font-normal opacity-80 tracking-wide">
+                  <p className="text-[10px] md:text-base font-['Value_Sans'] font-normal opacity-80 tracking-wide">
                     {founder.role}
                   </p>
                 </div>
@@ -120,18 +120,18 @@ export default function AboutSlideOver({
               {!founders?.length && (
                 <>
                   <div>
-                    <h3 className="font-['Value_Serif'] font-medium text-3xl md:text-6xl mb-2 md:mb-3 text-white">
+                    <h3 className="font-['Value_Serif'] font-medium text-xl md:text-6xl mb-2 md:mb-3 text-white">
                       eddie li
                     </h3>
-                    <p className="text-xs md:text-base font-['Value_Sans'] font-normal opacity-80 tracking-wide">
+                    <p className="text-[10px] md:text-base font-['Value_Sans'] font-normal opacity-80 tracking-wide">
                       co-founder & photographer
                     </p>
                   </div>
                   <div>
-                    <h3 className="font-['Value_Serif'] font-medium text-3xl md:text-6xl mb-2 md:mb-3 text-white">
+                    <h3 className="font-['Value_Serif'] font-medium text-xl md:text-6xl mb-2 md:mb-3 text-white">
                       yin ip
                     </h3>
-                    <p className="text-xs md:text-base font-['Value_Sans'] font-normal opacity-80 tracking-wide">
+                    <p className="text-[10px] md:text-base font-['Value_Sans'] font-normal opacity-80 tracking-wide">
                       co-founder & art director
                     </p>
                   </div>

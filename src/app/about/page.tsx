@@ -98,14 +98,14 @@ export default async function About() {
               </div>
             </div>
           </div>
-        </div>
+          </div>
         </main>
-      </div>
 
-      <AboutSlideOver
-        founderImage={aboutUs?.founderImage}
-        founders={aboutUs?.founders}
-      />
+        <AboutSlideOver
+          founderImage={aboutUs?.founderImage}
+          founders={aboutUs?.founders}
+        />
+      </div>
     </div>
   );
 }
