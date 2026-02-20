@@ -65,7 +65,8 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     title: 'tinysotiny',
-    statusBarStyle: 'default',
+    statusBarStyle: 'black-translucent',
+    capable: true,
     startupImage: ['/app-logo.png'],
   },
   manifest: '/manifest.json',

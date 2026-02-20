@@ -1466,7 +1466,7 @@ export default function BubbleScene({
   }, [setCursor]);
 
   return (
-    <div className={`w-full h-screen cursor-none relative`}>
+    <div className={`w-full h-[100dvh] cursor-none relative`}>
       <AnimatePresence>
         {showWelcomeVideo && (
           <WelcomeAnimation onComplete={handleAnimationComplete} />

@@ -12,9 +12,21 @@ import GalleryPageClient from '@/components/GalleryPageClient';
 
 export const revalidate = 60; // Revalidate every 60 seconds
 
-export const viewport: Viewport = {
-  themeColor: '#efefef',
-};
+export async function generateViewport({
+  params,
+}: {
+  params: Promise<{ slug?: string[] }>;
+}): Promise<Viewport> {
+  const { slug } = await params;
+  // If slug exists, we are on a detail page (White background).
+  // Otherwise, we are on the grid page (Gray background).
+  const themeColor = slug && slug[0] ? '#fcfcfc' : '#efefef';
+
+  return {
+    themeColor,
+    viewportFit: 'cover',
+  };
+}
 
 type Props = {
   params: Promise<{ slug?: string[] }>;
@@ -29,8 +41,12 @@ export async function generateMetadata(
   const { project: projectId } = await searchParams;
 
   let project = null;
-  if (slug && slug[0]) {
-    project = await getProjectBySlug(slug[0]);
+  if (slug && slug.length > 0) {
+    const potentialSlugOrId = slug[slug.length - 1];
+    project = await getProjectBySlug(potentialSlugOrId);
+    if (!project) {
+      project = await getProjectById(potentialSlugOrId);
+    }
   } else if (typeof projectId === 'string') {
     project = await getProjectById(projectId);
   }
@@ -103,8 +119,12 @@ export default async function Work({ params, searchParams }: Props) {
   let initialFullProject = null;
   let initialRecommendedProject = null;
 
-  if (slug && slug[0]) {
-    initialFullProject = await getProjectBySlug(slug[0]);
+  if (slug && slug.length > 0) {
+    const potentialSlugOrId = slug[slug.length - 1];
+    initialFullProject = await getProjectBySlug(potentialSlugOrId);
+    if (!initialFullProject) {
+      initialFullProject = await getProjectById(potentialSlugOrId);
+    }
   } else if (typeof projectId === 'string') {
     initialFullProject = await getProjectById(projectId);
   }

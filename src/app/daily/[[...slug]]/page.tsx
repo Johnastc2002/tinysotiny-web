@@ -12,6 +12,7 @@ export const revalidate = 3600; // Revalidate every hour
 
 export const viewport: Viewport = {
   themeColor: '#fcfcfc',
+  viewportFit: 'cover',
 };
 
 type Props = {
@@ -27,8 +28,13 @@ export async function generateMetadata(
   const { daily: dailyId } = await searchParams;
 
   let daily = null;
-  if (slug && slug[0]) {
-    daily = await getDailyEntryBySlug(slug[0]);
+  if (slug && slug.length > 0) {
+    const potentialSlugOrId = slug[slug.length - 1];
+    daily = await getDailyEntryBySlug(potentialSlugOrId);
+    // Fallback: try fetching by ID if slug lookup fails
+    if (!daily) {
+      daily = await getDailyEntryById(potentialSlugOrId);
+    }
   } else if (typeof dailyId === 'string') {
     daily = await getDailyEntryById(dailyId);
   }
@@ -90,29 +96,32 @@ export default async function Daily({ params, searchParams }: Props) {
   const initialItems = await getDailyEntries(1, 10);
 
   let initialSelectedDaily = null;
-  if (slug && slug[0]) {
-    initialSelectedDaily = await getDailyEntryBySlug(slug[0]);
+  if (slug && slug.length > 0) {
+    const potentialSlugOrId = slug[slug.length - 1];
+    initialSelectedDaily = await getDailyEntryBySlug(potentialSlugOrId);
+    if (!initialSelectedDaily) {
+      initialSelectedDaily = await getDailyEntryById(potentialSlugOrId);
+    }
   } else if (typeof dailyId === 'string') {
     initialSelectedDaily = await getDailyEntryById(dailyId);
   }
 
   return (
-    <div
-      className="min-h-screen w-full bg-[#fcfcfc] px-8 md:px-16 md:pb-12 flex flex-col pb-[env(safe-area-inset-bottom)] pl-[calc(2rem+env(safe-area-inset-left))] pr-[calc(2rem+env(safe-area-inset-right))]"
-      style={{
-        paddingTop: 'calc(6rem + env(safe-area-inset-top, 0px))',
-      }}
-    >
-      {/* Logo Spacer */}
-      {/* <div className="mb-12 md:mb-20"></div> */}
-
-      <main className="w-full flex-1 flex flex-col items-center">
-        {/* Client Side Daily List with Infinite Scroll */}
-        <DailyList
-          initialItems={initialItems}
-          initialSelectedDaily={initialSelectedDaily}
-        />
-      </main>
+    <div className="relative w-full min-h-[100dvh] bg-[#fcfcfc] overflow-hidden">
+      <div className="fixed inset-0 w-full h-[100dvh] overflow-y-auto z-30 bg-[#fcfcfc]">
+        <main
+          className="w-full min-h-full flex flex-col items-center px-8 md:px-16 pl-[calc(2rem+env(safe-area-inset-left))] pr-[calc(2rem+env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)]"
+          style={{
+            paddingTop: 'calc(6rem + env(safe-area-inset-top, 0px))',
+          }}
+        >
+          {/* Client Side Daily List with Infinite Scroll */}
+          <DailyList
+            initialItems={initialItems}
+            initialSelectedDaily={initialSelectedDaily}
+          />
+        </main>
+      </div>
     </div>
   );
 }

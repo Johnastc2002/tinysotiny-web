@@ -13,9 +13,21 @@ import GalleryPageClient from '@/components/GalleryPageClient';
 
 export const revalidate = 60; // Revalidate every 60 seconds
 
-export const viewport: Viewport = {
-  themeColor: '#000000',
-};
+export async function generateViewport({
+  params,
+}: {
+  params: Promise<{ slug?: string[] }>;
+}): Promise<Viewport> {
+  const { slug } = await params;
+  // If slug exists, we are on a detail page (White background).
+  // Otherwise, we are on the grid page (Black background).
+  const themeColor = slug && slug[0] ? '#fcfcfc' : '#000000';
+
+  return {
+    themeColor,
+    viewportFit: 'cover',
+  };
+}
 
 type Props = {
   params: Promise<{ slug?: string[] }>;

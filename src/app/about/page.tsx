@@ -9,17 +9,21 @@ export const revalidate = 3600; // Revalidate every hour
 
 export const viewport: Viewport = {
   themeColor: '#fcfcfc',
+  viewportFit: 'cover',
 };
 
 export default async function About() {
   const [aboutUs, contact] = await Promise.all([getAboutUs(), getContact()]);
 
   return (
-    <div className="min-h-screen w-full bg-[#fcfcfc] px-8 py-8 md:px-16 md:py-12 overflow-hidden pt-[calc(2rem+env(safe-area-inset-top))] pb-[calc(2rem+env(safe-area-inset-bottom))] pl-[calc(2rem+env(safe-area-inset-left))] pr-[calc(2rem+env(safe-area-inset-right))] md:pt-[calc(3rem+env(safe-area-inset-top))]">
-      {/* Logo Spacer */}
-      <div className="mb-20"></div>
-
-      <main className="mx-auto max-w-7xl">
+    <div className="relative w-full min-h-[100dvh] bg-[#fcfcfc] overflow-hidden">
+      <div className="fixed inset-0 w-full h-[100dvh] overflow-y-auto z-30 bg-[#fcfcfc]">
+        <main
+          className="mx-auto max-w-7xl min-h-full px-8 md:px-16 pl-[calc(2rem+env(safe-area-inset-left))] pr-[calc(2rem+env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)]"
+          style={{
+            paddingTop: 'calc(6rem + env(safe-area-inset-top, 0px))',
+          }}
+        >
         {/* Header Label */}
         <div className="mb-12 text-sm font-['Value_Sans'] font-normal tracking-widest text-[#B6B6B6] uppercase">
           Who We Are /{' '}
@@ -95,7 +99,8 @@ export default async function About() {
             </div>
           </div>
         </div>
-      </main>
+        </main>
+      </div>
 
       <AboutSlideOver
         founderImage={aboutUs?.founderImage}

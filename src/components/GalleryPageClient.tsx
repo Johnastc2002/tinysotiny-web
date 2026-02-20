@@ -618,7 +618,7 @@ function GalleryPageContent({
   //   : '#efefef';
 
   return (
-    <div className={`relative w-full min-h-screen ${bgClass}`}>
+    <div className={`relative w-full min-h-[100dvh] ${bgClass}`}>
       {/* Play Page Background Media - Only show if NOT handled by BubbleScene (e.g. image or vimeo, or if we want to layer it) */}
       {/* Actually, if we move it to BubbleScene, we should hide this one to avoid double playing/layering issues */}
       {/* But BubbleScene only covers the canvas area. If canvas is full screen, it's fine. */}
@@ -941,7 +941,7 @@ function GalleryPageContent({
       <div className="w-full h-full relative">
         {/* Dot View (Always Mounted, Hidden via CSS) */}
         <div
-          className={`h-screen w-full overflow-hidden fixed top-0 left-0 transition-opacity duration-500 ${
+          className={`h-[100dvh] w-full overflow-hidden fixed top-0 left-0 transition-opacity duration-500 ${
             viewMode === 'dot' && !searchParams.get('project') && !slug?.[0]
               ? 'opacity-100 z-10'
               : 'opacity-0 z-0 pointer-events-none'
@@ -963,7 +963,7 @@ function GalleryPageContent({
 
         {/* Grid View (Always Mounted, Hidden via CSS) */}
         <div
-          className={`w-full h-screen fixed inset-0 overflow-y-auto transition-opacity duration-500 ${
+          className={`w-full h-[100dvh] fixed inset-0 overflow-y-auto transition-opacity duration-500 ${
             isPlay ? 'bg-transparent' : 'bg-[#efefef]'
           } ${
             viewMode === 'grid'
@@ -1033,7 +1033,7 @@ export default function GalleryPageClient(props: GalleryPageClientProps) {
     <Suspense
       fallback={
         <div
-          className={`w-full h-screen flex items-center justify-center ${bgClass}`}
+          className={`w-full h-[100dvh] flex items-center justify-center ${bgClass}`}
         >
           <LoadingSpinner color={spinnerColor} trackColor={trackColor} />
         </div>
