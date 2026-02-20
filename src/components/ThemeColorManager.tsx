@@ -70,13 +70,13 @@ export default function ThemeColorManager() {
     document.documentElement.style.backgroundColor = color;
 
     // Force update theme-color meta tag
-    let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    let metaThemeColor = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
     if (!metaThemeColor) {
       metaThemeColor = document.createElement('meta');
       metaThemeColor.name = 'theme-color';
       document.head.appendChild(metaThemeColor);
     }
-    metaThemeColor.setAttribute('content', color);
+    metaThemeColor.content = color;
     
   }, [pathname, searchParams]);
 
