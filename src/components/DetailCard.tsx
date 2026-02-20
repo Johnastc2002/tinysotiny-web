@@ -153,6 +153,27 @@ export default function DetailCard({
                   </div>
                 </div>
 
+                {/* Mobile Floating Action Button */}
+                <div className="relative h-0 w-full landscape:hidden z-50">
+                  <div className="absolute right-6 -translate-y-1/2">
+                    <div className="flex items-center justify-center w-16 h-16 rounded-full bg-[#0F2341] text-white shadow-lg">
+                      <svg
+                        width="32"
+                        height="32"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M5 12h14" />
+                        <path d="M14 7l5 5" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Right Side - Content */}
                 <div className="grid grid-cols-1 grid-rows-1 hover:bg-gray-50 transition-colors bg-transparent z-10 relative portrait:w-full portrait:h-auto portrait:max-h-[50%] portrait:flex-none portrait:overflow-y-auto landscape:w-1/2 landscape:h-full landscape:flex-none landscape:overflow-y-auto">
                   {/* Layer 1: Backgrounds */}
