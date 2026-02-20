@@ -32,12 +32,14 @@ export const client = createClient({
   environment: ENVIRONMENT,
 }).withoutUnresolvableLinks;
 
-export const previewClient = createClient({
-  space: SPACE_ID || '',
-  accessToken: PREVIEW_ACCESS_TOKEN || '',
-  environment: ENVIRONMENT,
-  host: 'preview.contentful.com',
-}).withoutUnresolvableLinks;
+const previewClient = PREVIEW_ACCESS_TOKEN
+  ? createClient({
+      space: SPACE_ID || '',
+      accessToken: PREVIEW_ACCESS_TOKEN,
+      environment: ENVIRONMENT,
+      host: 'preview.contentful.com',
+    }).withoutUnresolvableLinks
+  : null;
 
 export const getEntries = async (
   content_type?: string,
@@ -49,7 +51,7 @@ export const getEntries = async (
   }
 
   const { isEnabled } = await draftMode();
-  const currentClient = isEnabled ? previewClient : client;
+  const currentClient = isEnabled && previewClient ? previewClient : client;
 
   const params = { ...query };
   if (content_type) {
