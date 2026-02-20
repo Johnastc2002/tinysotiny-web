@@ -175,7 +175,12 @@ export default function DetailCard({
                 </div>
 
                 {/* Right Side - Content */}
-                <div className="grid grid-cols-1 grid-rows-1 hover:bg-gray-50 transition-colors bg-transparent z-10 relative portrait:w-full portrait:h-auto portrait:max-h-[50%] portrait:flex-none portrait:overflow-y-auto landscape:w-1/2 landscape:h-full landscape:flex-none landscape:overflow-y-auto">
+                <div
+                  className="grid grid-cols-1 grid-rows-1 transition-colors z-10 relative portrait:w-full portrait:h-auto portrait:max-h-[50%] portrait:flex-none portrait:overflow-y-auto landscape:w-1/2 landscape:h-full landscape:flex-none landscape:overflow-y-auto"
+                  style={{
+                    backgroundColor: bgColor || '#E5E5E5',
+                  }}
+                >
                   {/* Layer 1: Backgrounds */}
                   <div className="col-start-1 row-start-1 flex flex-col z-0 pointer-events-none">
                     <div
