@@ -57,17 +57,17 @@ export const metadata: Metadata = {
   icons: {
     icon: '/logo.png',
     shortcut: '/logo.png',
-    apple: '/app-logo.png',
+    apple: '/logo-app.png',
     other: {
       rel: 'apple-touch-icon-precomposed',
-      url: '/app-logo.png',
+      url: '/logo-app.png',
     },
   },
   appleWebApp: {
     title: 'tinysotiny',
     statusBarStyle: 'black-translucent',
     capable: true,
-    startupImage: ['/app-logo.png'],
+    startupImage: ['/logo-app.png'],
   },
   manifest: '/manifest.json',
 };
