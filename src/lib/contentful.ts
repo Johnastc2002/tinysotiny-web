@@ -51,7 +51,12 @@ export const getEntries = async (
   }
 
   const { isEnabled } = await draftMode();
-  const currentClient = isEnabled && previewClient ? previewClient : client;
+  if (isEnabled && !previewClient) {
+    throw new Error(
+      'Draft mode is enabled but CONTENTFUL_PREVIEW_ACCESS_TOKEN is not set',
+    );
+  }
+  const currentClient = isEnabled ? previewClient! : client;
 
   const params = { ...query };
   if (content_type) {
