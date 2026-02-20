@@ -214,6 +214,8 @@ export default function ProjectPageClient({
                             </div>
                           )}
                           <h2
+                            data-contentful-field-id="title" 
+                            data-contentful-entry-id={project.id}
                             className={`mb-4 text-4xl font-['Value_Serif'] font-medium leading-tight ${
                               !cardFontColor ? 'text-[#0F2341]' : ''
                             }`}
@@ -224,6 +226,8 @@ export default function ProjectPageClient({
                             {project.title}
                           </h2>
                           <p
+                            data-contentful-field-id="description" 
+                            data-contentful-entry-id={project.id}
                             className={`text-sm leading-relaxed max-w-md font-['Value_Sans'] font-normal ${
                               !cardFontColor ? 'text-[#0F2341]' : ''
                             }`}
@@ -511,12 +515,18 @@ export default function ProjectPageClient({
                 viewport={{ once: true }}
                 className="flex-1 pr-12"
               >
-                <h1 className="text-5xl md:text-7xl font-['Value_Serif'] font-medium text-[#0F2341] leading-tight mb-8">
+                <h1 
+                  data-contentful-field-id="title" 
+                  data-contentful-entry-id={project.id}
+                  className="text-5xl md:text-7xl font-['Value_Serif'] font-medium text-[#0F2341] leading-tight mb-8"
+                >
                   {project.title}
                 </h1>
 
                 {/* Casts */}
                 <div
+                  data-contentful-field-id="cast" 
+                  data-contentful-entry-id={project.id}
                   className={`text-lg text-[#0F2341] leading-relaxed whitespace-pre-line font-['Value_Sans'] font-normal [&>p:last-child]:mb-0 [&>p]:mb-4 ${
                     !isMobile ? 'desktop-rich-text' : ''
                   }`}

@@ -138,12 +138,16 @@ export default function HorizontalScroll({
           style={{ backgroundColor: cardBgColor || '#0F2341' }}
         >
           <h1
+            data-contentful-field-id="title"
+            data-contentful-entry-id={daily.id}
             className="text-4xl font-['Value_Serif'] font-medium leading-tight mb-4 text-white"
             style={{ color: cardFontColor }}
           >
             {daily.title}
           </h1>
           <p
+            data-contentful-field-id="description"
+            data-contentful-entry-id={daily.id}
             className="text-base text-gray-300 font-['Value_Sans'] font-normal leading-relaxed"
             style={{ color: cardFontColor }}
           >
@@ -189,7 +193,10 @@ export default function HorizontalScroll({
               />
             </div>
           )}
-          <p className="text-gray-600 leading-loose wrap-break-word whitespace-pre-wrap font-['Value_Sans'] font-medium relative z-10">
+          <p
+             data-contentful-field-id="description2"
+             data-contentful-entry-id={daily.id}
+             className="text-gray-600 leading-loose wrap-break-word whitespace-pre-wrap font-['Value_Sans'] font-medium relative z-10">
             {daily.description2 ||
               daily.description ||
               'More details coming soon...'}
@@ -294,12 +301,16 @@ export default function HorizontalScroll({
                 {/* Text Container */}
                 <div className="flex flex-col justify-center space-y-0 w-[40vw] min-w-[300px] pl-8 md:pl-16 pr-8 md:pr-12 shrink-0 z-20">
                   <h1
+                    data-contentful-field-id="title"
+                    data-contentful-entry-id={daily.id}
                     className="text-5xl md:text-7xl font-['Value_Serif'] font-medium leading-tight wrap-break-word"
                     style={{ color: cardFontColor }}
                   >
                     {daily.title}
                   </h1>
                   <p
+                    data-contentful-field-id="description"
+                    data-contentful-entry-id={daily.id}
                     className="text-lg text-gray-300 max-w-md font-['Value_Sans'] font-normal leading-relaxed"
                     style={{ color: cardFontColor }}
                   >
@@ -413,7 +424,10 @@ export default function HorizontalScroll({
                   </div>
                 )}
                 <div className="flex flex-col space-y-6 max-w-xl z-10">
-                  <p className="text-gray-600 leading-loose wrap-break-word whitespace-pre-wrap font-['Value_Sans'] font-medium">
+                  <p 
+                    data-contentful-field-id="description2"
+                    data-contentful-entry-id={daily.id}
+                    className="text-gray-600 leading-loose wrap-break-word whitespace-pre-wrap font-['Value_Sans'] font-medium">
                     {daily.description2 ||
                       daily.description ||
                       'More details coming soon...'}

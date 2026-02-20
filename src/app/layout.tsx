@@ -8,6 +8,7 @@ import { VideoProvider } from '@/context/VideoContext';
 import { CursorProvider } from '@/context/CursorContext';
 import GlobalCursor from '@/components/GlobalCursor';
 import ThemeColorManager from '@/components/ThemeColorManager';
+import ContentfulPreviewWrapper from '@/components/ContentfulPreviewProvider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -86,18 +87,20 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden`}
       >
-        <CursorProvider>
-          <VideoProvider>
-            <Suspense fallback={null}>
-              <ThemeColorManager />
-            </Suspense>
-            <GlobalCursor />
-            <Suspense fallback={null}>
-              <Navigation contact={contact} />
-            </Suspense>
-            {children}
-          </VideoProvider>
-        </CursorProvider>
+        <ContentfulPreviewWrapper>
+          <CursorProvider>
+            <VideoProvider>
+              <Suspense fallback={null}>
+                <ThemeColorManager />
+              </Suspense>
+              <GlobalCursor />
+              <Suspense fallback={null}>
+                <Navigation contact={contact} />
+              </Suspense>
+              {children}
+            </VideoProvider>
+          </CursorProvider>
+        </ContentfulPreviewWrapper>
       </body>
     </html>
   );

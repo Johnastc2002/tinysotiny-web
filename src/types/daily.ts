@@ -9,6 +9,8 @@ export interface DailyMedia {
 
 export interface DailyData {
   id: string;
+  sys?: { id: string }; // For Contentful Live Preview
+  fields?: any; // For Contentful Live Preview raw data
   title: string;
   thumbnail: DailyMedia;
   description: string;

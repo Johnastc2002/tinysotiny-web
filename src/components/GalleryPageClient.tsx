@@ -1,5 +1,6 @@
 'use client';
 
+import { useContentfulLiveUpdates } from '@contentful/live-preview/react';
 import React, {
   useState,
   useRef,
@@ -12,6 +13,7 @@ import { Project, GridFilter, ContentfulMediaItem } from '@/types/project';
 import BubbleScene from '@/components/BubbleScene';
 import Link from 'next/link';
 import Image from 'next/image';
+import { mapProject } from '@/lib/mappers';
 import {
   getMoreNonFeaturedProjects,
   getFilteredProjectsAction,
@@ -90,6 +92,10 @@ function GalleryPageContent({
 
   // Full Project Details State
   const [fullProject, setFullProject] = useState<Project | null>(initialFullProject);
+  const updatedFullProjectRaw = useContentfulLiveUpdates(fullProject);
+  const updatedFullProject = updatedFullProjectRaw
+    ? mapProject(updatedFullProjectRaw)
+    : null;
   const [recommendedProject, setRecommendedProject] = useState<Project | null>(
     initialRecommendedProject,
   );
@@ -701,10 +707,10 @@ function GalleryPageContent({
               </svg>
             </button> */}
 
-            {overlayContainer && (
+            {overlayContainer && updatedFullProject && (
               <ProjectPageClient
-                key={fullProject.id} // Add key to force remount on project change
-                project={fullProject}
+                key={updatedFullProject.id} // Add key to force remount on project change
+                project={updatedFullProject}
                 recommendedProject={recommendedProject}
                 scrollContainerRef={{ current: overlayContainer }}
               />

@@ -1,5 +1,7 @@
 'use client';
 
+import { mapDaily } from '@/lib/mappers';
+import { useContentfulLiveUpdates } from '@contentful/live-preview/react';
 import React, {
   useRef,
   useEffect,
@@ -37,6 +39,10 @@ function DailyListContent({ initialItems, initialSelectedDaily = null }: DailyLi
 
   // Overlay state
   const [selectedDaily, setSelectedDaily] = useState<DailyData | null>(initialSelectedDaily);
+  const updatedSelectedDailyRaw = useContentfulLiveUpdates(selectedDaily);
+  const updatedSelectedDaily = updatedSelectedDailyRaw
+    ? mapDaily(updatedSelectedDailyRaw)
+    : null;
   const [overlayContainer, setOverlayContainer] = useState<HTMLElement | null>(
     null
   );
@@ -235,10 +241,10 @@ function DailyListContent({ initialItems, initialSelectedDaily = null }: DailyLi
               </svg>
             </button> */}
 
-            {overlayContainer && (
+            {overlayContainer && updatedSelectedDaily && (
               <HorizontalScroll
-                key={selectedDaily.id}
-                daily={selectedDaily}
+                key={updatedSelectedDaily.id}
+                daily={updatedSelectedDaily}
                 scrollContainerRef={{ current: overlayContainer }}
                 onClose={handleClose}
               />

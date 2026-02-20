@@ -23,6 +23,8 @@ export interface MediaRow {
 
 export interface Project {
   id: string;
+  sys?: { id: string }; // For Contentful Live Preview
+  fields?: any; // For Contentful Live Preview raw data
   title: string;
   clientName?: string;
   description: string;
