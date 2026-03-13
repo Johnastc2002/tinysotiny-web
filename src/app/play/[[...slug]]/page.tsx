@@ -69,7 +69,12 @@ export async function generateMetadata(
 
     const socialThumbnail = getSocialImageUrl(thumbnail);
 
-    const defaultImage = '/logo-url.png';
+    const defaultImage = {
+      url: '/logo-url.png',
+      width: 800,
+      height: 600,
+      alt: 'tinysotiny.co logo',
+    };
     const images = socialThumbnail
       ? [
           {
@@ -94,7 +99,7 @@ export async function generateMetadata(
         card: 'summary_large_image',
         title: project.title,
         description: project.description,
-        images: socialThumbnail ? [socialThumbnail] : [defaultImage],
+        images: images,
       },
     };
   }
