@@ -1,14 +1,15 @@
 import type { Metadata, Viewport } from 'next';
-import { Suspense } from 'react';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-import Navigation from '@/components/Navigation';
-import { getContact } from '@/lib/contentful';
-import { VideoProvider } from '@/context/VideoContext';
-import { CursorProvider } from '@/context/CursorContext';
-import GlobalCursor from '@/components/GlobalCursor';
-import ThemeColorManager from '@/components/ThemeColorManager';
-import ContentfulPreviewWrapper from '@/components/ContentfulPreviewProvider';
+import ComingSoon from '@/components/ComingSoon';
+// import { Suspense } from 'react';
+// import Navigation from '@/components/Navigation';
+// import { getContact } from '@/lib/contentful';
+// import { VideoProvider } from '@/context/VideoContext';
+// import { CursorProvider } from '@/context/CursorContext';
+// import GlobalCursor from '@/components/GlobalCursor';
+// import ThemeColorManager from '@/components/ThemeColorManager';
+// import ContentfulPreviewWrapper from '@/components/ContentfulPreviewProvider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -26,7 +27,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  themeColor: '#fcfcfc',
+  themeColor: '#efefef',
 };
 
 export const metadata: Metadata = {
@@ -73,20 +74,20 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
 };
 
-export const revalidate = 3600; // Revalidate every hour
+export const revalidate = 3600;
 
-export default async function RootLayout({
-  children,
+export default function RootLayout({
+  children: _children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const contact = await getContact();
-
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden`}
       >
+        <ComingSoon />
+        {/* Temporarily replaced — restore the block below to bring the site back:
         <ContentfulPreviewWrapper>
           <CursorProvider>
             <VideoProvider>
@@ -101,6 +102,7 @@ export default async function RootLayout({
             </VideoProvider>
           </CursorProvider>
         </ContentfulPreviewWrapper>
+        */}
       </body>
     </html>
   );
