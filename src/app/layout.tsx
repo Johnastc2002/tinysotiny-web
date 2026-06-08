@@ -85,9 +85,17 @@ export default async function RootLayout({
   const contact = await getContact();
 
   return (
-    <html lang="en">
+    <html lang="en" style={{ cursor: 'none' }}>
+      <head>
+        <style
+          dangerouslySetInnerHTML={{
+            __html: 'html,body,*,*::before,*::after{cursor:none!important}',
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden`}
+        style={{ cursor: 'none' }}
       >
         {/* Temporary maintenance page:
         <ComingSoon />
