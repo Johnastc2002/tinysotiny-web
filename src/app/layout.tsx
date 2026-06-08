@@ -8,6 +8,7 @@ import { getContact } from '@/lib/contentful';
 import { VideoProvider } from '@/context/VideoContext';
 import { CursorProvider } from '@/context/CursorContext';
 import GlobalCursor from '@/components/GlobalCursor';
+import NativeCursorHider from '@/components/NativeCursorHider';
 import ThemeColorManager from '@/components/ThemeColorManager';
 import ContentfulPreviewWrapper from '@/components/ContentfulPreviewProvider';
 
@@ -97,6 +98,7 @@ export default async function RootLayout({
               <Suspense fallback={null}>
                 <ThemeColorManager />
               </Suspense>
+              <NativeCursorHider />
               <GlobalCursor />
               <Suspense fallback={null}>
                 <Navigation contact={contact} />

@@ -2,43 +2,49 @@
 
 import { useEffect } from 'react';
 
+const STYLE_ID = 'native-cursor-hider-style';
+const HIDDEN = 'none';
+
 export default function NativeCursorHider() {
   useEffect(() => {
-    // Always inject the style, but wrap it in a media query to target devices with fine pointers (mouse)
-    // This avoids hiding the "cursor" on touch devices where it doesn't exist, 
-    // but ensures it's hidden on laptops/desktops even if they have touch capabilities.
-    
-    const addCursorStyle = () => {
-      const id = 'native-cursor-hider-style';
-      if (!document.getElementById(id)) {
-        const style = document.createElement('style');
-        style.id = id;
-        style.innerHTML = `
-          @media (pointer: fine) {
-            *, *::before, *::after {
-              cursor: none !important;
-            }
-            /* Restore cursor for text inputs so user can see where they are typing */
-            input, textarea, [contenteditable="true"] {
-              cursor: text !important;
-            }
-          }
-        `;
-        document.head.appendChild(style);
+    if (!document.getElementById(STYLE_ID)) {
+      const style = document.createElement('style');
+      style.id = STYLE_ID;
+      style.textContent = `html,body,*,*::before,*::after{cursor:${HIDDEN}!important}`;
+      document.head.appendChild(style);
+    }
+
+    const forceHide = (el: HTMLElement) => {
+      if (el.style.cursor && el.style.cursor !== HIDDEN) {
+        el.style.setProperty('cursor', HIDDEN, 'important');
       }
     };
 
-    const removeCursorStyle = () => {
-      const id = 'native-cursor-hider-style';
-      const style = document.getElementById(id);
-      if (style) style.remove();
-    };
+    forceHide(document.documentElement);
+    forceHide(document.body);
 
-    addCursorStyle();
+    const observer = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        if (
+          m.type === 'attributes' &&
+          m.attributeName === 'style' &&
+          m.target instanceof HTMLElement
+        ) {
+          const cur = m.target.style.cursor;
+          if (cur && cur !== HIDDEN) {
+            m.target.style.setProperty('cursor', HIDDEN, 'important');
+          }
+        }
+      }
+    });
 
-    return () => {
-      removeCursorStyle();
-    };
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+      subtree: true,
+    });
+
+    return () => observer.disconnect();
   }, []);
 
   return null;
