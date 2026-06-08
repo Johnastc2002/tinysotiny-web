@@ -9,16 +9,8 @@ import {
 } from '@contentful/rich-text-html-renderer';
 import { Document, INLINES } from '@contentful/rich-text-types';
 
-const optimizeUrl = (url: string, contentType?: string) => {
+const optimizeUrl = (url: string, _contentType?: string) => {
   if (!url) return '';
-  if (
-    contentType &&
-    contentType.startsWith('image/') &&
-    !contentType.includes('svg')
-  ) {
-    const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}w=2560&q=80`;
-  }
   return url;
 };
 
