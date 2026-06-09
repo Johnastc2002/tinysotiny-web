@@ -108,6 +108,7 @@ export default async function RootLayout({
               </Suspense>
               <NativeCursorHider />
               <GlobalCursor />
+
               <Suspense fallback={null}>
                 <Navigation contact={contact} />
               </Suspense>
