@@ -31,6 +31,8 @@ interface DetailCardProps {
   isOpen: boolean;
   basePath: string;
   onCardClick?: (id: string) => void;
+  /** Open without the entrance animation (e.g. restoring after back-navigation) */
+  instant?: boolean;
 }
 
 export default function DetailCard({
@@ -39,6 +41,7 @@ export default function DetailCard({
   isOpen,
   basePath,
   onCardClick,
+  instant = false,
 }: DetailCardProps) {
   const [isImageLoaded, setIsImageLoaded] = React.useState(false);
   const router = useRouter();
@@ -61,12 +64,20 @@ export default function DetailCard({
   // Reset loading state when data changes
   React.useEffect(() => {
     if (isOpen) {
+      // Instant restore (back-navigation from a project detail): the image
+      // was already shown before and sits in the browser cache — keep it
+      // visible instead of replaying the placeholder + fade-in (which looks
+      // like the card reloading).
+      if (instant) {
+        setIsImageLoaded(true);
+        return;
+      }
       setIsImageLoaded(false);
       // Safety timeout: force show image after 1s to prevent infinite loading state
       const timer = setTimeout(() => setIsImageLoaded(true), 1000);
       return () => clearTimeout(timer);
     }
-  }, [data?.id, isOpen]); // Only reset when ID changes or opens
+  }, [data?.id, isOpen, instant]); // Only reset when ID changes or opens
 
   const handleCardClick = () => {
     setCursor('default');
@@ -84,7 +95,7 @@ export default function DetailCard({
       <AnimatePresence>
         {isOpen && data && (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={instant ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] overflow-y-auto cursor-none"
@@ -97,7 +108,7 @@ export default function DetailCard({
             <div className="min-h-full flex items-center justify-center p-12 landscape:p-4 md:p-0">
               <motion.div
                 key={data.id} // Add key to force proper AnimatePresence behavior on ID change
-                initial={{ scale: 0.9, opacity: 0 }}
+                initial={instant ? false : { scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}

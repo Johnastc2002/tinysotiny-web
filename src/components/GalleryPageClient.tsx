@@ -8,7 +8,7 @@ import React, {
   Suspense,
   useCallback,
 } from 'react';
-import { useRouter, useSearchParams, usePathname, useParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Project, GridFilter, ContentfulMediaItem } from '@/types/project';
 import BubbleScene from '@/components/BubbleScene';
 import Link from 'next/link';
@@ -29,6 +29,22 @@ import { useCursor } from '@/context/CursorContext';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import SmartMedia from '@/components/SmartMedia';
 import CategorySVG from '@/components/CategorySVG';
+
+// ============================================================================
+// TOGGLE: unmount the WebGL bubble scene on mobile while a project detail
+// overlay is open.
+//
+//   true  -> frees GPU memory (textures, framebuffers) on memory-constrained
+//            devices while reading a project page; HOWEVER remounting on the
+//            way back recreates the WebGL context, which causes a visible
+//            flicker and (on Safari) occasional context-creation failures.
+//   false -> the scene stays mounted but paused (frameloop stops, so it costs
+//            ~no CPU/GPU time, only memory). No flicker on back-navigation.
+//
+// If tab crashes return on tablets/phones while browsing project details,
+// flip this back to true.
+// ============================================================================
+const UNMOUNT_BUBBLES_ON_MOBILE_OVERLAY = false;
 
 interface GalleryPageClientProps {
   initialFeaturedProjects: Project[];
@@ -60,8 +76,23 @@ function GalleryPageContent({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const params = useParams();
-  const slug = params?.slug as string[] | undefined;
+
+  // Derive the slug from the pathname instead of useParams so that shallow
+  // history.pushState navigations (which don't re-render the route, and so
+  // never remount this component) are still picked up. This is what lets a
+  // project detail open/close without resetting bubbles, card or scroll.
+  const galleryBasePath = `/${projectType}`;
+  const slug = React.useMemo<string[] | undefined>(() => {
+    if (!pathname || !pathname.startsWith(`${galleryBasePath}/`)) {
+      return undefined;
+    }
+    const parts = pathname
+      .slice(galleryBasePath.length + 1)
+      .split('/')
+      .filter(Boolean)
+      .map((part) => decodeURIComponent(part));
+    return parts.length > 0 ? parts : undefined;
+  }, [pathname, galleryBasePath]);
 
   // Initialize from URL/config so refresh and app defaults agree.
   const [viewMode, setViewMode] = useState<'dot' | 'grid'>(() => {
@@ -100,6 +131,11 @@ function GalleryPageContent({
 
   const [isIOS, setIsIOS] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
+  // When restoring the card after returning from a project detail page, skip
+  // the open animation — conceptually the card was open the whole time.
+  const restoreCardInstantly = useRef(false);
+  const [instantCard, setInstantCard] = useState(false);
 
   // Track if close was triggered manually to enable exit animation
   const isManualClose = useRef(false);
@@ -148,6 +184,18 @@ function GalleryPageContent({
     }
   }, [fullProject]);
 
+  // Wake the WebGL frameloop directly on back/forward navigation, BEFORE the
+  // restored page paints. Waiting for the normal effect chain (URL change ->
+  // fullProject null -> unpause) leaves the canvas a couple of frames behind
+  // the overlay removal, which shows as a brief flicker of the bubble page.
+  // If the navigation actually opens another project, the pause effect above
+  // simply re-pauses 400ms later.
+  useEffect(() => {
+    const wakeBubbles = () => setIsBubblePaused(false);
+    window.addEventListener('popstate', wakeBubbles);
+    return () => window.removeEventListener('popstate', wakeBubbles);
+  }, []);
+
   // Reset scroll on project change (handle Back/Forward navigation)
   useEffect(() => {
     if (overlayContainer) {
@@ -181,6 +229,8 @@ function GalleryPageContent({
         ];
         const proj = allProjects.find((p) => p.id === cardId);
         if (proj) {
+          setInstantCard(restoreCardInstantly.current);
+          restoreCardInstantly.current = false;
           setSelectedProject(proj);
         }
       }
@@ -200,17 +250,29 @@ function GalleryPageContent({
     filteredProjects,
   ]);
 
+  // While a full project view is open, flag that any card (re)open right
+  // after it closes is a back-navigation restore, not a fresh open.
+  // NOTE: must run after the card-sync effect above so the flag is consumed
+  // before it is reset.
+  useEffect(() => {
+    restoreCardInstantly.current = !!(slug?.[0] || searchParams.get('project'));
+  }, [slug, searchParams]);
+
   // Handle Project URL Param (Full Detail)
   useEffect(() => {
-    const projectId = searchParams.get('project');
-    const projectSlug = slug?.[0];
+    // The 'project' query param may hold a slug (in-app navigation) or a raw
+    // entry id (legacy links). It takes priority over the path slug so that
+    // in-app navigation works even from a hard-loaded /work/slug page.
+    const projectKey = searchParams.get('project') || slug?.[0];
 
-    if (projectSlug) {
-      // Slug based logic
+    if (projectKey) {
       isManualClose.current = false;
 
       // If we already have the correct project loaded (e.g. from server props), skip fetch
-      if (fullProject && fullProject.slug === projectSlug) {
+      if (
+        fullProject &&
+        (fullProject.slug === projectKey || fullProject.id === projectKey)
+      ) {
         // Just ensure recommended is loaded if missing
         if (!recommendedProject) {
            getRecommendedProjectAction(fullProject.id, projectType).then(setRecommendedProject);
@@ -220,28 +282,10 @@ function GalleryPageContent({
 
       const fetchProjectDetails = async () => {
         try {
-          const project = await getProjectBySlugAction(projectSlug);
-          if (project) {
-            setFullProject(project);
-            const recommended = await getRecommendedProjectAction(
-              project.id,
-              projectType,
-            );
-            setRecommendedProject(recommended);
+          let project = await getProjectBySlugAction(projectKey);
+          if (!project) {
+            project = await getProjectByIdAction(projectKey);
           }
-        } catch (error) {
-          console.error('Error fetching project details:', error);
-        }
-      };
-      fetchProjectDetails();
-    } else if (projectId) {
-      // Reset manual close ref when opening a project
-      isManualClose.current = false;
-
-      // Fetch full project details
-      const fetchProjectDetails = async () => {
-        try {
-          const project = await getProjectByIdAction(projectId);
           if (project) {
             setFullProject(project);
             const recommended = await getRecommendedProjectAction(
@@ -249,9 +293,6 @@ function GalleryPageContent({
               projectType,
             );
             setRecommendedProject(recommended);
-
-            // Lock body scroll
-            // document.body.style.overflow = 'hidden';
           }
         } catch (error) {
           console.error('Error fetching project details:', error);
@@ -277,9 +318,14 @@ function GalleryPageContent({
     const params = new URLSearchParams(searchParams.toString());
     let changed = false;
 
-    if (viewMode === 'grid') {
-      if (params.get('view') !== 'grid') {
-        params.set('view', 'grid');
+    // Only encode the view in the URL when it differs from the configured
+    // default. "No param" must always mean "default", otherwise navigating
+    // away and back (which remounts this component) silently resets a
+    // non-default mode (e.g. dot when default_grid is enabled).
+    const defaultMode = defaultGrid && showPlayGrid ? 'grid' : 'dot';
+    if (viewMode !== defaultMode) {
+      if (params.get('view') !== viewMode) {
+        params.set('view', viewMode);
         changed = true;
       }
     } else {
@@ -303,9 +349,12 @@ function GalleryPageContent({
     }
 
     if (changed) {
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      // replaceState keeps this shallow: router.replace would trigger a real
+      // route change (and remount the gallery) when the current URL is a
+      // detail slug that was pushed shallowly.
+      window.history.replaceState(null, '', `${pathname}?${params.toString()}`);
     }
-  }, [viewMode, appliedTags, pathname, router, searchParams]);
+  }, [viewMode, appliedTags, pathname, searchParams, defaultGrid, showPlayGrid]);
 
   // Map Project to DetailCardData
   const cardData: DetailCardData | null = selectedProject
@@ -358,27 +407,19 @@ function GalleryPageContent({
   };
 
   const updateUrlWithProject = (projectIdOrProject: string | Project) => {
-    if (typeof projectIdOrProject === 'string') {
-      // Keep preview card open (don't set null)
-      const params = new URLSearchParams(searchParams.toString());
-      // Keep card param if exists (don't delete)
+    // Open project details via a query param on the SAME pathname. Changing
+    // the path segment (/work/slug) would make Next.js swap the page segment
+    // and remount the whole gallery, resetting bubbles/card/scroll state.
+    // Pretty /work/slug URLs are still served for hard loads and links.
+    const key =
+      typeof projectIdOrProject === 'string'
+        ? projectIdOrProject
+        : projectIdOrProject.slug || projectIdOrProject.id;
 
-      params.set('project', projectIdOrProject);
-      router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    } else {
-      const project = projectIdOrProject;
-      const slug = project.slug;
-      const basePath = `/${projectType}`;
-      const newPath = `${basePath}/${slug}`;
-      
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete('project');
-      params.delete('card');
-      
-      const queryString = params.toString();
-      const url = queryString ? `${newPath}?${queryString}` : newPath;
-      router.push(url, { scroll: false });
-    }
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('card');
+    params.set('project', key);
+    window.history.pushState(null, '', `${pathname}?${params.toString()}`);
   };
 
   // Update URL when opening DetailCard (Bubble Click)
@@ -625,7 +666,11 @@ function GalleryPageContent({
             exit={
               isManualClose.current
                 ? { opacity: 0 }
-                : { opacity: 0, transition: { duration: 0 } }
+                : // Instant removal on back-navigation: a popstate listener
+                  // wakes the WebGL frameloop before this paint, so the
+                  // bubbles are already rendering when the overlay vanishes.
+                  // A fade here reads as a white flicker over the bubbles.
+                  { opacity: 0, transition: { duration: 0 } }
             }
             transition={{ duration: 0.3 }}
             className="fixed inset-0 z-50 bg-white overflow-y-auto"
@@ -885,6 +930,7 @@ function GalleryPageContent({
         isOpen={!!selectedProject && !searchParams.get('project') && !slug?.[0]}
         onClose={handleCloseCard}
         data={cardData}
+        instant={instantCard}
         basePath="/project"
         onCardClick={(id) => {
           const allProjects = [...initialFeaturedProjects, ...nonFeaturedProjects, ...(filteredProjects || [])];
@@ -906,11 +952,13 @@ function GalleryPageContent({
               : 'opacity-0 z-0 pointer-events-none'
           }`}
         >
-          {/* On mobile, fully unmount the WebGL scene while the project overlay
-              is open to release its GPU memory (textures), preventing tab
-              crashes. The 400ms-delayed isBubblePaused flag ensures the
-              opaque overlay already covers the screen when this unmounts. */}
-          {!(isMobile && isBubblePaused) && (
+          {/* See UNMOUNT_BUBBLES_ON_MOBILE_OVERLAY (top of file) for the
+              trade-off. When enabled, the WebGL scene is fully unmounted on
+              mobile while the project overlay is open to release GPU memory;
+              the 400ms-delayed isBubblePaused flag ensures the opaque overlay
+              already covers the screen when it unmounts. When disabled, the
+              scene stays mounted but paused — no flicker on back-navigation. */}
+          {!(UNMOUNT_BUBBLES_ON_MOBILE_OVERLAY && isMobile && isBubblePaused) && (
             <BubbleScene
               mode="gallery"
               projects={featuredProjects}
@@ -1038,6 +1086,29 @@ function ProjectCard({ project }: { project: Project }) {
         href={getHref()}
         scroll={false}
         className="block group transition-all duration-300 w-full h-full"
+        onClick={(e) => {
+          // Open via ?project= on the same pathname: a path change would make
+          // Next.js remount the gallery (losing scroll/pagination/bubbles).
+          // The slug href remains for SEO, new-tab and modified clicks.
+          if (
+            project.slug &&
+            e.button === 0 &&
+            !e.metaKey &&
+            !e.ctrlKey &&
+            !e.shiftKey &&
+            !e.altKey
+          ) {
+            e.preventDefault();
+            const params = new URLSearchParams(searchParams.toString());
+            params.delete('card');
+            params.set('project', project.slug);
+            window.history.pushState(
+              null,
+              '',
+              `${window.location.pathname}?${params.toString()}`,
+            );
+          }
+        }}
         onMouseEnter={() => setCursor('label')}
         onMouseLeave={() => setCursor('default')}
       >

@@ -702,7 +702,34 @@ export default function ProjectPageClient({
             <Link
               href={getRecommendedHref(recommendedProject)}
               scroll={false}
-              onClick={handleNextProject}
+              onClick={(e) => {
+                // Open via ?project= on the same pathname so the underlying
+                // gallery never remounts. Cross-type recommendations fall
+                // back to a normal Next.js navigation.
+                const type =
+                  recommendedProject.projectType === 'work' ? 'work' : 'play';
+                const currentBase = window.location.pathname.split('/')[1];
+                if (
+                  recommendedProject.slug &&
+                  currentBase === type &&
+                  e.button === 0 &&
+                  !e.metaKey &&
+                  !e.ctrlKey &&
+                  !e.shiftKey &&
+                  !e.altKey
+                ) {
+                  e.preventDefault();
+                  const params = new URLSearchParams(window.location.search);
+                  params.delete('card');
+                  params.set('project', recommendedProject.slug);
+                  window.history.pushState(
+                    null,
+                    '',
+                    `${window.location.pathname}?${params.toString()}`,
+                  );
+                }
+                handleNextProject();
+              }}
               onMouseEnter={() => setCursor('label')}
               onMouseLeave={() => setCursor('default')}
               style={{

@@ -21,6 +21,13 @@ import {
   RefractiveBubbleMaterial,
 } from './BubbleRefraction';
 
+// Cap a frame delta to a sane value (~1/30s). When the Canvas frameloop is
+// paused ('never') and later resumed, THREE's clock reports the entire pause
+// duration as a single delta, which would make every delta-integrated
+// animation (rotation, lerps, timers) jump wildly — most visibly after
+// returning from a project detail page via swipe-back.
+const clampDelta = (delta: number) => Math.min(delta, 1 / 30);
+
 const createRNG = (seed: number) => {
   let s = seed % 2147483647;
   if (s <= 0) s += 2147483646;
@@ -335,8 +342,10 @@ const Bubble = ({
     if (enableExplosion && groupRef.current && startExplosion) {
       // Lerp towards target
       // Adjust speed for "explosion" feel - start fast, slow down
+      // (clamped delta: an unclamped post-pause delta makes the lerp alpha
+      // exceed 1 and overshoot the target position)
       const speed = 3;
-      currentPosition.lerp(targetPosition, delta * speed);
+      currentPosition.lerp(targetPosition, Math.min(clampDelta(delta) * speed, 1));
       groupRef.current.position.copy(currentPosition);
     }
   });
@@ -596,7 +605,7 @@ const ImageBubble = ({
         materialRef.current.opacity = THREE.MathUtils.lerp(
           materialRef.current.opacity,
           1,
-          delta * 2,
+          clampDelta(delta) * 2,
         );
         if (materialRef.current.opacity > 0.99) {
           materialRef.current.opacity = 1;
@@ -708,7 +717,10 @@ const ImageBubble = ({
                 // Feather OUTSIDE the original radius
                 if (dist > originalRadius) {
                    // Map dist from [originalRadius, originalRadius + uFeather] to [1, 0]
-                   float featherWidth = max(uFeather, 0.0001);
+                   // Minimum width of ~1.5 screen pixels (fwidth) so the edge is
+                   // anti-aliased even when uFeather is 0 (MSAA can't smooth
+                   // shader alpha cutoffs).
+                   float featherWidth = max(uFeather, fwidth(dist) * 1.5);
                    alpha = 1.0 - smoothstep(originalRadius, originalRadius + featherWidth, dist);
                 }
                 
@@ -771,7 +783,8 @@ const ImageBubble = ({
                    
                    // Feather logic for overlay
                    if (dist > originalRadius) {
-                      float featherWidth = max(uFeather, 0.0001);
+                      // Screen-pixel minimum width keeps the cutoff anti-aliased
+                      float featherWidth = max(uFeather, fwidth(dist) * 1.5);
                       float featherFactor = 1.0 - smoothstep(originalRadius, originalRadius + featherWidth, dist);
                       alpha *= featherFactor;
                    }
@@ -861,7 +874,8 @@ const ColorBubble = ({
   useFrame((state, delta) => {
     if (isGrey && meshRef.current) {
       const fs = fadeState.current;
-      fs.timer += delta;
+      // clamped so the fade state doesn't jump after a paused frameloop resumes
+      fs.timer += clampDelta(delta);
 
       if (fs.timer >= fs.duration) {
         fs.visible = !fs.visible;
@@ -873,7 +887,7 @@ const ColorBubble = ({
       fs.currentOpacity = THREE.MathUtils.lerp(
         fs.currentOpacity,
         target,
-        delta * 2.0,
+        clampDelta(delta) * 2.0,
       );
 
       const mat = meshRef.current.material as THREE.Material;
@@ -964,7 +978,9 @@ const ColorBubble = ({
       
       // Feather logic
       // We want to feather the edge.
-      float featherWidth = max(uFeather, 0.0001);
+      // Minimum width of ~1.5 screen pixels (fwidth) keeps the edge
+      // anti-aliased even when uFeather is 0.
+      float featherWidth = max(uFeather, fwidth(dist) * 1.5);
       // smoothstep from (radius - feather) to radius?
       // If we want soft edge within the circle:
       alphaFeather = 1.0 - smoothstep(originalRadius - featherWidth, originalRadius, dist);
@@ -1092,7 +1108,12 @@ const RotatingGroup = ({
   useFrame((state, delta) => {
     if (ref.current) {
       if (isDraggingRef?.current) return;
-      ref.current.rotation.y += delta * speed;
+      // Clamp delta: while the scene is paused (frameloop 'never' during a
+      // project detail view) the clock keeps counting wall time, so the first
+      // frame after resuming gets a delta of the WHOLE pause duration —
+      // teleporting the rotation far from where the iOS swipe-back snapshot
+      // shows it. Clamping makes the scene resume exactly where it paused.
+      ref.current.rotation.y += clampDelta(delta) * speed;
     }
   });
   return <group ref={ref}>{children}</group>;
@@ -1470,15 +1491,23 @@ export default function BubbleScene({
   };
 
   // Memory-sensitive GL setup: no preserveDrawingBuffer (doubles framebuffer
-  // memory on Safari) and no MSAA on touch devices, where GPU memory pressure
-  // is what crashes tabs (iPhone/iPad).
+  // memory on Safari). MSAA stays on everywhere; without it the bubble edges
+  // alias badly, and combined with the lower dpr cap on touch devices it is
+  // still much cheaper than the previous preserved 2x framebuffer.
+  //
+  // alpha is always true: with an opaque (alpha:false) canvas, Safari shows
+  // BLACK when it discards a paused canvas's backing buffer (e.g. while a
+  // project detail is open) until the next frame renders. With alpha:true the
+  // same situation shows the page background instead, which is invisible.
+  // Rendered output is unchanged — the scene clears with an opaque
+  // background color unless `transparent` is requested.
   const glConfig = useMemo(
     () => ({
-      antialias: !isMobile,
+      antialias: true,
       toneMapping: THREE.NoToneMapping,
-      alpha: transparent,
+      alpha: true,
     }),
-    [transparent, isMobile],
+    [],
   );
 
   // If Safari evicts our WebGL context (memory pressure or context churn from

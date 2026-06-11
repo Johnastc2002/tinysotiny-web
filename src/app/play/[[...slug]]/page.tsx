@@ -45,7 +45,11 @@ export async function generateMetadata(
   if (slug && slug[0]) {
     project = await getProjectBySlug(slug[0]);
   } else if (typeof projectId === 'string') {
-    project = await getProjectById(projectId);
+    // The project param may hold a slug (in-app navigation) or an entry id
+    project = await getProjectBySlug(projectId);
+    if (!project) {
+      project = await getProjectById(projectId);
+    }
   }
 
   if (project) {
@@ -125,7 +129,11 @@ export default async function Play({ params, searchParams }: Props) {
   if (slug && slug[0]) {
     initialFullProject = await getProjectBySlug(slug[0]);
   } else if (typeof projectId === 'string') {
-    initialFullProject = await getProjectById(projectId);
+    // The project param may hold a slug (in-app navigation) or an entry id
+    initialFullProject = await getProjectBySlug(projectId);
+    if (!initialFullProject) {
+      initialFullProject = await getProjectById(projectId);
+    }
   }
 
   if (initialFullProject) {
