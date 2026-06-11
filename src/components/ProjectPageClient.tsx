@@ -128,7 +128,7 @@ export default function ProjectPageClient({
             alt={`${project.title} Banner`}
             fill
             className="object-cover"
-            sizes="100vw"
+            sizes="2560px"
           />
         )}
         <div className="absolute bottom-4 left-4 z-10 text-[7px] md:text-[9px] font-['Value_Serif'] font-medium text-[#0F2341]">
@@ -173,7 +173,6 @@ export default function ProjectPageClient({
                           alt={project.title}
                           fill
                           className="object-cover"
-                          sizes="60vw"
                         />
                       )}
                       <div className="absolute bottom-4 left-4 z-10 text-[7px] md:text-[9px] font-['Value_Serif'] font-medium text-[#0F2341]">
@@ -417,8 +416,9 @@ export default function ProjectPageClient({
                   url={project.banners[1]}
                   type="image"
                   alt={`${project.title} banner 2`}
-                  width={1200}
-                  height={800}
+                  width={2560}
+                  height={1707}
+                  sizes="2560px"
                   className="w-full h-auto object-contain"
                 />
               </div>
@@ -433,8 +433,9 @@ export default function ProjectPageClient({
                       url={banner}
                       type="image"
                       alt={`${project.title} banner ${index + 3}`}
-                      width={1200}
-                      height={800}
+                      width={2560}
+                      height={1707}
+                      sizes="2560px"
                       className="w-full h-auto object-contain"
                     />
                   </div>
