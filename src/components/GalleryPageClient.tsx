@@ -616,22 +616,6 @@ function GalleryPageContent({
         </div>
       )}
 
-      <DetailCard
-        isOpen={!!selectedProject && !searchParams.get('project') && !slug?.[0]}
-        onClose={handleCloseCard}
-        data={cardData}
-        basePath="/project"
-        onCardClick={(id) => {
-          const allProjects = [...initialFeaturedProjects, ...nonFeaturedProjects, ...(filteredProjects || [])];
-          const project = allProjects.find(p => p.id === id);
-          if (project) {
-            updateUrlWithProject(project);
-          } else {
-            updateUrlWithProject(id);
-          }
-        }}
-      />
-
       {/* Full Project Overlay */}
       <AnimatePresence mode="wait">
         {fullProject && (searchParams.get('project') || slug?.[0]) && (

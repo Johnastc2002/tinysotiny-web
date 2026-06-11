@@ -70,10 +70,16 @@ interface BubbleData {
 
 // Bubbles render small on screen, so cap texture downloads well below the
 // 2560px asset default to keep GPU memory usage in check (esp. on mobile).
+// Touch devices get an even lower cap: an 800px texture is visually
+// indistinguishable at bubble sizes but uses ~2.25x less GPU memory than 1200px.
+const isTouchDevice = () =>
+  typeof window !== 'undefined' &&
+  ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
 const clampTextureUrl = (url: string) => {
   try {
     const clamped = new URL(url);
-    clamped.searchParams.set('w', '1200');
+    clamped.searchParams.set('w', isTouchDevice() ? '800' : '1200');
     return clamped.toString();
   } catch {
     return url;
@@ -1463,14 +1469,33 @@ export default function BubbleScene({
     setShowWelcomeVideo(false);
   };
 
+  // Memory-sensitive GL setup: no preserveDrawingBuffer (doubles framebuffer
+  // memory on Safari) and no MSAA on touch devices, where GPU memory pressure
+  // is what crashes tabs (iPhone/iPad).
   const glConfig = useMemo(
     () => ({
-      antialias: true,
+      antialias: !isMobile,
       toneMapping: THREE.NoToneMapping,
       alpha: transparent,
-      preserveDrawingBuffer: true,
     }),
-    [transparent],
+    [transparent, isMobile],
+  );
+
+  // If Safari evicts our WebGL context (memory pressure or context churn from
+  // mount/unmount cycles), remount the Canvas instead of staying blank forever.
+  const [canvasKey, setCanvasKey] = useState(0);
+  const handleCanvasCreated = React.useCallback(
+    ({ gl }: { gl: THREE.WebGLRenderer }) => {
+      const canvas = gl.domElement;
+      const onContextLost = (event: Event) => {
+        event.preventDefault();
+        // Delay slightly so the browser can actually release the lost context
+        // before we ask for a new one.
+        setTimeout(() => setCanvasKey((k) => k + 1), 500);
+      };
+      canvas.addEventListener('webglcontextlost', onContextLost);
+    },
+    [],
   );
 
   // Reset cursor when navigating away or component unmounts
@@ -1488,9 +1513,12 @@ export default function BubbleScene({
         )}
       </AnimatePresence>
       <Canvas
+        key={canvasKey}
         frameloop={paused ? 'never' : 'always'}
         camera={{ position: [0, 0, 20], fov: 50 }}
         gl={glConfig}
+        dpr={isMobile ? [1, 1.5] : [1, 2]}
+        onCreated={handleCanvasCreated}
       >
         <ambientLight intensity={3} />
         <pointLight position={[10, 10, 10]} intensity={2} />

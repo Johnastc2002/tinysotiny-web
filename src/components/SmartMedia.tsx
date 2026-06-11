@@ -130,7 +130,14 @@ export default function SmartMedia({
       padding: 8,
     },
   });
-  const [shouldLoad, setShouldLoad] = useState(type !== 'vimeo'); // Default to load non-vimeo
+  // Images rely on next/image native lazy-loading; video/vimeo are gated on
+  // viewport proximity to avoid spinning up many decoders at once (iPad Safari
+  // kills the tab when too much video memory is held).
+  const [shouldLoad, setShouldLoad] = useState(type === 'image' || priority);
+  const [isNearViewport, setIsNearViewport] = useState(false);
+  // Looping muted autoplay videos are decorative: safe to fully unload when
+  // offscreen since they restart seamlessly.
+  const isDecorativeLoop = type === 'video' && autoplay && mute;
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [videoActivated, setVideoActivated] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
@@ -183,32 +190,60 @@ export default function SmartMedia({
     : mediaClassName;
 
   useEffect(() => {
-    // If not vimeo, ensure loaded immediately (in effect to avoid hydration mismatch if state differed)
-    if (type !== 'vimeo') {
-      setTimeout(() => setShouldLoad(true), 0);
-      return;
-    }
+    // Images use next/image native lazy loading; no observer needed.
+    if (type === 'image') return;
 
-    if (shouldLoad) return;
+    const node = containerRef.current;
+    if (!node) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
+          setIsNearViewport(entry.isIntersecting);
           if (entry.isIntersecting) {
             setShouldLoad(true);
-            observer.disconnect();
           }
         });
       },
-      { rootMargin: '200px' }
+      { rootMargin: '300px' }
     );
 
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [type]);
+
+  // Release offscreen video resources. Decorative loops are unmounted entirely
+  // (they restart seamlessly); user-controlled videos are just paused so they
+  // keep their playback position.
+  useEffect(() => {
+    if (isNearViewport || priority) return;
+
+    if (isDecorativeLoop) {
+      if (shouldLoad) {
+        setShouldLoad(false);
+        setIsLoaded(false);
+      }
+      return;
     }
 
-    return () => observer.disconnect();
-  }, [type, shouldLoad]);
+    if (type === 'video' && videoRef.current && !videoRef.current.paused) {
+      videoRef.current.pause();
+      if (activeVideoId === id) pauseVideo();
+    } else if (type === 'vimeo' && vimeoPlayerRef.current && isPlaying) {
+      vimeoPlayerRef.current.pause();
+      if (activeVideoId === id) pauseVideo();
+    }
+  }, [
+    isNearViewport,
+    priority,
+    isDecorativeLoop,
+    shouldLoad,
+    type,
+    isPlaying,
+    activeVideoId,
+    id,
+    pauseVideo,
+  ]);
 
   useEffect(() => {
     if (type === 'vimeo' && shouldLoad && !thumbnailUrl && !videoActivated) {
@@ -260,13 +295,13 @@ export default function SmartMedia({
   useEffect(() => {
     // Only apply fallback for HTML5 video.
     // For Vimeo, we rely on the 'loaded' event or safety timer.
-    if (type === 'video') {
+    if (type === 'video' && shouldLoad) {
       const timer = setTimeout(() => {
         setLoaded();
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [type, setLoaded]);
+  }, [type, shouldLoad, setLoaded]);
 
   const updateIframeDimensions = React.useCallback(
     (videoW: number, videoH: number) => {
@@ -1135,31 +1170,33 @@ export default function SmartMedia({
         className={`${wrapperClasses} bg-[#b6b6b6] overflow-hidden cursor-none group`}
         onClick={toggleVideo}
       >
-        <video
-          ref={videoRef}
-          src={videoSrc}
-          className={`w-full h-full object-cover transition-opacity duration-1500 ease-in-out ${activeClassName.replace(
-            'hover:',
-            'group-hover:'
-          )} ${activeMediaClassName || ''} ${
-            isLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-          style={{ objectFit: 'cover' }}
-          loop
-          playsInline
-          autoPlay={autoplay}
-          muted={mute}
-          controls={false}
-          preload="auto"
-          onLoadedMetadata={() => setIsLoaded(true)}
-          onLoadedData={() => setIsLoaded(true)}
-          onCanPlay={() => setIsLoaded(true)}
-          onPlay={() => {
-            setIsPlaying(true);
-            setHasStarted(true);
-          }}
-          onPause={() => setIsPlaying(false)}
-        />
+        {shouldLoad && (
+          <video
+            ref={videoRef}
+            src={videoSrc}
+            className={`w-full h-full object-cover transition-opacity duration-1500 ease-in-out ${activeClassName.replace(
+              'hover:',
+              'group-hover:'
+            )} ${activeMediaClassName || ''} ${
+              isLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{ objectFit: 'cover' }}
+            loop
+            playsInline
+            autoPlay={autoplay}
+            muted={mute}
+            controls={false}
+            preload={autoplay ? 'auto' : 'metadata'}
+            onLoadedMetadata={() => setIsLoaded(true)}
+            onLoadedData={() => setIsLoaded(true)}
+            onCanPlay={() => setIsLoaded(true)}
+            onPlay={() => {
+              setIsPlaying(true);
+              setHasStarted(true);
+            }}
+            onPause={() => setIsPlaying(false)}
+          />
+        )}
 
         {/* Play/Pause Overlay */}
         {!hideOverlay && (
