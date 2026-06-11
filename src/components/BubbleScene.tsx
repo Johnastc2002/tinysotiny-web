@@ -579,7 +579,7 @@ const ImageBubble = ({
     });
   }, [defaultTexture, hoverTexture]);
 
-  const [floatSpeed] = useState(() => (1.5 + Math.random()) * 0.25);
+  const [floatSpeed] = useState(() => (1.5 + Math.random()) * 0.2625);
   const [floatIntensity] = useState(() => 0.5 + Math.random() * 0.5);
 
   const materialRef = useRef<THREE.MeshBasicMaterial>(null);
@@ -816,7 +816,7 @@ const ColorBubble = ({
   isHovered?: boolean;
   isRefractive?: boolean;
 }) => {
-  const [floatSpeed] = useState(() => (1.5 + Math.random()) * 0.25);
+  const [floatSpeed] = useState(() => (1.5 + Math.random()) * 0.2625);
   const [floatIntensity] = useState(() => 0.5 + Math.random() * 0.5);
 
   const { camera } = useThree();

@@ -192,7 +192,7 @@ export default function ProjectPageClient({
                       >
                         <div className="flex-1 flex flex-col justify-center">
                           {project.clientName && (
-                            <div className="mb-4">
+                            <div className="mb-10">
                               <span
                                 className={`text-sm font-semibold uppercase tracking-wider ${
                                   !cardFontColor ? 'text-gray-500' : ''
@@ -218,7 +218,7 @@ export default function ProjectPageClient({
                           <h2
                             data-contentful-field-id="title"
                             data-contentful-entry-id={project.id}
-                            className={`mb-4 text-4xl font-['Value_Serif'] font-medium leading-tight ${
+                            className={`mb-[14px] text-4xl font-['Value_Serif'] font-medium leading-[1.2] ${
                               !cardFontColor ? 'text-[#0F2341]' : ''
                             }`}
                             style={
@@ -230,7 +230,7 @@ export default function ProjectPageClient({
                           <p
                             data-contentful-field-id="description"
                             data-contentful-entry-id={project.id}
-                            className={`text-sm leading-relaxed max-w-md font-['Value_Sans'] font-normal ${
+                            className={`text-sm leading-[1.4] max-w-xl font-['Value_Sans'] font-normal ${
                               !cardFontColor ? 'text-[#0F2341]' : ''
                             }`}
                             style={
@@ -286,7 +286,7 @@ export default function ProjectPageClient({
                             />
                           </div>
                         ) : (
-                          <ul className="space-y-3">
+                          <ul className="flex flex-wrap gap-x-4 gap-y-2">
                             {project.tags.map((tag, tagIndex) => (
                               <li
                                 key={tagIndex}
@@ -316,7 +316,9 @@ export default function ProjectPageClient({
 
         {/* Mobile Layout */}
         <div className="md:hidden w-full pt-[70vh]">
-          <div className="bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] relative z-20">
+          {/* Negative spread keeps the elevation shadow on the top edge only,
+              so no gray band bleeds onto the gallery section below */}
+          <div className="bg-white rounded-t-3xl shadow-[0_-20px_40px_-20px_rgba(0,0,0,0.15)] relative z-20">
             {/* 1. Info Block (Title, Description) */}
             <div
               className="px-8 pt-10 pb-8 transition-colors duration-300 rounded-t-3xl"
@@ -325,7 +327,7 @@ export default function ProjectPageClient({
               }}
             >
               {project.clientName ? (
-                <div className="mb-4">
+                <div className="mb-6">
                   <span
                     className={`text-xs font-semibold uppercase tracking-wider ${
                       !cardFontColor ? 'text-gray-500' : ''
@@ -351,7 +353,7 @@ export default function ProjectPageClient({
                     {project.tags.map((tag, tagIndex) => (
                       <li
                         key={tagIndex}
-                        className={`flex items-center leading-none text-xs font-['Value_Sans'] font-normal uppercase tracking-wide ${
+                        className={`flex items-center leading-normal text-xs font-['Value_Sans'] font-normal uppercase tracking-wide ${
                           !cardTagColor ? 'text-[#B6B6B6]' : ''
                         }`}
                         style={cardTagColor ? { color: cardTagColor } : {}}
@@ -364,7 +366,7 @@ export default function ProjectPageClient({
                 </div>
               )}
               <h1
-                className={`text-4xl font-['Value_Serif'] font-medium leading-tight mb-6 ${
+                className={`text-4xl font-['Value_Serif'] font-medium leading-[1.2] mb-[18px] ${
                   !cardFontColor ? 'text-[#0F2341]' : ''
                 }`}
                 style={cardFontColor ? { color: cardFontColor } : {}}
@@ -372,7 +374,7 @@ export default function ProjectPageClient({
                 {project.title}
               </h1>
               <p
-                className={`text-base leading-relaxed mb-0 font-['Value_Sans'] font-normal ${
+                className={`text-base leading-[1.4] mb-0 font-['Value_Sans'] font-normal ${
                   !cardFontColor ? 'text-[#0F2341]' : ''
                 }`}
                 style={
@@ -386,7 +388,7 @@ export default function ProjectPageClient({
             {/* Tags (Only if Client Name exists, otherwise they are shown above) */}
             {project.clientName && (
               <div
-                className="px-8 pt-4 pb-10 transition-colors duration-300"
+                className="px-8 pt-0 pb-10 transition-colors duration-300"
                 style={{
                   backgroundColor: cardBgColor || '#E5E5E5',
                 }}
@@ -395,7 +397,7 @@ export default function ProjectPageClient({
                   {project.tags.map((tag, tagIndex) => (
                     <li
                       key={tagIndex}
-                      className={`flex items-center leading-none text-xs font-['Value_Sans'] font-normal uppercase tracking-wide ${
+                      className={`flex items-center leading-normal text-xs font-['Value_Sans'] font-normal uppercase tracking-wide ${
                         !cardTagColor ? 'text-[#B6B6B6]' : ''
                       }`}
                       style={cardTagColor ? { color: cardTagColor } : {}}
@@ -410,7 +412,7 @@ export default function ProjectPageClient({
 
             {/* 2. Banner 2 (Full Width) */}
             {project.banners.length > 1 && (
-              <div className="w-full relative bg-[#f8f8f8]">
+              <div className="w-full relative bg-white">
                 <SmartMedia
                   url={project.banners[1]}
                   type="image"
@@ -426,7 +428,7 @@ export default function ProjectPageClient({
             {project.banners.length > 2 && (
               <div className="flex flex-col">
                 {project.banners.slice(2).map((banner, index) => (
-                  <div key={index} className="w-full relative bg-[#f8f8f8]">
+                  <div key={index} className="w-full relative bg-white">
                     <SmartMedia
                       url={banner}
                       type="image"
@@ -448,14 +450,14 @@ export default function ProjectPageClient({
               {/* Optional: Repeat Title or just show Cast */}
               {project.cast && (
                 <div
-                  className="text-base text-[#0F2341] leading-relaxed whitespace-pre-line font-['Value_Sans'] font-normal"
+                  className="text-base text-[#0F2341] leading-[1.4] whitespace-pre-line font-['Value_Sans'] font-normal"
                   dangerouslySetInnerHTML={{ __html: project.cast }}
                 />
               )}
             </div>
 
             {/* Client & Services Section (Mobile) */}
-            <div className="px-8 pt-12 bg-[#f8f8f8] relative">
+            <div className="px-8 pt-12 bg-white relative">
               <div className="absolute inset-0 z-0 pointer-events-none">
                 {project.detail_category && (
                   <CategorySVG category={project.detail_category} />
@@ -465,7 +467,7 @@ export default function ProjectPageClient({
                 {/* Client Section */}
                 {project.clientName && (
                   <div>
-                    <span className="text-sm font-semibold uppercase tracking-wider text-[#B6B6B6] block mb-1">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[#B6B6B6] block mb-2">
                       <span className="font-['Value_Sans'] font-normal">
                         CLIENT
                       </span>
@@ -518,7 +520,7 @@ export default function ProjectPageClient({
                 <h1
                   data-contentful-field-id="title"
                   data-contentful-entry-id={project.id}
-                  className="text-5xl md:text-7xl font-['Value_Serif'] font-medium text-[#0F2341] leading-tight mb-8"
+                  className="text-5xl md:text-[60px] font-['Value_Serif'] font-medium text-[#0F2341] leading-[1.2] mb-8"
                 >
                   {project.title}
                 </h1>
@@ -527,7 +529,7 @@ export default function ProjectPageClient({
                 <div
                   data-contentful-field-id="cast"
                   data-contentful-entry-id={project.id}
-                  className={`text-lg text-[#0F2341] leading-relaxed whitespace-pre-line font-['Value_Sans'] font-normal [&>p:last-child]:mb-0 [&>p]:mb-4 ${
+                  className={`text-base text-[#0F2341] leading-[1.4] whitespace-pre-line font-['Value_Sans'] font-normal [&>p:last-child]:mb-0 [&>p]:mb-4 ${
                     !isMobile ? 'desktop-rich-text' : ''
                   }`}
                   dangerouslySetInnerHTML={{ __html: project.cast }}
@@ -585,7 +587,7 @@ export default function ProjectPageClient({
         {/* Gray Background Section for Gallery */}
         {project.media_rows.length > 0 && (
           <div
-            className={`w-full pt-12 px-8 md:pt-40 md:px-24 mt-0 md:-mt-24 z-10 relative bg-[#f8f8f8] md:bg-transparent ${
+            className={`w-full pt-12 px-8 md:pt-40 md:px-24 mt-0 md:-mt-24 z-10 relative bg-white md:bg-transparent ${
               project.media_rows.length <= 3 ? 'pb-0' : 'pb-12 md:pb-20'
             }`}
           >
@@ -670,13 +672,13 @@ export default function ProjectPageClient({
                           viewport={{ once: true }}
                           className="w-full pb-16 flex flex-col md:flex-row relative overflow-hidden"
                         >
-                          <div className="w-full md:w-1/2 relative z-10">
-                            <p className="text-lg text-gray-700 leading-relaxed max-w-full text-left font-['Value_Sans'] font-medium wrap-break-word whitespace-pre-wrap">
+                          <div className="w-full md:w-3/4 relative z-10">
+                            <p className="text-[22px] md:text-[32px] text-gray-700 leading-[1.4] max-w-full text-left font-['Value_Sans'] font-medium wrap-break-word whitespace-pre-wrap">
                               {project.description_2}
                             </p>
                           </div>
                           {project.detail_category_2 && (
-                            <div className="absolute inset-0 md:static md:w-1/2 z-0 md:z-auto flex items-center justify-center">
+                            <div className="absolute inset-0 md:static md:w-1/4 z-0 md:z-auto flex items-center justify-center">
                               <CategorySVG
                                 category={project.detail_category_2}
                                 className="w-full h-full opacity-100"
@@ -695,7 +697,7 @@ export default function ProjectPageClient({
 
         {/* Recommended Project Section */}
         {recommendedProject && (
-          <div className="w-full px-4 pt-8 md:px-8 z-10 relative mt-0 bg-[#f8f8f8] md:bg-transparent pb-0">
+          <div className="w-full px-4 pt-8 md:px-8 z-10 relative mt-0 bg-white md:bg-transparent pb-0">
             <Link
               href={getRecommendedHref(recommendedProject)}
               scroll={false}
@@ -709,9 +711,9 @@ export default function ProjectPageClient({
               className="block w-full rounded-t-3xl p-12 md:p-24 transition-all duration-300 group cursor-none hover:brightness-95"
             >
               <div className="flex flex-col items-start">
-                <div className="flex items-center space-x-2 mb-6 opacity-80 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center space-x-2 mb-2 md:mb-6 opacity-80 group-hover:opacity-100 transition-opacity">
                   <span
-                    className="text-sm tracking-widest uppercase font-['Value_Sans'] font-normal leading-none"
+                    className="text-xs md:text-sm tracking-widest uppercase font-['Value_Sans'] font-normal leading-none"
                     style={{
                       color: nextCardTagColor || '#B6B6B6',
                     }}
@@ -739,7 +741,7 @@ export default function ProjectPageClient({
                   </svg>
                 </div>
                 <h3
-                  className="text-4xl md:text-6xl font-['Value_Serif'] font-medium leading-tight max-w-4xl"
+                  className="text-2xl md:text-[32px] font-['Value_Serif'] font-medium leading-tight max-w-4xl"
                   style={{
                     color: nextCardFontColor || '#0F2341',
                   }}

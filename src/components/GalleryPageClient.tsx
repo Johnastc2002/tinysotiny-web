@@ -936,7 +936,7 @@ function GalleryPageContent({
               onOpenCard={handleOpenCard}
               enableBlur={false}
               paused={isBubblePaused}
-              rotationSpeed={0.01}
+              rotationSpeed={0.0105}
               zoomSpeed={0.5}
             />
           )}
@@ -953,7 +953,7 @@ function GalleryPageContent({
           }`}
         >
           <div
-            className="w-full min-h-full px-2 md:px-12 pb-32"
+            className="w-full min-h-full px-5 md:px-12 pb-32"
             style={{
               paddingTop: 'calc(6rem + env(safe-area-inset-top, 0px))',
             }}
@@ -977,7 +977,7 @@ function GalleryPageContent({
         {/* Random Category Overlay */}
         {viewMode === 'grid' && randomCategory && (
           <div className="fixed inset-0 z-20 pointer-events-none flex justify-center">
-            <div className="w-full max-w-7xl px-2 md:px-12 pt-24">
+            <div className="w-full max-w-7xl px-5 md:px-12 pt-24">
               <div className="relative w-full h-full">
                 <div
                   className={`absolute top-0 ${

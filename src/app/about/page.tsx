@@ -19,10 +19,7 @@ export default async function About() {
     <div className="relative w-full min-h-[100dvh] bg-[#fcfcfc] overflow-hidden">
       <div className="fixed inset-0 w-full h-[100dvh] overflow-y-auto z-30 bg-[#fcfcfc]">
         <main
-          className="mx-auto max-w-7xl min-h-full px-8 md:px-16 pl-[calc(2rem+env(safe-area-inset-left))] pr-[calc(2rem+env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)]"
-          style={{
-            paddingTop: 'calc(6rem + env(safe-area-inset-top, 0px))',
-          }}
+          className="mx-auto max-w-7xl min-h-full px-8 md:px-16 pl-[calc(2rem+env(safe-area-inset-left))] pr-[calc(2rem+env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)] pt-[calc(6rem+100px+env(safe-area-inset-top,0px))] md:pt-[calc(6rem+200px+env(safe-area-inset-top,0px))]"
         >
         {/* Header Label */}
         <div className="mb-12 text-sm font-['Value_Sans'] font-normal tracking-widest text-[#B6B6B6] uppercase">
@@ -30,14 +27,14 @@ export default async function About() {
           <span className="font-['Value_Serif'] font-medium">About Us</span>
         </div>
 
-        <div className="grid gap-16 md:grid-cols-12 md:gap-8">
+        <div className="grid gap-6 md:grid-cols-12 md:gap-8">
           {/* Main Title Section */}
           <div className="md:col-span-9">
             <SloganHover
               slogan={aboutUs?.slogan || ''}
               images={aboutUs?.sloganImages}
             />
-            <p className="max-w-xl text-base leading-relaxed text-[#0F2341] md:text-lg font-['Value_Sans'] font-normal">
+            <p className="max-w-xl text-base leading-[1.4] text-[#0F2341] font-['Value_Sans'] font-normal">
               {aboutUs?.firstParagraph}
             </p>
           </div>
@@ -48,20 +45,20 @@ export default async function About() {
           <div className="hidden md:col-span-5 md:block h-32 md:h-0"></div>
 
           {/* Secondary Content Section */}
-          <div className="md:col-span-7 md:pr-16 pl-6 md:pl-0 mt-8 md:mt-16">
-            <h2 className="mb-6 font-['Value_Sans'] font-medium italic text-2xl text-[#0F2341] md:text-3xl">
+          <div className="md:col-span-7 md:pr-16 mt-8 md:mt-16">
+            <h2 className="mb-2 md:mb-4 font-['Value_Sans'] font-medium italic text-2xl text-[#0F2341] md:text-3xl">
               {aboutUs?.header}
             </h2>
-            <p className="mb-12 max-w-2xl text-sm leading-relaxed text-[#0F2341] md:text-base font-['Value_Sans'] font-normal">
+            <p className="mb-[30px] max-w-2xl text-base leading-[1.4] text-[#0F2341] font-['Value_Sans'] font-normal">
               {aboutUs?.description2}
             </p>
 
             {/* Services List */}
-            <div className="mb-20 grid grid-cols-2 gap-y-4 gap-x-8 md:gap-x-12">
+            <div className="mb-20 grid grid-cols-[repeat(2,minmax(min-content,0.45fr))] md:grid-cols-[repeat(2,minmax(min-content,0.25fr))] gap-y-1 md:gap-y-2 gap-x-2">
               {aboutUs?.categories?.map((category, index) => (
                 <div key={index} className="flex items-center gap-3">
                   <span className="h-2 w-2 min-w-2 md:h-3 md:w-3 shrink-0 rounded-full bg-[#0F2341]"></span>
-                  <span className="text-[10px] md:text-xs font-['Value_Sans'] font-normal tracking-widest text-[#0F2341] uppercase whitespace-nowrap">
+                  <span className="text-xs leading-none font-['Value_Sans'] font-normal tracking-widest text-[#0F2341] uppercase whitespace-nowrap">
                     {category.name}
                   </span>
                 </div>
@@ -69,11 +66,11 @@ export default async function About() {
             </div>
 
             {/* Footer Links */}
-            <div className="flex flex-row justify-between items-center w-full max-w-lg">
+            <div className="flex flex-row justify-between items-center w-full max-w-[300px] md:max-w-lg">
               {contact?.instagram && (
                 <Link
                   href={contact.instagram}
-                  className="text-xs font-['Value_Sans'] font-medium tracking-widest text-[#0F2341] uppercase hover:opacity-70"
+                  className="text-xs md:text-sm font-['Value_Sans'] font-medium tracking-widest text-[#0F2341] uppercase hover:opacity-70"
                 >
                   Instagram
                 </Link>
@@ -82,7 +79,7 @@ export default async function About() {
                 {contact?.email && (
                   <Link
                     href={`mailto:${contact.email}`}
-                    className="text-xs font-['Value_Sans'] font-medium tracking-widest text-[#0F2341] uppercase hover:opacity-70"
+                    className="text-xs md:text-sm font-['Value_Sans'] font-medium tracking-widest text-[#0F2341] uppercase hover:opacity-70"
                   >
                     Email
                   </Link>
@@ -90,7 +87,7 @@ export default async function About() {
                 {contact?.phone && (
                   <Link
                     href={`tel:${contact.phone}`}
-                    className="text-xs font-['Value_Sans'] font-medium tracking-widest text-[#0F2341] uppercase hover:opacity-70"
+                    className="text-xs md:text-sm font-['Value_Sans'] font-medium tracking-widest text-[#0F2341] uppercase hover:opacity-70"
                   >
                     Phone
                   </Link>

@@ -128,7 +128,7 @@ export default function SloganHover({ slogan, images }: SloganHoverProps) {
           bounds={interactionState.bounds}
         />
       )}
-      <h1 className="mb-8 font-['Value_Serif'] font-medium text-6xl leading-tight text-[#0F2341] md:text-6xl lg:text-7xl">
+      <h1 className="mb-2 md:mb-4 font-['Value_Serif'] font-medium text-[42px] md:text-[60px] leading-[1.2] text-[#0F2341]">
         {slogan}
       </h1>
     </div>

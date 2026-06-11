@@ -106,7 +106,7 @@ export default function DetailCard({
                 className={`
                 relative flex 
                 portrait:flex-col landscape:flex-row
-                portrait:w-[90vw] portrait:h-auto portrait:aspect-2/3
+                portrait:w-[min(90vw,51vh)] portrait:h-auto portrait:aspect-3/5
                 landscape:w-auto landscape:h-[90vh] landscape:aspect-3/2
                 overflow-hidden 
                 bg-transparent
@@ -119,7 +119,7 @@ export default function DetailCard({
                 }}
               >
                 {/* Left Side - Image */}
-                <div className="relative bg-gray-100 group overflow-hidden min-h-0 portrait:w-full portrait:h-auto portrait:flex-1 landscape:w-1/2 landscape:h-full landscape:flex-none">
+                <div className="relative bg-gray-100 group overflow-hidden min-h-0 portrait:w-full portrait:h-auto portrait:aspect-square portrait:flex-none landscape:w-1/2 landscape:h-full landscape:flex-none">
                   {data.imageUrl ? (
                     <>
                       <Image
@@ -176,7 +176,7 @@ export default function DetailCard({
 
                 {/* Right Side - Content */}
                 <div
-                  className="grid grid-cols-1 grid-rows-1 transition-colors z-10 relative portrait:w-full portrait:h-auto portrait:max-h-[50%] portrait:flex-none portrait:overflow-y-auto landscape:w-1/2 landscape:h-full landscape:flex-none landscape:overflow-y-auto"
+                  className="grid grid-cols-1 grid-rows-1 transition-colors z-10 relative portrait:w-full portrait:h-auto portrait:flex-1 portrait:min-h-0 portrait:overflow-y-auto landscape:w-1/2 landscape:h-full landscape:flex-none landscape:overflow-y-auto"
                   style={{
                     backgroundColor: bgColor || '#E5E5E5',
                   }}
@@ -208,7 +208,7 @@ export default function DetailCard({
                     <div className="flex-1 p-4 landscape:p-10 portrait:p-6 flex flex-col min-h-min relative">
                       <div className="flex-1 flex flex-col landscape:justify-center">
                         {data.topLabel && (
-                          <div className="mb-2 md:mb-4">
+                          <div className="mb-[14px] md:mb-10">
                             <span
                               className={`text-[10px] md:text-sm font-semibold uppercase tracking-wider ${
                                 !fontColor ? 'text-gray-500' : ''
@@ -224,7 +224,7 @@ export default function DetailCard({
                           </div>
                         )}
                         <h2
-                          className={`mb-2 md:mb-4 text-2xl md:text-4xl font-['Value_Serif'] font-medium leading-tight ${
+                          className={`mb-2 md:mb-[14px] text-2xl md:text-4xl font-['Value_Serif'] font-medium leading-[1.2] ${
                             !fontColor ? 'text-[#0F2341]' : ''
                           }`}
                           style={fontColor ? { color: fontColor } : {}}
@@ -232,7 +232,7 @@ export default function DetailCard({
                           {data.title}
                         </h2>
                         <p
-                          className={`text-xs md:text-sm leading-relaxed max-w-md font-['Value_Sans'] font-normal line-clamp-3 md:line-clamp-6 text-ellipsis overflow-hidden ${
+                          className={`text-xs md:text-sm leading-[1.4] max-w-xl font-['Value_Sans'] font-normal line-clamp-4 md:line-clamp-6 text-ellipsis overflow-hidden ${
                             !fontColor ? 'text-[#0F2341]' : ''
                           }`}
                           style={
@@ -243,7 +243,7 @@ export default function DetailCard({
                         </p>
 
                         {/* Mobile: Tags moved here under description */}
-                        <div className="mt-4 landscape:hidden">
+                        <div className="mt-[30px] landscape:hidden">
                           <div
                             style={
                               tagColor

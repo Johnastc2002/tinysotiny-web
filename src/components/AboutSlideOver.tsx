@@ -32,7 +32,7 @@ export default function AboutSlideOver({
         onClick={() => !isOpen && window.innerWidth >= 768 && setIsOpen(true)}
         className={`
             md:fixed md:top-1/2 md:right-0 md:-translate-y-1/2 z-40
-            relative mt-16 md:mt-0 mx-auto
+            relative mt-16 mb-[50px] md:mt-0 md:mb-0 mx-auto
             w-[85vw] aspect-2/3 md:aspect-auto md:w-[85vw] md:max-w-none md:h-[85vh]
             bg-white rounded-3xl overflow-hidden
             flex flex-col md:flex-row
@@ -92,26 +92,32 @@ export default function AboutSlideOver({
         </div>
 
         {/* Right Side - Info */}
-        <div className="w-full md:w-1/2 h-auto md:h-full shrink-0 md:shrink-0 bg-[#0F2341] text-white p-6 md:p-16 flex flex-col justify-center relative">
+        <div className="w-full md:w-1/2 h-auto md:h-full shrink-0 md:shrink-0 bg-[#0F2341] text-white p-6 pt-[50px] md:px-16 md:py-8 flex flex-col justify-center md:justify-start relative">
+          {/* Desktop/tablet: free space splits ~3.6:1 above/below the text group
+              (matching the design reference) and collapses before text can clip */}
           <div
-            className={`space-y-4 md:space-y-16 transition-opacity duration-700 delay-100 opacity-100 md:opacity-0 ${
+            className="hidden md:block grow-[3.6] shrink basis-0 max-h-[400px]"
+            aria-hidden="true"
+          />
+          <div
+            className={`shrink-0 space-y-8 md:space-y-16 transition-opacity duration-700 delay-100 opacity-100 md:opacity-0 ${
               isOpen ? 'md:opacity-100' : ''
             }`}
           >
-            <div className="text-[10px] md:text-xs font-medium tracking-[0.2em] uppercase opacity-70">
+            <div className="text-xs md:text-sm font-medium tracking-[0.2em] uppercase opacity-70">
               <span className="font-['Value_Sans'] font-normal">
                 Founder /{' '}
               </span>
               <span className="font-['Value_Serif'] font-medium">About Us</span>
             </div>
 
-            <div className="space-y-4 md:space-y-12">
+            <div className="space-y-2 md:space-y-5">
               {founders?.map((founder, index) => (
                 <div key={index}>
-                  <h3 className="font-['Value_Serif'] font-medium text-2xl md:text-6xl mb-2 md:mb-3 text-white">
+                  <h3 className="font-['Value_Serif'] font-medium text-2xl md:text-[min(38px,4.8vh)] mb-1 md:mb-2 text-white">
                     {founder.name}
                   </h3>
-                  <p className="text-[10px] md:text-base font-['Value_Sans'] font-normal opacity-80 tracking-wide">
+                  <p className="text-xs md:text-base font-['Value_Sans'] font-normal opacity-80 tracking-wide">
                     {founder.role}
                   </p>
                 </div>
@@ -120,18 +126,18 @@ export default function AboutSlideOver({
               {!founders?.length && (
                 <>
                   <div>
-                    <h3 className="font-['Value_Serif'] font-medium text-xl md:text-6xl mb-2 md:mb-3 text-white">
+                    <h3 className="font-['Value_Serif'] font-medium text-xl md:text-[min(38px,4.8vh)] mb-1 md:mb-2 text-white">
                       eddie li
                     </h3>
-                    <p className="text-[10px] md:text-base font-['Value_Sans'] font-normal opacity-80 tracking-wide">
+                    <p className="text-xs md:text-base font-['Value_Sans'] font-normal opacity-80 tracking-wide">
                       co-founder & photographer
                     </p>
                   </div>
                   <div>
-                    <h3 className="font-['Value_Serif'] font-medium text-xl md:text-6xl mb-2 md:mb-3 text-white">
+                    <h3 className="font-['Value_Serif'] font-medium text-xl md:text-[min(38px,4.8vh)] mb-1 md:mb-2 text-white">
                       yin ip
                     </h3>
-                    <p className="text-[10px] md:text-base font-['Value_Sans'] font-normal opacity-80 tracking-wide">
+                    <p className="text-xs md:text-base font-['Value_Sans'] font-normal opacity-80 tracking-wide">
                       co-founder & art director
                     </p>
                   </div>
@@ -139,6 +145,11 @@ export default function AboutSlideOver({
               )}
             </div>
           </div>
+          {/* Bottom share of the free space (~22%, per design reference) */}
+          <div
+            className="hidden md:block grow shrink basis-0"
+            aria-hidden="true"
+          />
         </div>
       </div>
     </>

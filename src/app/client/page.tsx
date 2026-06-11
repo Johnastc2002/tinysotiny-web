@@ -29,8 +29,11 @@ export default async function Client() {
           <span className="font-['Value_Serif'] font-medium">Client</span>
         </div>
 
-        {/* Vertical Spacer (~1/3 screen height) */}
-        <div className="min-h-[200px] w-full h-[33vh]" aria-hidden="true" />
+        {/* Vertical Spacer (~1/3 screen height, pulled up per design feedback) */}
+        <div
+          className="w-full h-[max(24px,calc(33vh-130px))] md:h-[max(24px,calc(33vh-250px))]"
+          aria-hidden="true"
+        />
 
         {/* Client List */}
         <div className="flex-1 w-full flex items-start justify-start">

@@ -90,12 +90,17 @@ export default function HorizontalScroll({
       ? daily.medias[daily.medias.length - 1]
       : undefined;
 
-  const lastSectionWidth = lastMediaInSection4
-    ? `calc((50vh * ${
+  // Half of the last image's width: it overlaps Section 5 by this amount
+  const lastMediaHalfWidth = lastMediaInSection4
+    ? `(50vh * ${
         lastMediaInSection4.width && lastMediaInSection4.height
           ? lastMediaInSection4.width / lastMediaInSection4.height
           : 1
-      } * 0.5) + 180px)`
+      } * 0.5)`
+    : null;
+
+  const lastSectionWidth = lastMediaHalfWidth
+    ? `calc(${lastMediaHalfWidth} + 280px)`
     : '180px';
 
   return (
@@ -104,7 +109,7 @@ export default function HorizontalScroll({
       {/* Dynamic height based on content width to ensure enough scroll track */}
       {/* 1px horizontal scroll = 1px vertical scroll approximately */}
       {/* Fallback height of 500vh until calculation completes to allow initial scroll */}
-      <div className="flex flex-col w-full bg-[#fcfcfc] md:hidden pb-0">
+      <div className="flex flex-col w-full bg-white md:hidden pb-0">
         {/* Mobile Layout Components */}
         {/* Thumbnail */}
         <div className="relative w-full">
@@ -140,7 +145,7 @@ export default function HorizontalScroll({
           <h1
             data-contentful-field-id="title"
             data-contentful-entry-id={daily.id}
-            className="text-4xl font-['Value_Serif'] font-medium leading-tight mb-4 text-white"
+            className="text-4xl font-['Value_Serif'] font-medium leading-[1.2] mb-[18px] text-white"
             style={{ color: cardFontColor }}
           >
             {daily.title}
@@ -148,7 +153,7 @@ export default function HorizontalScroll({
           <p
             data-contentful-field-id="description"
             data-contentful-entry-id={daily.id}
-            className="text-base text-gray-300 font-['Value_Sans'] font-normal leading-relaxed"
+            className="text-base text-gray-300 font-['Value_Sans'] font-normal leading-[1.4]"
             style={{ color: cardFontColor }}
           >
             {daily.description}
@@ -196,7 +201,7 @@ export default function HorizontalScroll({
           <p
              data-contentful-field-id="description2"
              data-contentful-entry-id={daily.id}
-             className="text-gray-600 leading-loose wrap-break-word whitespace-pre-wrap font-['Value_Sans'] font-medium relative z-10">
+             className="text-[24px] text-gray-600 leading-[1.4] mb-[50px] wrap-break-word whitespace-pre-wrap font-['Value_Sans'] font-medium relative z-10">
             {daily.description2 ||
               daily.description ||
               'More details coming soon...'}
@@ -245,8 +250,9 @@ export default function HorizontalScroll({
           className="relative w-full h-64 bg-[#0F2341] z-0 -mt-24 flex flex-col items-center justify-end pb-4"
           style={{ backgroundColor: cardBgColor || '#0F2341' }}
         >
+          {/* Sits right below the overlapping last photo (top 96px is covered) */}
           <div
-            className="mb-2 z-10 text-[10px] font-['Value_Serif'] font-medium"
+            className="absolute top-[108px] left-1/2 -translate-x-1/2 z-10 text-[10px] font-['Value_Serif'] font-medium whitespace-nowrap"
             style={{ color: cardFontColor || '#ffffff' }}
           >
             © tinysotiny.co. All rights reserved.
@@ -286,7 +292,7 @@ export default function HorizontalScroll({
         className="relative hidden md:block"
       >
         {/* Fixed Container - Matches ProjectPageClient behavior */}
-        <div className="sticky top-0 left-0 w-full h-screen overflow-hidden bg-[#fcfcfc] z-0">
+        <div className="sticky top-0 left-0 w-full h-screen overflow-hidden bg-white z-0">
           <motion.div
             ref={containerRef}
             style={{ x, willChange: 'transform' }}
@@ -303,7 +309,7 @@ export default function HorizontalScroll({
                   <h1
                     data-contentful-field-id="title"
                     data-contentful-entry-id={daily.id}
-                    className="text-5xl md:text-7xl font-['Value_Serif'] font-medium leading-tight wrap-break-word"
+                    className="text-[42px] font-['Value_Serif'] font-medium leading-[1.2] mb-[14px] wrap-break-word"
                     style={{ color: cardFontColor }}
                   >
                     {daily.title}
@@ -311,7 +317,7 @@ export default function HorizontalScroll({
                   <p
                     data-contentful-field-id="description"
                     data-contentful-entry-id={daily.id}
-                    className="text-lg text-gray-300 max-w-md font-['Value_Sans'] font-normal leading-relaxed"
+                    className="text-base text-gray-300 max-w-md font-['Value_Sans'] font-normal leading-[1.4]"
                     style={{ color: cardFontColor }}
                   >
                     {daily.description}
@@ -347,9 +353,9 @@ export default function HorizontalScroll({
                   </div>
                 </div>
 
-                {/* Padding for overlap transition */}
+                {/* Padding between hero and first gallery photo (~200px) */}
                 <div
-                  className="w-80 md:w-80 bg-[#0F2341] shrink-0"
+                  className="w-[200px] bg-[#0F2341] shrink-0"
                   style={{ backgroundColor: cardBgColor || '#0F2341' }}
                 />
               </div>
@@ -361,7 +367,7 @@ export default function HorizontalScroll({
             {/* Section 2: Image Grid (White) */}
             {/* Removed overflow-hidden to allow image to overlap previous section */}
             {/* Added z-20 to ensure it (and its negative margin image) sits on top of Section 1 */}
-            <section className="relative flex h-screen w-auto shrink-0 items-center justify-center  z-20">
+            <section className="relative flex h-screen w-auto shrink-0 items-center justify-center bg-white z-20">
               <div className="flex gap-8 md:gap-8 items-center px-8 md:px-8 h-full relative">
                 {daily.detail_category && (
                   <div className="absolute bottom-0 left-0 pl-[10vw] z-0 pointer-events-none opacity-100 flex items-end h-full -mb-64">
@@ -382,14 +388,6 @@ export default function HorizontalScroll({
                           media.width && media.height
                             ? `${media.width}/${media.height}`
                             : 'auto',
-                        marginLeft:
-                          idx === 0
-                            ? `calc(-1 * (50vh * ${
-                                media.width && media.height
-                                  ? media.width / media.height
-                                  : 1
-                              }) * 0.5)`
-                            : '0px',
                       }}
                     >
                       <SmartMedia
@@ -427,7 +425,7 @@ export default function HorizontalScroll({
                   <p 
                     data-contentful-field-id="description2"
                     data-contentful-entry-id={daily.id}
-                    className="text-gray-600 leading-loose wrap-break-word whitespace-pre-wrap font-['Value_Sans'] font-medium">
+                    className="text-[24px] text-gray-600 leading-[1.4] wrap-break-word whitespace-pre-wrap font-['Value_Sans'] font-medium">
                     {daily.description2 ||
                       daily.description ||
                       'More details coming soon...'}
@@ -498,10 +496,16 @@ export default function HorizontalScroll({
             {/* Section 5: Fin (Navy) */}
             {/* Added z-10 to stay under Section 4's last image */}
             <section
-              className="relative flex h-screen shrink-0 items-center justify-center bg-[#0F2341] text-white z-10"
+              className={`relative flex h-screen shrink-0 items-center bg-[#0F2341] text-white z-10 ${
+                lastMediaHalfWidth ? 'justify-start' : 'justify-center'
+              }`}
               style={{
                 backgroundColor: cardBgColor || '#0F2341',
                 width: lastSectionWidth,
+                // Keep the close button ~80px clear of the overlapping last image
+                paddingLeft: lastMediaHalfWidth
+                  ? `calc(${lastMediaHalfWidth} + 80px)`
+                  : undefined,
               }}
             >
               <button

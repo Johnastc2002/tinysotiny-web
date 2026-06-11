@@ -72,14 +72,14 @@ const VisitWebsiteButton = ({
       <path
         d="M12 5H8a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-4"
         stroke="currentColor"
-        strokeWidth="2.5"
+        strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M12 12 20 4M20 4H14M20 4V10"
         stroke="currentColor"
-        strokeWidth="2.5"
+        strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
         className="transition-transform group-hover/visit:translate-x-0.5 group-hover/visit:-translate-y-0.5"
@@ -660,12 +660,21 @@ export default function SmartMedia({
           const playButtonSize = Math.max(48, Math.min(96, minDim * 0.25));
           const playIconSize = playButtonSize * 0.5; // 50% of button size
 
-          // Interpolation for Visit Button (now matches Fullscreen button style)
-          const visitButton = {
-            size,
-            iconSize,
-            padding,
-          };
+          // Visit Button: fixed 40px circle with 20px icon on mobile so all
+          // open-link buttons share the same size; proportional on desktop.
+          const isMobileViewport =
+            typeof window !== 'undefined' && window.innerWidth < 768;
+          const visitButton = isMobileViewport
+            ? {
+                size: 40,
+                iconSize: 20,
+                padding: 10,
+              }
+            : {
+                size,
+                iconSize,
+                padding,
+              };
 
           setButtonConfig({
             size,
