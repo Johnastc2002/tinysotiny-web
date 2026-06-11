@@ -917,18 +917,24 @@ function GalleryPageContent({
               : 'opacity-0 z-0 pointer-events-none'
           }`}
         >
-          <BubbleScene
-            mode="gallery"
-            projects={featuredProjects}
-            enableExplosion={enableExplosion}
-            explosionDelay={explosionDelay}
-            transparent={isPlay}
-            onOpenCard={handleOpenCard}
-            enableBlur={false}
-            paused={isBubblePaused}
-            rotationSpeed={0.01}
-            zoomSpeed={0.5}
-          />
+          {/* On mobile, fully unmount the WebGL scene while the project overlay
+              is open to release its GPU memory (textures), preventing tab
+              crashes. The 400ms-delayed isBubblePaused flag ensures the
+              opaque overlay already covers the screen when this unmounts. */}
+          {!(isMobile && isBubblePaused) && (
+            <BubbleScene
+              mode="gallery"
+              projects={featuredProjects}
+              enableExplosion={enableExplosion}
+              explosionDelay={explosionDelay}
+              transparent={isPlay}
+              onOpenCard={handleOpenCard}
+              enableBlur={false}
+              paused={isBubblePaused}
+              rotationSpeed={0.01}
+              zoomSpeed={0.5}
+            />
+          )}
         </div>
 
         {/* Grid View (Always Mounted, Hidden via CSS) */}

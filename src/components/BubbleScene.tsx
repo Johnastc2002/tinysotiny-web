@@ -68,6 +68,18 @@ interface BubbleData {
   isRefractive?: boolean;
 }
 
+// Bubbles render small on screen, so cap texture downloads well below the
+// 2560px asset default to keep GPU memory usage in check (esp. on mobile).
+const clampTextureUrl = (url: string) => {
+  try {
+    const clamped = new URL(url);
+    clamped.searchParams.set('w', '1200');
+    return clamped.toString();
+  } catch {
+    return url;
+  }
+};
+
 const useSoftCircleTexture = (
   type: 'solid' | 'glass' | 'image' | 'play_gradient' = 'glass',
 ) => {
@@ -475,7 +487,10 @@ const ImageBubble = ({
   enableBlur?: boolean;
   isHovered: boolean;
 }) => {
-  const textures = useTexture([imageUrl, imageHoverUrl || imageUrl]);
+  const textures = useTexture([
+    clampTextureUrl(imageUrl),
+    clampTextureUrl(imageHoverUrl || imageUrl),
+  ]);
   const defaultTexture = textures[0];
   const hoverTexture = textures[1];
 
