@@ -3,6 +3,7 @@ import {
   getFeaturedProjects,
   getNonFeaturedProjects,
   getGridFilter,
+  getAppConfig,
   getProjectById,
   getProjectBySlug,
   getRecommendedProject,
@@ -120,6 +121,7 @@ export default async function Work({ params, searchParams }: Props) {
   const featuredProjects = await getFeaturedProjects('work');
   const nonFeaturedProjects = await getNonFeaturedProjects(1, 12, 'work');
   const gridFilter = await getGridFilter('work');
+  const appConfig = await getAppConfig();
 
   let initialFullProject = null;
   let initialRecommendedProject = null;
@@ -150,6 +152,7 @@ export default async function Work({ params, searchParams }: Props) {
         projectType="work"
         enableExplosion={false}
         explosionDelay={0}
+        defaultGrid={appConfig?.work_default_grid}
         initialFullProject={initialFullProject}
         initialRecommendedProject={initialRecommendedProject}
       />

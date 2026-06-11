@@ -412,6 +412,9 @@ export const mapAppConfig = (entry: any): AppConfig => {
     show_play_grid: Boolean(
       fields.show_play_grid || fields.showPlayGrid || false,
     ),
+    work_default_grid: Boolean(
+      fields.work_default_grid || fields.workDefaultGrid || false,
+    ),
     play_page_bg_media,
   };
 };

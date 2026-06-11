@@ -38,6 +38,7 @@ interface GalleryPageClientProps {
   enableExplosion?: boolean;
   explosionDelay?: number;
   showPlayGrid?: boolean;
+  defaultGrid?: boolean;
   playPageBgMedia?: ContentfulMediaItem;
   initialFullProject?: Project | null;
   initialRecommendedProject?: Project | null;
@@ -51,6 +52,7 @@ function GalleryPageContent({
   enableExplosion = false,
   explosionDelay = 0,
   showPlayGrid = true,
+  defaultGrid = false,
   playPageBgMedia,
   initialFullProject = null,
   initialRecommendedProject = null,
@@ -61,10 +63,13 @@ function GalleryPageContent({
   const params = useParams();
   const slug = params?.slug as string[] | undefined;
 
-  // Initialize from URL so a refresh with ?view=grid&tags=... keeps the state
-  const [viewMode, setViewMode] = useState<'dot' | 'grid'>(() =>
-    searchParams.get('view') === 'grid' && showPlayGrid ? 'grid' : 'dot',
-  );
+  // Initialize from URL/config so refresh and app defaults agree.
+  const [viewMode, setViewMode] = useState<'dot' | 'grid'>(() => {
+    const view = searchParams.get('view');
+    if (view === 'grid' && showPlayGrid) return 'grid';
+    if (view === 'dot') return 'dot';
+    return defaultGrid && showPlayGrid ? 'grid' : 'dot';
+  });
 
   // Stable reference for featured projects to prevent BubbleScene re-renders on navigation
   const [featuredProjects] = useState<Project[]>(initialFeaturedProjects);
