@@ -1,17 +1,67 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCursor } from '@/context/CursorContext';
 import { InteractionCursor } from './BubbleActions';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export default function GlobalCursor() {
   const { cursorState } = useCursor();
   const cursorRef = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  const [isVisible, setIsVisible] = useState(false); // Track if mouse moved
+  const isMobile = useIsMobile();
 
   useEffect(() => {
-    const handlePointerMove = (e: PointerEvent) => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) return;
+
+    const addCursorStyle = () => {
+      const id = 'global-cursor-style';
+      if (!document.getElementById(id)) {
+        const style = document.createElement('style');
+        style.id = id;
+        style.innerHTML = `
+          * { cursor: none !important; }
+          input, textarea, [contenteditable="true"] { cursor: text !important; }
+        `;
+        document.head.appendChild(style);
+      }
+      document.documentElement.style.setProperty('cursor', 'none', 'important');
+    };
+
+    const removeCursorStyle = () => {
+      const id = 'global-cursor-style';
+      const style = document.getElementById(id);
+      if (style) style.remove();
+      document.documentElement.style.cursor = '';
+    };
+
+    const onFocus = () => {
+      addCursorStyle();
+      // Force a layout reflow to ensure the cursor style is applied
+      void document.body.offsetHeight;
+    };
+
+    window.addEventListener('focus', onFocus);
+
+    // Apply immediately on mount too
+    addCursorStyle(); // Always apply on mount, regardless of focus state, to be safe
+
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      removeCursorStyle();
+    };
+  }, [isMobile]);
+
+  useEffect(() => {
+    if (isMobile) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
       if (!isVisible) setIsVisible(true);
       if (cursorRef.current) {
         // Use translate3d for performance
@@ -22,21 +72,23 @@ export default function GlobalCursor() {
     const handleMouseLeave = () => setIsVisible(false);
     const handleMouseEnter = () => setIsVisible(true);
 
-    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseleave', handleMouseLeave);
     document.addEventListener('mouseenter', handleMouseEnter);
 
     return () => {
-      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseleave', handleMouseLeave);
       document.removeEventListener('mouseenter', handleMouseEnter);
     };
-  }, [isVisible]);
+  }, [isVisible, isMobile]);
+
+  if (!mounted || isMobile) return null;
 
   return (
     <div
       ref={cursorRef}
-      className={`fixed top-0 left-0 pointer-events-none z-99999 ${
+      className={`fixed top-0 left-0 pointer-events-none z-[99999] ${
         cursorState.type === 'default'
           ? 'mix-blend-difference'
           : 'mix-blend-normal'
@@ -46,7 +98,6 @@ export default function GlobalCursor() {
         transition: 'opacity 0.2s ease-out',
         // Initialize off-screen
         transform: 'translate3d(-100px, -100px, 0)',
-        zIndex: 99999,
       }}
     >
       <AnimatePresence mode="wait">

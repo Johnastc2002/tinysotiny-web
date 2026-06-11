@@ -102,7 +102,7 @@ body {
   padding: 0;
   width: 100%;
   min-height: 100dvh;
-  cursor: none !important;
+  cursor: none;
 }
 
 html {
@@ -110,12 +110,27 @@ html {
   background-color: var(--background);
 }
 
-html,
-body,
-*,
-*::before,
-*::after {
-  cursor: none !important;
+a,
+button,
+[role='button'] {
+  cursor: none;
+}
+
+/* Restore native cursor for inputs/text areas */
+input,
+textarea,
+[contenteditable='true'] {
+  cursor: text;
+}
+
+/* Restore cursor on touch devices/tablets where hover is problematic */
+@media (hover: none), (pointer: coarse) {
+  body,
+  a,
+  button,
+  [role='button'] {
+    cursor: auto;
+  }
 }
 
 @keyframes fadeIn {

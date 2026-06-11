@@ -8,7 +8,6 @@ import { getContact } from '@/lib/contentful';
 import { VideoProvider } from '@/context/VideoContext';
 import { CursorProvider } from '@/context/CursorContext';
 import GlobalCursor from '@/components/GlobalCursor';
-import NativeCursorHider from '@/components/NativeCursorHider';
 import ThemeColorManager from '@/components/ThemeColorManager';
 import ContentfulPreviewWrapper from '@/components/ContentfulPreviewProvider';
 
@@ -85,17 +84,9 @@ export default async function RootLayout({
   const contact = await getContact();
 
   return (
-    <html lang="en" style={{ cursor: 'none' }}>
-      <head>
-        <style
-          dangerouslySetInnerHTML={{
-            __html: 'html,body,*,*::before,*::after{cursor:none!important}',
-          }}
-        />
-      </head>
+    <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden`}
-        style={{ cursor: 'none' }}
       >
         {/* Temporary maintenance page:
         <ComingSoon />
@@ -106,9 +97,7 @@ export default async function RootLayout({
               <Suspense fallback={null}>
                 <ThemeColorManager />
               </Suspense>
-              <NativeCursorHider />
               <GlobalCursor />
-
               <Suspense fallback={null}>
                 <Navigation contact={contact} />
               </Suspense>
