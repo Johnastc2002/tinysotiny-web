@@ -4,7 +4,7 @@ import React from 'react';
 import { getAllClients } from '@/lib/contentful';
 import ClientList from '@/components/ClientList';
 
-export const revalidate = 3600; // Revalidate every hour
+export const revalidate = 300; // Revalidate every 5 minutes
 
 export const viewport: Viewport = {
   themeColor: '#fcfcfc',

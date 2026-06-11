@@ -11,7 +11,7 @@ import {
 } from '@/lib/contentful';
 import GalleryPageClient from '@/components/GalleryPageClient';
 
-export const revalidate = 60; // Revalidate every 60 seconds
+export const revalidate = 300; // Revalidate every 5 minutes
 
 export async function generateViewport({
   params,

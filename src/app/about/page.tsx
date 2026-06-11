@@ -5,7 +5,7 @@ import { getAboutUs, getContact } from '@/lib/contentful';
 import AboutSlideOver from '@/components/AboutSlideOver';
 import SloganHover from '@/components/SloganHover';
 
-export const revalidate = 3600; // Revalidate every hour
+export const revalidate = 300; // Revalidate every 5 minutes
 
 export const viewport: Viewport = {
   themeColor: '#fcfcfc',

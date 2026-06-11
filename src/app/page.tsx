@@ -2,6 +2,8 @@ import BubbleScene from '@/components/BubbleScene';
 import { getAppConfig } from '@/lib/contentful';
 import { Viewport } from 'next';
 
+export const revalidate = 300; // Revalidate every 5 minutes
+
 export const viewport: Viewport = {
   themeColor: '#efefef',
   viewportFit: 'cover',

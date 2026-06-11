@@ -75,7 +75,7 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
 };
 
-export const revalidate = 3600;
+export const revalidate = 300;
 
 export default async function RootLayout({
   children,

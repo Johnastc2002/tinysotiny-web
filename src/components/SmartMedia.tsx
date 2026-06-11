@@ -27,6 +27,7 @@ interface MediaItemProps {
   autoplay?: boolean;
   mute?: boolean;
   hideOverlay?: boolean;
+  unoptimized?: boolean;
 }
 
 interface VisitButtonConfig {
@@ -103,6 +104,7 @@ export default function SmartMedia({
   autoplay = false,
   mute = false,
   hideOverlay = false,
+  unoptimized = false,
 }: MediaItemProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -1252,6 +1254,7 @@ export default function SmartMedia({
         onLoad={setLoaded}
         priority={priority}
         sizes={sizes}
+        unoptimized={unoptimized}
       />
       {!isLoaded && (
         <div className={`absolute inset-0 bg-[#b6b6b6] animate-pulse`} />

@@ -129,6 +129,7 @@ export default function ProjectPageClient({
             fill
             className="object-cover"
             priority
+            unoptimized
           />
         )}
         <div className="absolute bottom-4 left-4 z-10 text-[7px] md:text-[9px] font-['Value_Serif'] font-medium text-[#0F2341]">

@@ -8,7 +8,7 @@ import {
 } from '@/lib/contentful';
 import DailyList from '@/components/DailyList';
 
-export const revalidate = 3600; // Revalidate every hour
+export const revalidate = 300; // Revalidate every 5 minutes
 
 export const viewport: Viewport = {
   themeColor: '#fcfcfc',
