@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect, useId } from 'react';
 import Image from 'next/image';
 import Player from '@vimeo/player';
 import { useVideoContext } from '@/context/VideoContext';
-import { useIsMobile } from '@/hooks/useIsMobile';
 import LoadingSpinner from './LoadingSpinner';
 
 interface VimeoTextTrack {
@@ -36,16 +35,6 @@ interface VisitButtonConfig {
   iconSize: number;
   padding: number;
 }
-
-const getMobileImageUrl = (url: string) => {
-  try {
-    const mobileUrl = new URL(url);
-    mobileUrl.searchParams.set('w', '1200');
-    return mobileUrl.toString();
-  } catch {
-    return url;
-  }
-};
 
 const VisitWebsiteButton = ({
   url,
@@ -165,8 +154,6 @@ export default function SmartMedia({
   const id = useId();
   const maskId = `cc-mask-${id.replace(/:/g, '')}`;
   const { activeVideoId, playVideo, pauseVideo } = useVideoContext();
-  const isMobile = useIsMobile();
-  const imageUrl = type === 'image' && isMobile ? getMobileImageUrl(url) : url;
 
   // Helper to remove hover/transform effects when fullscreen
   const activeClassName = isFullscreen
@@ -1256,7 +1243,7 @@ export default function SmartMedia({
       className={`${wrapperClasses} bg-[#b6b6b6] overflow-hidden group`}
     >
       <Image
-        src={imageUrl}
+        src={url}
         alt={alt}
         fill={fill}
         width={!fill ? width : undefined}

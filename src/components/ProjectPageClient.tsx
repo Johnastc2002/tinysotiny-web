@@ -128,8 +128,7 @@ export default function ProjectPageClient({
             alt={`${project.title} Banner`}
             fill
             className="object-cover"
-            priority
-            unoptimized
+            sizes="100vw"
           />
         )}
         <div className="absolute bottom-4 left-4 z-10 text-[7px] md:text-[9px] font-['Value_Serif'] font-medium text-[#0F2341]">
@@ -174,7 +173,7 @@ export default function ProjectPageClient({
                           alt={project.title}
                           fill
                           className="object-cover"
-                          priority
+                          sizes="60vw"
                         />
                       )}
                       <div className="absolute bottom-4 left-4 z-10 text-[7px] md:text-[9px] font-['Value_Serif'] font-medium text-[#0F2341]">
@@ -284,8 +283,6 @@ export default function ProjectPageClient({
                               fill
                               className="object-cover"
                               sizes="(max-width: 768px) 100vw, 40vw"
-                              priority
-                              unoptimized={true}
                             />
                           </div>
                         ) : (
