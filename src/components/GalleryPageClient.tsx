@@ -61,7 +61,10 @@ function GalleryPageContent({
   const params = useParams();
   const slug = params?.slug as string[] | undefined;
 
-  const [viewMode, setViewMode] = useState<'dot' | 'grid'>('dot');
+  // Initialize from URL so a refresh with ?view=grid&tags=... keeps the state
+  const [viewMode, setViewMode] = useState<'dot' | 'grid'>(() =>
+    searchParams.get('view') === 'grid' && showPlayGrid ? 'grid' : 'dot',
+  );
 
   // Stable reference for featured projects to prevent BubbleScene re-renders on navigation
   const [featuredProjects] = useState<Project[]>(initialFeaturedProjects);
@@ -79,10 +82,16 @@ function GalleryPageContent({
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  // Filter state
+  // Filter state (initialized from URL so refresh keeps applied filters)
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [appliedTags, setAppliedTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>(() => {
+    const tags = searchParams.get('tags');
+    return tags ? tags.split(',') : [];
+  });
+  const [appliedTags, setAppliedTags] = useState<string[]>(() => {
+    const tags = searchParams.get('tags');
+    return tags ? tags.split(',') : [];
+  });
 
   const [isIOS, setIsIOS] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -151,27 +160,7 @@ function GalleryPageContent({
   useEffect(() => {
     // Simple check for iOS devices replaced by useIsMobile hook
     setIsIOS(isMobile);
-
-    // Restore state from URL
-    const view = searchParams.get('view');
-    const tags = searchParams.get('tags');
-    // project (full detail) is handled in separate effect
-
-    if (view === 'grid' && showPlayGrid) {
-      setViewMode('grid');
-    }
-
-    if (tags) {
-      const t = tags.split(',');
-      setAppliedTags(t);
-      setSelectedTags(t);
-    }
-
-    // Restore DetailCard state
-    // Note: DetailCard state is now fully synced with URL in a separate effect below
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run once on mount to restore state
+  }, [isMobile]);
 
   // Sync DetailCard state with URL (Open and Close)
   useEffect(() => {
@@ -428,10 +417,9 @@ function GalleryPageContent({
       !selectedTags.every((tag) => appliedTags.includes(tag));
 
     if (isDifferent) {
+      // The filter effect refetches page 1 and resets pagination.
+      // Keep current results on screen while the new ones load.
       setAppliedTags(selectedTags);
-      setPage(1); // Reset page for new filter
-      setHasMore(true);
-      setFilteredProjects(null); // Clear current filtered results to trigger loading state or fetch
     }
   };
 
@@ -444,80 +432,43 @@ function GalleryPageContent({
     );
   };
 
-  // Fetch projects when appliedTags change or page increments
+  // Fetch page 1 when the applied filter changes. Pagination (page 2+) is
+  // handled exclusively by the infinite scroll observer below.
+  const isFirstFilterRun = useRef(true);
+  const filterRequestId = useRef(0);
   useEffect(() => {
-    const fetchProjects = async () => {
-      // If we have active filters
-      if (appliedTags.length > 0) {
-        setLoading(true);
-        try {
-          const newProjects = await getFilteredProjectsAction(
-            appliedTags,
-            page,
-            projectType,
-          );
+    const wasFirstRun = isFirstFilterRun.current;
+    isFirstFilterRun.current = false;
 
-          if (newProjects.length === 0) {
-            setHasMore(false);
-          }
+    // Invalidate any in-flight request from a previous filter state
+    const requestId = ++filterRequestId.current;
+    const isStale = () => requestId !== filterRequestId.current;
 
-          if (page === 1) {
-            setFilteredProjects(newProjects);
-            // If we got full page, assume more might exist.
-            // If less than limit (12), we know no more.
-            setHasMore(newProjects.length >= 12);
-            if (newProjects.length >= 12) setPage(2);
-          } else {
-            setFilteredProjects((prev) => [...(prev || []), ...newProjects]);
-            if (newProjects.length > 0) setPage((prev) => prev + 1);
-          }
-        } catch (error) {
-          console.error('Error fetching filtered projects:', error);
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        // No filters: if we just cleared filters (filteredProjects is null but we might need to reset nonFeatured)
-        // Actually, if appliedTags is empty, we fall back to initial props + infinite scroll of non-featured.
-        // We just ensure filteredProjects is null.
-        setFilteredProjects(null);
-      }
-    };
-
-    // If appliedTags changed to non-empty, or if we are paging through filtered results
-    if (appliedTags.length > 0) {
-      // Only fetch if we haven't fetched this page yet or if it's page 1 reset
-      // But useEffect runs on dependency change.
-      // We need to distinguish between "filter changed" (page reset to 1) and "scroll load more" (page > 1)
-      // The logic above handles page=1 specially.
-      fetchProjects();
-    }
-  }, [appliedTags, page, projectType]); // Only fetch when appliedTags change (reset) or page changes (scroll)
-
-  // Refined Effect for Filter Change
-  useEffect(() => {
     if (appliedTags.length > 0) {
       const loadFirstPage = async () => {
         setLoading(true);
         try {
-          // Reset page to 1 implicitly by calling API with page 1
           const newProjects = await getFilteredProjectsAction(
             appliedTags,
             1,
             projectType,
           );
+          if (isStale()) return;
           setFilteredProjects(newProjects);
           setHasMore(newProjects.length >= 12);
           setPage(2); // Next page to fetch is 2
         } catch (error) {
           console.error(error);
         } finally {
-          setLoading(false);
+          if (!isStale()) setLoading(false);
         }
       };
       loadFirstPage();
     } else {
-      // Reset logic: Clear filters and reload initial non-featured projects
+      // On mount with no filters, the server-provided initial projects are
+      // already correct; only reset when the user actually clears filters.
+      if (wasFirstRun) return;
+
       const resetProjects = async () => {
         setLoading(true);
         try {
@@ -526,6 +477,7 @@ function GalleryPageContent({
 
           // Fetch fresh non-featured projects (page 1)
           const projects = await getMoreNonFeaturedProjects(1, projectType);
+          if (isStale()) return;
           setNonFeaturedProjects(projects);
 
           setHasMore(true);
@@ -533,7 +485,7 @@ function GalleryPageContent({
         } catch (error) {
           console.error('Error resetting projects:', error);
         } finally {
-          setLoading(false);
+          if (!isStale()) setLoading(false);
         }
       };
       resetProjects();
@@ -541,15 +493,24 @@ function GalleryPageContent({
   }, [appliedTags, projectType]);
 
   // Infinite Scroll Observer
+  const isFetchingMore = useRef(false);
   useEffect(() => {
+    // Append while skipping any projects already in the list
+    const appendUnique = (prev: Project[], incoming: Project[]) => {
+      const existingIds = new Set(prev.map((p) => p.id));
+      return [...prev, ...incoming.filter((p) => !existingIds.has(p.id))];
+    };
+
     const observer = new IntersectionObserver(
       async (entries) => {
         if (
           entries[0].isIntersecting &&
           hasMore &&
           !loading &&
+          !isFetchingMore.current &&
           viewMode === 'grid'
         ) {
+          isFetchingMore.current = true;
           setLoading(true);
           try {
             if (appliedTags.length > 0) {
@@ -562,10 +523,9 @@ function GalleryPageContent({
               if (newProjects.length === 0) {
                 setHasMore(false);
               } else {
-                setFilteredProjects((prev) => [
-                  ...(prev || []),
-                  ...newProjects,
-                ]);
+                setFilteredProjects((prev) =>
+                  appendUnique(prev || [], newProjects),
+                );
                 setPage((prev) => prev + 1);
               }
             } else {
@@ -577,13 +537,16 @@ function GalleryPageContent({
               if (newProjects.length === 0) {
                 setHasMore(false);
               } else {
-                setNonFeaturedProjects((prev) => [...prev, ...newProjects]);
+                setNonFeaturedProjects((prev) =>
+                  appendUnique(prev, newProjects),
+                );
                 setPage((prev) => prev + 1);
               }
             }
           } catch (error) {
             console.error('Error fetching more projects:', error);
           } finally {
+            isFetchingMore.current = false;
             setLoading(false);
           }
         }
