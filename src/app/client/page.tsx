@@ -1,7 +1,7 @@
 import type { Viewport } from 'next';
 import React from 'react';
 // import Link from 'next/link';
-import { getAllClients } from '@/lib/contentful';
+import { getClientPageClients } from '@/lib/contentful';
 import ClientList from '@/components/ClientList';
 
 export const revalidate = 300; // Revalidate every 5 minutes
@@ -12,7 +12,7 @@ export const viewport: Viewport = {
 };
 
 export default async function Client() {
-  const clients = await getAllClients();
+  const clients = await getClientPageClients();
 
   return (
     <div className="relative w-full min-h-[100dvh] bg-[#fcfcfc] overflow-hidden">

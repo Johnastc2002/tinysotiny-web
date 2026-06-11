@@ -295,6 +295,28 @@ export async function getAllClients(): Promise<ClientData[]> {
   }
 }
 
+export async function getClientPageClients(): Promise<ClientData[]> {
+  try {
+    const entries = await getEntries('clientPageConfig', {
+      limit: 1,
+      include: 3,
+    });
+
+    if (entries.items.length === 0) {
+      return [];
+    }
+
+    const fields = entries.items[0].fields;
+    const clients = Array.isArray(fields.clients) ? fields.clients : [];
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return clients.filter((client: any) => client.fields).map(mapClient);
+  } catch (error) {
+    console.error('Error fetching client page config:', error);
+    return [];
+  }
+}
+
 export async function getDailyEntries(
   page: number = 1,
   limit: number = 10,
