@@ -61,6 +61,26 @@ export default function ProjectPageClient({
     }
   };
 
+  const handleShare = async () => {
+    if (typeof window === 'undefined') return;
+
+    const shareData = {
+      title: project.title,
+      text: project.card_description || project.description,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(shareData.url);
+      }
+    } catch {
+      // Ignore cancelled native share sheets and clipboard permission denials.
+    }
+  };
+
   // Track scroll progress of the container
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -326,7 +346,7 @@ export default function ProjectPageClient({
               }}
             >
               {project.clientName ? (
-                <div className="mb-6">
+                <div className="mb-6 flex items-center justify-between gap-4">
                   <span
                     className={`text-xs font-semibold uppercase tracking-wider ${
                       !cardFontColor ? 'text-gray-500' : ''
@@ -344,6 +364,43 @@ export default function ProjectPageClient({
                       {project.clientName}
                     </span>
                   </span>
+                  <button
+                    type="button"
+                    onClick={handleShare}
+                    className={`shrink-0 flex h-8 w-8 items-center justify-center ${
+                      !cardTagColor ? 'text-[#B6B6B6]' : ''
+                    }`}
+                    style={
+                      cardTagColor
+                        ? { color: cardTagColor, opacity: 0.7 }
+                        : {}
+                    }
+                    aria-label={`Share ${project.title}`}
+                  >
+                    <svg
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M12 15V4M8 8L12 4L16 8"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M6 11V19H18V11"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
                 </div>
               ) : (
                 /* No Client: Show Tags here */
