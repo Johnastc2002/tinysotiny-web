@@ -11,6 +11,9 @@ export const revalidate = 300; // Revalidate every 5 minutes
 
 export default async function About() {
   const [aboutUs, contact] = await Promise.all([getAboutUs(), getContact()]);
+  const whatsappHref = contact?.phone
+    ? `https://wa.me/${contact.phone.replace(/\D/g, '')}`
+    : null;
 
   return (
     <div className="relative w-full min-h-[100dvh] bg-[#fcfcfc] overflow-hidden">
@@ -81,10 +84,12 @@ export default async function About() {
                     Email
                   </Link>
                 )}
-                {contact?.phone && (
+                {whatsappHref && (
                   <Link
-                    href={`tel:${contact.phone}`}
+                    href={whatsappHref}
                     className="text-xs md:text-sm font-['Value_Sans'] font-medium tracking-widest text-[#0F2341] uppercase hover:opacity-70"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     Phone
                   </Link>

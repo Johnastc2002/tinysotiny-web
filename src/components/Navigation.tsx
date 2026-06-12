@@ -214,6 +214,9 @@ export default function Navigation({ contact }: NavigationProps) {
   const isProjectDetail = searchParams?.has('project');
   const shouldBeDark = isDarkPage && !isProjectDetail;
   const isMobile = useIsMobile();
+  const whatsappHref = contact?.phone
+    ? `https://wa.me/${contact.phone.replace(/\D/g, '')}`
+    : null;
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -439,18 +442,22 @@ export default function Navigation({ contact }: NavigationProps) {
               >
                 EMAIL
               </Link>
-              <Link
-                href={`tel:${contact?.phone || '+85212345678'}`}
-                className={`text-xs font-semibold tracking-widest text-[#B6B6B6] ${
-                  !isMobile ? 'hover:text-[#0F2341]' : ''
-                } transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!`}
-                style={{
-                  fontFamily: "'Value Sans', sans-serif",
-                  fontWeight: 500,
-                }}
-              >
-                PHONE
-              </Link>
+              {whatsappHref && (
+                <Link
+                  href={whatsappHref}
+                  className={`text-xs font-semibold tracking-widest text-[#B6B6B6] ${
+                    !isMobile ? 'hover:text-[#0F2341]' : ''
+                  } transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    fontFamily: "'Value Sans', sans-serif",
+                    fontWeight: 500,
+                  }}
+                >
+                  PHONE
+                </Link>
+              )}
             </div>
           </div>
         </div>
