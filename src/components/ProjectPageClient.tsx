@@ -73,20 +73,16 @@ export default function ProjectPageClient({
         }/${project.slug}`
       : window.location.href;
 
-    // Compose the full message in `text` (description, blank line, link)
-    // instead of passing a separate `url`: receiving apps decide how to join
-    // text + url (WhatsApp glues them with a space), while a self-composed
-    // text keeps the link on its own line.
     const shareData = {
       title: project.title,
-      text: `${project.card_description || project.description}\n\n${shareUrl}`,
+      url: shareUrl,
     };
 
     try {
       if (navigator.share) {
         await navigator.share(shareData);
       } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(shareData.text);
+        await navigator.clipboard.writeText(shareData.url);
       }
     } catch {
       // Ignore cancelled native share sheets and clipboard permission denials.
