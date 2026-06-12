@@ -93,12 +93,27 @@ export const overrideThemeColor = (color: string | null) => {
 //   - default z-index   -> can lose to other fixed elements at the same edge
 //     (the top edge kept the stale color while the bottom worked);
 //   - max z-index       -> reliably wins at both edges.
-// The strip always matches the color the page edge is supposed to have, sits
-// in the safe-area region, and ignores pointer events, so it is visually and
-// functionally imperceptible.
+// The strip always matches the color the page edge is supposed to have and
+// ignores pointer events. On Safari 26 the translucent chrome takes on the
+// strip's color, so the strip reads as a seamless extension of the bar — the
+// native Liquid Glass look.
+//
+// IMPORTANT: strips are ONLY rendered on Safari 26+. Everywhere else (Chrome,
+// Safari 15-18, old-iOS devices like iPhone SE/8) the browser chrome is
+// opaque and colored via the theme-color meta tag or not at all, so a strip
+// would just paint OVER page content as a visible 8px border (e.g. a #fcfcfc
+// band above a blue project banner).
+//
+// Note: gating on env(safe-area-inset-*) instead does NOT work — measured in
+// the iOS 26.3 simulator, the insets are 0 in regular Safari browsing even
+// with viewport-fit=cover (the page does not actually extend under the bars;
+// innerHeight excludes them — the edge-to-edge look is purely chrome
+// tinting). Inset-gating would therefore disable the strips exactly where
+// they are needed.
 const edgeStrip = (position: 'top' | 'bottom', color: string) => {
   const id = `theme-edge-${position}`;
   document.getElementById(id)?.remove();
+  if (!isSafari26OrNewer()) return;
   const el = document.createElement('div');
   el.id = id;
   el.setAttribute('aria-hidden', 'true');
@@ -106,6 +121,20 @@ const edgeStrip = (position: 'top' | 'bottom', color: string) => {
   // sampling source.
   el.style.cssText = `position:fixed;${position}:0;left:0;right:0;height:8px;z-index:2147483647;pointer-events:none;background-color:${color};`;
   document.body.appendChild(el);
+};
+
+// True for Safari 26+ (iOS/iPadOS/macOS), the engines that ignore
+// theme-color and use page sampling instead. Excludes the iOS WebKit shells
+// of other browsers (CriOS/FxiOS/EdgiOS), which draw their own opaque UI.
+let safari26Cache: boolean | null = null;
+const isSafari26OrNewer = () => {
+  if (safari26Cache !== null) return safari26Cache;
+  const ua = navigator.userAgent;
+  const isRealSafari =
+    /Safari\//.test(ua) && !/Chrome|CriOS|FxiOS|EdgiOS|Android/.test(ua);
+  const version = ua.match(/Version\/(\d+)/);
+  safari26Cache = isRealSafari && !!version && parseInt(version[1], 10) >= 26;
+  return safari26Cache;
 };
 
 const applyColor = (color: string) => {
@@ -161,6 +190,7 @@ export default function ThemeColorManager() {
     return () =>
       window.removeEventListener(THEME_COLOR_OVERRIDE_EVENT, onOverride);
   }, []);
+
 
   const overrideColor =
     override && override.path === pathname ? override.color : null;
