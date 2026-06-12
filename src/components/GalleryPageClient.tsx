@@ -1139,7 +1139,8 @@ function ProjectCard({ project }: { project: Project }) {
               alt={project.title}
               fill
               className="object-cover scale-[1.01] transition-transform duration-500"
-              sizes="(max-width: 768px) 50vw, 33vw"
+              sizes="(max-width: 768px) 75vw, 50vw"
+              quality={90}
               onLoad={() => setImgLoaded(true)}
             />
           ) : (

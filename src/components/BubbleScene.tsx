@@ -76,9 +76,8 @@ interface BubbleData {
 }
 
 // Bubbles render small on screen, so cap texture downloads well below the
-// 2560px asset default to keep GPU memory usage in check (esp. on mobile).
-// Touch devices get an even lower cap: an 800px texture is visually
-// indistinguishable at bubble sizes but uses ~2.25x less GPU memory than 1200px.
+// 2560px asset default to keep GPU memory usage in check while preserving
+// crisp bubble details.
 const isTouchDevice = () =>
   typeof window !== 'undefined' &&
   ('ontouchstart' in window || navigator.maxTouchPoints > 0);
@@ -86,7 +85,7 @@ const isTouchDevice = () =>
 const clampTextureUrl = (url: string) => {
   try {
     const clamped = new URL(url);
-    clamped.searchParams.set('w', isTouchDevice() ? '800' : '1200');
+    clamped.searchParams.set('w', isTouchDevice() ? '1200' : '1600');
     return clamped.toString();
   } catch {
     return url;
