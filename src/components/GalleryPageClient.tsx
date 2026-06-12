@@ -171,18 +171,28 @@ function GalleryPageContent({
     setRandomSide(Math.random() > 0.5 ? 'right' : 'left');
   }, []);
 
+  // Pause the WebGL frameloop whenever the dot view is not actually on
+  // screen — grid view active, or a project detail open (URL has a slug /
+  // ?project=). This mirrors the CSS visibility condition of the dot view
+  // container below. Previously the scene only paused for the detail
+  // overlay, so in grid view it kept rendering at full framerate behind an
+  // opacity-0 layer; on phones that constant GPU/main-thread load competed
+  // with image decoding and scrolling and made the grid intermittently
+  // freeze / drop touches.
+  // The pause is delayed past the 500ms dot<->grid crossfade (and the 300ms
+  // detail overlay fade) so bubbles never freeze mid-transition; unpausing is
+  // immediate so they are already moving when revealed. Bubbles deliberately
+  // keep moving while the DetailCard (?card=) is open over the dot view.
   useEffect(() => {
-    // Pause bubbles ONLY if full project overlay is open
-    // Allow bubbles to keep moving when DetailCard (selectedProject) is open
-    if (fullProject) {
-      // Delay pause to ensure any layout shifts (scrollbars) are handled by a few frames
-      // Matches transition duration (300ms) + buffer
-      const timer = setTimeout(() => setIsBubblePaused(true), 400);
+    const dotViewVisible =
+      viewMode === 'dot' && !searchParams.get('project') && !slug?.[0];
+    if (!dotViewVisible) {
+      const timer = setTimeout(() => setIsBubblePaused(true), 600);
       return () => clearTimeout(timer);
     } else {
       setIsBubblePaused(false);
     }
-  }, [fullProject]);
+  }, [viewMode, searchParams, slug]);
 
   // Wake the WebGL frameloop directly on back/forward navigation, BEFORE the
   // restored page paints. Waiting for the normal effect chain (URL change ->
