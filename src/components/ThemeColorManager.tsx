@@ -98,11 +98,18 @@ export const overrideThemeColor = (color: string | null) => {
 // strip's color, so the strip reads as a seamless extension of the bar — the
 // native Liquid Glass look.
 //
-// IMPORTANT: strips are ONLY rendered on Safari 26+. Everywhere else (Chrome,
-// Safari 15-18, old-iOS devices like iPhone SE/8) the browser chrome is
-// opaque and colored via the theme-color meta tag or not at all, so a strip
-// would just paint OVER page content as a visible 8px border (e.g. a #fcfcfc
-// band above a blue project banner).
+// IMPORTANT: strips are ONLY rendered on Safari 26+ AND on notched /
+// Dynamic Island displays. Everywhere else the strip would just paint OVER
+// page content as a visible 8px border (e.g. a #fcfcfc band above a blue
+// project banner):
+//   - Chrome, Safari 15-18, the iOS WebKit shells: chrome is opaque and
+//     colored via the theme-color meta tag or not at all;
+//   - home-button iPhones (SE/8) even ON iOS 26: the status bar is a plain
+//     opaque bar, so the strip showed as an extra white band that made the
+//     "status bar" look twice as tall (reported on iPhone SE, June 2026);
+//   - iPad / desktop Safari 26: no notch chrome to blend with either.
+// Without strips those devices fall back to body-background sampling /
+// theme-color meta, which is correct for opaque bars.
 //
 // Note: gating on env(safe-area-inset-*) instead does NOT work — measured in
 // the iOS 26.3 simulator, the insets are 0 in regular Safari browsing even
@@ -113,7 +120,7 @@ export const overrideThemeColor = (color: string | null) => {
 const edgeStrip = (position: 'top' | 'bottom', color: string) => {
   const id = `theme-edge-${position}`;
   document.getElementById(id)?.remove();
-  if (!isSafari26OrNewer()) return;
+  if (!isSafari26OrNewer() || !isNotchedDisplay()) return;
   const el = document.createElement('div');
   el.id = id;
   el.setAttribute('aria-hidden', 'true');
@@ -135,6 +142,17 @@ const isSafari26OrNewer = () => {
   const version = ua.match(/Version\/(\d+)/);
   safari26Cache = isRealSafari && !!version && parseInt(version[1], 10) >= 26;
   return safari26Cache;
+};
+
+// True for notched / Dynamic Island iPhones, where the translucent Liquid
+// Glass chrome blends with the strip. Every notched iPhone screen has an
+// aspect ratio of at least ~2.16 (e.g. 375x812); home-button iPhones top out
+// at 16:9 (~1.78) and iPads at ~1.44, so 2.0 is a safe threshold. env()
+// insets can't be used for this (see edgeStrip note), and screen dimensions
+// are orientation-dependent on iOS, hence max/min.
+const isNotchedDisplay = () => {
+  const { width, height } = window.screen;
+  return Math.max(width, height) / Math.min(width, height) >= 2;
 };
 
 const applyColor = (color: string) => {
