@@ -16,10 +16,10 @@ export default async function About() {
     <div className="relative w-full min-h-[100dvh] bg-[#fcfcfc] overflow-hidden">
       <div className="fixed inset-0 w-full h-[100dvh] overflow-y-auto z-30 bg-[#fcfcfc]">
         <main
-          className="mx-auto max-w-7xl min-h-full px-8 md:px-16 pl-[calc(2rem+env(safe-area-inset-left))] pr-[calc(2rem+env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)] pt-[calc(6rem+100px+env(safe-area-inset-top,0px))] md:pt-[calc(6rem+200px+env(safe-area-inset-top,0px))]"
+          className="mx-auto max-w-7xl min-h-full px-8 md:px-16 pl-[calc(2rem+env(safe-area-inset-left))] pr-[calc(2rem+env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)] pt-[calc(6rem+env(safe-area-inset-top,0px))]"
         >
         {/* Header Label */}
-        <div className="mb-12 text-sm font-['Value_Sans'] font-normal tracking-widest text-[#B6B6B6] uppercase">
+        <div className="mb-[calc(3rem+100px)] md:mb-[calc(3rem+200px)] text-sm font-['Value_Sans'] font-normal tracking-widest text-[#B6B6B6] uppercase">
           Who We Are /{' '}
           <span className="font-['Value_Serif'] font-medium">About Us</span>
         </div>
@@ -63,7 +63,7 @@ export default async function About() {
             </div>
 
             {/* Footer Links */}
-            <div className="flex flex-row justify-between items-center w-full max-w-[300px] md:max-w-lg">
+            <div className="flex flex-row justify-between items-center w-full max-w-[300px] md:max-w-lg md:mb-[150px]">
               {contact?.instagram && (
                 <Link
                   href={contact.instagram}

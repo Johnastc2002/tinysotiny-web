@@ -33,7 +33,7 @@ export default async function Client() {
         />
 
         {/* Client List */}
-        <div className="flex-1 w-full flex items-start justify-start">
+        <div className="flex-1 w-full flex items-start md:items-center justify-start">
           <div className="w-full text-left">
             <ClientList clients={clients} />
           </div>
