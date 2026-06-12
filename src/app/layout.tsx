@@ -21,13 +21,16 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
+// NOTE: no `themeColor` here or in any page viewport export — the theme-color
+// meta tag is owned exclusively by ThemeColorManager (client-side). A
+// Next-rendered tag would duplicate it (Safari then picks a stale color) and
+// crash React's head cleanup if removed externally.
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  themeColor: '#efefef',
 };
 
 export const metadata: Metadata = {

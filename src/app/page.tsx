@@ -1,13 +1,9 @@
 import BubbleScene from '@/components/BubbleScene';
 import { getAppConfig } from '@/lib/contentful';
-import { Viewport } from 'next';
-
 export const revalidate = 300; // Revalidate every 5 minutes
 
-export const viewport: Viewport = {
-  themeColor: '#efefef',
-  viewportFit: 'cover',
-};
+// theme-color is managed client-side by ThemeColorManager (single owner);
+// viewport-fit=cover comes from the root layout's viewport export.
 
 export default async function Home() {
   const appConfig = await getAppConfig();

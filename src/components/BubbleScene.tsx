@@ -1557,7 +1557,15 @@ export default function BubbleScene({
         {!transparent && !backgroundColor && (
           <color attach="background" args={['#efefef']} />
         )}
-        <Environment preset="studio" />
+        {/* Self-hosted HDR (same file as drei's "studio" preset). Do NOT use
+            `preset="studio"`: that fetches the HDR from a third-party CDN at
+            runtime, and when the fetch fails or hangs (flaky network, blocked
+            CDN — reproduced in the iOS simulator) it throws inside the Canvas
+            and crashes the whole page. A failure during a client-side
+            navigation also left iOS Safari's chrome (notch/toolbar tint)
+            latched on the previous page's color. See the header comment in
+            ThemeColorManager.tsx for the full Safari 26 tinting story. */}
+        <Environment files="/hdri/studio_small_03_1k.hdr" />
         <CameraAdjuster userInteractionRef={userInteractionRef} />
         <ControlsSpeedAdjuster />
         <MagneticCamera

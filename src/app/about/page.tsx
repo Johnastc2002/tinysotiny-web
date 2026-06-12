@@ -1,4 +1,3 @@
-import type { Viewport } from 'next';
 import React from 'react';
 import Link from 'next/link';
 import { getAboutUs, getContact } from '@/lib/contentful';
@@ -7,10 +6,8 @@ import SloganHover from '@/components/SloganHover';
 
 export const revalidate = 300; // Revalidate every 5 minutes
 
-export const viewport: Viewport = {
-  themeColor: '#fcfcfc',
-  viewportFit: 'cover',
-};
+// theme-color is managed client-side by ThemeColorManager (single owner);
+// viewport-fit=cover comes from the root layout's viewport export.
 
 export default async function About() {
   const [aboutUs, contact] = await Promise.all([getAboutUs(), getContact()]);

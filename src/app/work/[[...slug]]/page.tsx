@@ -1,4 +1,4 @@
-import { Metadata, ResolvingMetadata, Viewport } from 'next';
+import { Metadata, ResolvingMetadata } from 'next';
 import {
   getFeaturedProjects,
   getNonFeaturedProjects,
@@ -13,21 +13,8 @@ import GalleryPageClient from '@/components/GalleryPageClient';
 
 export const revalidate = 300; // Revalidate every 5 minutes
 
-export async function generateViewport({
-  params,
-}: {
-  params: Promise<{ slug?: string[] }>;
-}): Promise<Viewport> {
-  const { slug } = await params;
-  // If slug exists, we are on a detail page (White background).
-  // Otherwise, we are on the grid page (Gray background).
-  const themeColor = slug && slug[0] ? '#fcfcfc' : '#efefef';
-
-  return {
-    themeColor,
-    viewportFit: 'cover',
-  };
-}
+// theme-color is managed client-side by ThemeColorManager (single owner);
+// viewport-fit=cover comes from the root layout's viewport export.
 
 type Props = {
   params: Promise<{ slug?: string[] }>;

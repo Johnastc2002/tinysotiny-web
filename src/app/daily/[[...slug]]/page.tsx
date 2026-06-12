@@ -1,4 +1,4 @@
-import { Metadata, ResolvingMetadata, Viewport } from 'next';
+import { Metadata, ResolvingMetadata } from 'next';
 import React from 'react';
 import {
   getDailyEntries,
@@ -10,10 +10,8 @@ import DailyList from '@/components/DailyList';
 
 export const revalidate = 300; // Revalidate every 5 minutes
 
-export const viewport: Viewport = {
-  themeColor: '#fcfcfc',
-  viewportFit: 'cover',
-};
+// theme-color is managed client-side by ThemeColorManager (single owner);
+// viewport-fit=cover comes from the root layout's viewport export.
 
 type Props = {
   params: Promise<{ slug?: string[] }>;

@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { ContactData } from '@/types/about';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import AnimatedLogo from './AnimatedLogo';
+import { overrideThemeColor } from './ThemeColorManager';
 
 interface NavigationProps {
   contact?: ContactData | null;
@@ -215,6 +216,15 @@ export default function Navigation({ contact }: NavigationProps) {
   const isMobile = useIsMobile();
 
   const toggleMenu = () => setIsOpen(!isOpen);
+
+  // The menu overlay is white and covers the whole page; tint the iOS
+  // notch/status bar area to match while it is open (the route-based theme
+  // color — e.g. black on /play — would otherwise show as a mismatched strip
+  // above the white menu).
+  useEffect(() => {
+    overrideThemeColor(isOpen ? '#ffffff' : null);
+    return () => overrideThemeColor(null);
+  }, [isOpen]);
 
   const handleMobileClick = (
     e: React.MouseEvent,

@@ -85,13 +85,11 @@
 :root {
   --background: #fcfcfc;
   --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* The site is light-only. Without this, iOS dark mode painted html/body
+     near-black, which showed as black strips at the notch / home-indicator
+     areas (overscroll, first paint, toolbar collapse) instead of the page
+     background extending edge-to-edge. */
+  color-scheme: light;
 }
 
 body {

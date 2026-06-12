@@ -1,4 +1,3 @@
-import type { Viewport } from 'next';
 import React from 'react';
 // import Link from 'next/link';
 import { getClientPageClients } from '@/lib/contentful';
@@ -6,10 +5,8 @@ import ClientList from '@/components/ClientList';
 
 export const revalidate = 300; // Revalidate every 5 minutes
 
-export const viewport: Viewport = {
-  themeColor: '#fcfcfc',
-  viewportFit: 'cover',
-};
+// theme-color is managed client-side by ThemeColorManager (single owner);
+// viewport-fit=cover comes from the root layout's viewport export.
 
 export default async function Client() {
   const clients = await getClientPageClients();
