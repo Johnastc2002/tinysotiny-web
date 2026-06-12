@@ -1062,7 +1062,17 @@ function ProjectCard({ project }: { project: Project }) {
   const imageUrl = project.thumbnails?.[0] || project.bubble_thumbnail;
   const searchParams = useSearchParams();
   const { setCursor } = useCursor();
-  const isMobile = useIsMobile();
+  // The glass (backdrop-blur) overlays must never be on screen while their
+  // backdrop is in a transitional state, or the blur visibly re-renders:
+  //   - before the thumbnail has painted, the blur samples the gray
+  //     placeholder and the tag reads as a flat white pill that "turns into
+  //     glass" once the image pops in;
+  //   - while an opacity transition runs, browsers isolate the subtree and
+  //     the backdrop-filter can't sample the page until the fade ends, which
+  //     shows as a second "refraction" pop on every hover.
+  // So: reveal overlays only after the image has loaded, and avoid opacity
+  // fades on the glass pills; desktop hover fades their color/blur instead.
+  const [imgLoaded, setImgLoaded] = useState(!imageUrl);
 
   const getHref = () => {
     const params = new URLSearchParams(searchParams.toString());
@@ -1120,6 +1130,7 @@ function ProjectCard({ project }: { project: Project }) {
               fill
               className="object-cover scale-[1.01] transition-transform duration-500"
               sizes="(max-width: 768px) 50vw, 33vw"
+              onLoad={() => setImgLoaded(true)}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
@@ -1127,11 +1138,16 @@ function ProjectCard({ project }: { project: Project }) {
             </div>
           )}
 
-          {/* Client Overlay */}
+          {/* Client Overlay. Hover-reveal is gated by @media(hover:hover) in
+              CSS instead of the useIsMobile() hook (which starts false and
+              flips after an effect, causing a late fade-in on touch devices).
+              This overlay has no glass, so a plain opacity fade is safe here.
+              See the imgLoaded comment above for why overlays wait for the
+              image. */}
           {project.clientName && (
             <div
-              className={`absolute top-2 left-3 right-3 md:top-4 md:left-4 md:right-4 z-10 pointer-events-none transition-opacity duration-300 ${
-                isMobile ? '' : 'opacity-0 group-hover:opacity-100'
+              className={`absolute top-2 left-3 right-3 md:top-4 md:left-4 md:right-4 z-10 pointer-events-none transition-opacity duration-300 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 ${
+                imgLoaded ? '' : 'invisible'
               }`}
             >
               <span className="inline-block text-[10px] md:text-xs uppercase tracking-wider text-white whitespace-normal wrap-break-word">
@@ -1145,16 +1161,24 @@ function ProjectCard({ project }: { project: Project }) {
             </div>
           )}
 
-          {/* Tags Overlay */}
+          {/* Tags Overlay. The glass pills must NOT fade via opacity: while
+              an opacity transition runs the browser isolates the subtree and
+              the backdrop-filter can't sample the page until the fade ends,
+              which re-renders the refraction in a visible pop. Instead the
+              hover fade animates background-color, text color and the blur
+              radius itself (blur(0px) -> blur(8px)); the backdrop filter
+              stays active throughout, so the glass builds up smoothly with
+              no recomputation at the end. On touch devices (no hover media)
+              the pills are simply always in their final state. */}
           <div
-            className={`absolute bottom-3 left-3 md:bottom-4 md:left-4 z-10 flex flex-col gap-1 md:gap-2 items-start transition-opacity duration-300 ${
-              isMobile ? '' : 'opacity-0 group-hover:opacity-100'
+            className={`absolute bottom-3 left-3 md:bottom-4 md:left-4 z-10 flex flex-col gap-1 md:gap-2 items-start ${
+              imgLoaded ? '' : 'invisible'
             }`}
           >
             {project.tags.slice(0, 2).map((tag, i) => (
               <span
                 key={i}
-                className="inline-flex items-center justify-center leading-none pt-[3px] pb-[1px] px-2 md:px-3 md:pt-[5px] md:pb-[3px] rounded-full bg-white/20 backdrop-blur-sm text-[9px] md:text-[10px] uppercase tracking-wide font-['Value_Sans'] font-normal text-white"
+                className="inline-flex items-center justify-center leading-none pt-[3px] pb-[1px] px-2 md:px-3 md:pt-[5px] md:pb-[3px] rounded-full bg-white/20 backdrop-blur-sm text-[9px] md:text-[10px] uppercase tracking-wide font-['Value_Sans'] font-normal text-white transition-[background-color,color,backdrop-filter] duration-300 [@media(hover:hover)]:bg-transparent [@media(hover:hover)]:text-transparent [@media(hover:hover)]:backdrop-blur-[0px] [@media(hover:hover)]:group-hover:bg-white/20 [@media(hover:hover)]:group-hover:text-white [@media(hover:hover)]:group-hover:backdrop-blur-sm"
               >
                 {tag.display_name}
               </span>
