@@ -314,30 +314,36 @@ export default function Navigation({ contact }: NavigationProps) {
         lg:[@media(min-height:720px)]:top-6! lg:[@media(min-height:720px)]:bottom-6! lg:[@media(min-height:720px)]:right-6! lg:[@media(min-height:720px)]:left-auto! lg:[@media(min-height:720px)]:w-[60%]! lg:[@media(min-height:720px)]:rounded-3xl! 
         overflow-hidden`}
       >
-        {/* Close Button - Fixed relative to card */}
+        {/* Close Button - Fixed relative to card.
+            Mobile portrait: the X gets exactly the same box as the hamburger
+            outside (2.5rem at inset-top + 1.125rem / inset-right + 1.5rem,
+            via inline styles to match the hamburger's own inline styles), so
+            their centers coincide on both axes. Mobile landscape: the menu is
+            an inset card, so alignment with the hamburger isn't expected —
+            1rem from the card's top edge. Desktop card (lg + tall): original
+            3rem button at 2rem from the card top. */}
         <div
-          className="absolute z-50 flex items-center justify-center"
+          className="absolute z-50 flex items-center justify-center landscape:top-4! lg:[@media(min-height:720px)]:top-[calc(env(safe-area-inset-top)+2rem)]!"
           style={{
-            top: 'calc(env(safe-area-inset-top) + 2rem)',
+            top: 'calc(env(safe-area-inset-top) + 1.125rem)',
             right: 'calc(env(safe-area-inset-right) + 1.5rem)',
           }}
         >
           <button
             onClick={toggleMenu}
-            style={{
-              height: '3rem',
-              width: '3rem',
-            }}
-            className="flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors lg:[@media(min-height:720px)]:h-12! lg:[@media(min-height:720px)]:w-12!"
+            className="flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors h-10 w-10 lg:[@media(min-height:720px)]:h-12! lg:[@media(min-height:720px)]:w-12!"
             aria-label="Close Menu"
           >
+            {/* 32px svg renders the 12/24-unit X glyph at 16px — the same
+                visual width as the hamburger's lines, so the swap between
+                the two controls reads as in-place. */}
             <svg
-              width="24"
-              height="24"
+              width="32"
+              height="32"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              className="lg:[@media(min-height:720px)]:w-8! lg:[@media(min-height:720px)]:h-8!"
+              className="w-8 h-8"
             >
               <path
                 d="M18 6L6 18"
