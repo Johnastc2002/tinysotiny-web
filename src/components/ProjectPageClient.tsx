@@ -64,17 +64,29 @@ export default function ProjectPageClient({
   const handleShare = async () => {
     if (typeof window === 'undefined') return;
 
+    // Share the canonical slug URL rather than the in-app navigation form
+    // (/work?project=...): it's the stable public link, and scrapers like
+    // WhatsApp cache previews per exact URL string.
+    const shareUrl = project.slug
+      ? `${window.location.origin}/${
+          project.projectType === 'work' ? 'work' : 'play'
+        }/${project.slug}`
+      : window.location.href;
+
+    // Compose the full message in `text` (description, blank line, link)
+    // instead of passing a separate `url`: receiving apps decide how to join
+    // text + url (WhatsApp glues them with a space), while a self-composed
+    // text keeps the link on its own line.
     const shareData = {
       title: project.title,
-      text: project.card_description || project.description,
-      url: window.location.href,
+      text: `${project.card_description || project.description}\n\n${shareUrl}`,
     };
 
     try {
       if (navigator.share) {
         await navigator.share(shareData);
       } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(shareData.url);
+        await navigator.clipboard.writeText(shareData.text);
       }
     } catch {
       // Ignore cancelled native share sheets and clipboard permission denials.
