@@ -375,7 +375,7 @@ export default function ProjectPageClient({
                   <button
                     type="button"
                     onClick={handleShare}
-                    className={`shrink-0 flex h-8 w-8 items-center justify-center ${
+                    className={`shrink-0 flex h-8 w-8 -translate-y-1 items-center justify-center ${
                       !cardTagColor ? 'text-[#B6B6B6]' : ''
                     }`}
                     style={
