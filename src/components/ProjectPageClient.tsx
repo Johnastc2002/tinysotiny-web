@@ -516,7 +516,7 @@ export default function ProjectPageClient({
               {/* Optional: Repeat Title or just show Cast */}
               {project.cast && (
                 <div
-                  className="text-base text-[#0F2341] leading-[1.6] whitespace-pre-line font-['Value_Sans'] font-normal"
+                  className="text-sm text-[#0F2341] leading-[1.6] whitespace-pre-line font-['Value_Sans'] font-normal"
                   dangerouslySetInnerHTML={{ __html: project.cast }}
                 />
               )}
@@ -595,7 +595,7 @@ export default function ProjectPageClient({
                 <div
                   data-contentful-field-id="cast"
                   data-contentful-entry-id={project.id}
-                  className={`text-base text-[#0F2341] leading-[1.6] whitespace-pre-line font-['Value_Sans'] font-normal [&>p:last-child]:mb-0 [&>p]:mb-4 ${
+                  className={`text-sm text-[#0F2341] leading-[1.6] whitespace-pre-line font-['Value_Sans'] font-normal [&>p:last-child]:mb-0 [&>p]:mb-4 ${
                     !isMobile ? 'desktop-rich-text' : ''
                   }`}
                   dangerouslySetInnerHTML={{ __html: project.cast }}
