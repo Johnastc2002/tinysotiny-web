@@ -653,7 +653,7 @@ export default function ProjectPageClient({
         {/* Gray Background Section for Gallery */}
         {project.media_rows.length > 0 && (
           <div
-            className={`w-full pt-12 px-8 md:pt-40 md:px-24 mt-0 md:-mt-24 z-10 relative bg-white md:bg-transparent ${
+            className={`w-full pt-12 px-8 md:pt-40 md:px-24 mt-0 md:-mt-24 z-10 relative bg-[#f8f8f8] md:bg-transparent ${
               project.media_rows.length <= 3 ? 'pb-0' : 'pb-12 md:pb-20'
             }`}
           >
