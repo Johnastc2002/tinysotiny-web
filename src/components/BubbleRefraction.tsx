@@ -23,8 +23,8 @@ const RefractionContext = createContext<RefractionContextType | null>(null);
 // result is blurred before display, so native-DPR rendering adds substantial
 // fill-rate and mipmap cost without a visible quality benefit.
 const REFRACTION_RESOLUTION_SCALE = 0.75;
+const BLUR_RESOLUTION_SCALE = 0.5;
 const MAX_REFRACTION_DPR = 1;
-const BLUR_SCALE = 4;
 
 export const BubbleRefractionProvider = ({
   children,
@@ -37,25 +37,34 @@ export const BubbleRefractionProvider = ({
 
   // Use a ref for the bubbles set to avoid re-renders on mutation
   const bubblesRef = useRef<Set<THREE.Object3D>>(new Set());
+  const clearColorRef = useRef(new THREE.Color());
 
   const dimensions = useMemo(() => {
     const pixelRatio = Math.min(gl.getPixelRatio(), MAX_REFRACTION_DPR);
     return {
-      width: Math.max(
+      sceneWidth: Math.max(
         1,
         Math.floor(size.width * pixelRatio * REFRACTION_RESOLUTION_SCALE),
       ),
-      height: Math.max(
+      sceneHeight: Math.max(
         1,
         Math.floor(size.height * pixelRatio * REFRACTION_RESOLUTION_SCALE),
+      ),
+      blurWidth: Math.max(
+        1,
+        Math.floor(size.width * pixelRatio * BLUR_RESOLUTION_SCALE),
+      ),
+      blurHeight: Math.max(
+        1,
+        Math.floor(size.height * pixelRatio * BLUR_RESOLUTION_SCALE),
       ),
     };
   }, [size, gl]);
 
   const targets = useMemo(() => {
     const sceneTarget = new THREE.WebGLRenderTarget(
-      dimensions.width,
-      dimensions.height,
+      dimensions.sceneWidth,
+      dimensions.sceneHeight,
       {
         minFilter: THREE.LinearFilter,
         magFilter: THREE.LinearFilter,
@@ -67,8 +76,8 @@ export const BubbleRefractionProvider = ({
       },
     );
     const blurTargetA = new THREE.WebGLRenderTarget(
-      dimensions.width,
-      dimensions.height,
+      dimensions.blurWidth,
+      dimensions.blurHeight,
       {
         minFilter: THREE.LinearFilter,
         magFilter: THREE.LinearFilter,
@@ -96,11 +105,10 @@ export const BubbleRefractionProvider = ({
         uDirection: { value: new THREE.Vector2(1, 0) },
         uTexelSize: {
           value: new THREE.Vector2(
-            1 / dimensions.width,
-            1 / dimensions.height,
+            1 / dimensions.blurWidth,
+            1 / dimensions.blurHeight,
           ),
         },
-        uBlurScale: { value: BLUR_SCALE },
       },
       vertexShader: `
         varying vec2 vUv;
@@ -114,20 +122,24 @@ export const BubbleRefractionProvider = ({
         uniform sampler2D tDiffuse;
         uniform vec2 uDirection;
         uniform vec2 uTexelSize;
-        uniform float uBlurScale;
         varying vec2 vUv;
 
         void main() {
-          vec2 offset1 =
-            uDirection * uTexelSize * 1.3846153846 * uBlurScale;
-          vec2 offset2 =
-            uDirection * uTexelSize * 3.2307692308 * uBlurScale;
+          vec2 axis = uDirection * uTexelSize;
+          vec4 color = texture2D(tDiffuse, vUv) * 0.0690451510;
 
-          vec4 color = texture2D(tDiffuse, vUv) * 0.2270270270;
-          color += texture2D(tDiffuse, vUv + offset1) * 0.3162162162;
-          color += texture2D(tDiffuse, vUv - offset1) * 0.3162162162;
-          color += texture2D(tDiffuse, vUv + offset2) * 0.0702702703;
-          color += texture2D(tDiffuse, vUv - offset2) * 0.0702702703;
+          color += texture2D(tDiffuse, vUv + axis * 1.4895848401) * 0.1334067336;
+          color += texture2D(tDiffuse, vUv - axis * 1.4895848401) * 0.1334067336;
+          color += texture2D(tDiffuse, vUv + axis * 3.4757135714) * 0.1162191668;
+          color += texture2D(tDiffuse, vUv - axis * 3.4757135714) * 0.1162191668;
+          color += texture2D(tDiffuse, vUv + axis * 5.4618796741) * 0.0906686380;
+          color += texture2D(tDiffuse, vUv - axis * 5.4618796741) * 0.0906686380;
+          color += texture2D(tDiffuse, vUv + axis * 7.4481042327) * 0.0633453293;
+          color += texture2D(tDiffuse, vUv - axis * 7.4481042327) * 0.0633453293;
+          color += texture2D(tDiffuse, vUv + axis * 9.4344079746) * 0.0396322395;
+          color += texture2D(tDiffuse, vUv - axis * 9.4344079746) * 0.0396322395;
+          color += texture2D(tDiffuse, vUv + axis * 11.4208111470) * 0.0222053174;
+          color += texture2D(tDiffuse, vUv - axis * 11.4208111470) * 0.0222053174;
           gl_FragColor = color;
         }
       `,
@@ -175,7 +187,7 @@ export const BubbleRefractionProvider = ({
     });
 
     const currentRenderTarget = state.gl.getRenderTarget();
-    const oldClearColor = new THREE.Color();
+    const oldClearColor = clearColorRef.current;
     state.gl.getClearColor(oldClearColor);
     const oldClearAlpha = state.gl.getClearAlpha();
 
