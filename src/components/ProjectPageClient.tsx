@@ -245,7 +245,7 @@ export default function ProjectPageClient({
                           <h2
                             data-contentful-field-id="title"
                             data-contentful-entry-id={project.id}
-                            className={`mb-[14px] text-4xl font-['Value_Serif'] font-medium leading-[1.2] ${
+                            className={`mb-6 text-4xl font-['Value_Serif'] font-medium leading-[1.2] ${
                               !cardFontColor ? 'text-[#0F2341]' : ''
                             }`}
                             style={
@@ -257,7 +257,7 @@ export default function ProjectPageClient({
                           <p
                             data-contentful-field-id="description"
                             data-contentful-entry-id={project.id}
-                            className={`text-sm leading-[1.4] max-w-xl font-['Value_Sans'] font-normal ${
+                            className={`text-sm leading-[1.6] max-w-xl font-['Value_Sans'] font-normal ${
                               !cardFontColor ? 'text-[#0F2341]' : ''
                             }`}
                             style={
@@ -430,7 +430,7 @@ export default function ProjectPageClient({
                 </div>
               )}
               <h1
-                className={`text-4xl font-['Value_Serif'] font-medium leading-[1.2] mb-[18px] ${
+                className={`text-4xl font-['Value_Serif'] font-medium leading-[1.2] mb-6 ${
                   !cardFontColor ? 'text-[#0F2341]' : ''
                 }`}
                 style={cardFontColor ? { color: cardFontColor } : {}}
@@ -438,7 +438,7 @@ export default function ProjectPageClient({
                 {project.title}
               </h1>
               <p
-                className={`text-base leading-[1.4] mb-0 font-['Value_Sans'] font-normal ${
+                className={`text-base leading-[1.6] mb-0 font-['Value_Sans'] font-normal ${
                   !cardFontColor ? 'text-[#0F2341]' : ''
                 }`}
                 style={
@@ -516,7 +516,7 @@ export default function ProjectPageClient({
               {/* Optional: Repeat Title or just show Cast */}
               {project.cast && (
                 <div
-                  className="text-base text-[#0F2341] leading-[1.4] whitespace-pre-line font-['Value_Sans'] font-normal"
+                  className="text-base text-[#0F2341] leading-[1.6] whitespace-pre-line font-['Value_Sans'] font-normal"
                   dangerouslySetInnerHTML={{ __html: project.cast }}
                 />
               )}
@@ -595,7 +595,7 @@ export default function ProjectPageClient({
                 <div
                   data-contentful-field-id="cast"
                   data-contentful-entry-id={project.id}
-                  className={`text-base text-[#0F2341] leading-[1.4] whitespace-pre-line font-['Value_Sans'] font-normal [&>p:last-child]:mb-0 [&>p]:mb-4 ${
+                  className={`text-base text-[#0F2341] leading-[1.6] whitespace-pre-line font-['Value_Sans'] font-normal [&>p:last-child]:mb-0 [&>p]:mb-4 ${
                     !isMobile ? 'desktop-rich-text' : ''
                   }`}
                   dangerouslySetInnerHTML={{ __html: project.cast }}
@@ -739,7 +739,7 @@ export default function ProjectPageClient({
                           className="w-full pb-16 flex flex-col md:flex-row relative overflow-hidden"
                         >
                           <div className="w-full md:w-3/4 relative z-10">
-                            <p className="text-[22px] md:text-[32px] text-gray-700 leading-[1.4] max-w-full text-left font-['Value_Sans'] font-medium wrap-break-word whitespace-pre-wrap">
+                            <p className="text-[22px] md:text-[32px] text-gray-700 leading-[1.6] max-w-full text-left font-['Value_Sans'] font-medium wrap-break-word whitespace-pre-wrap">
                               {project.description_2}
                             </p>
                           </div>

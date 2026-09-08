@@ -235,7 +235,7 @@ export default function DetailCard({
                           </div>
                         )}
                         <h2
-                          className={`mb-2 md:mb-[14px] text-2xl md:text-4xl font-['Value_Serif'] font-medium leading-[1.2] ${
+                          className={`mb-4 md:mb-6 text-2xl md:text-4xl font-['Value_Serif'] font-medium leading-[1.2] ${
                             !fontColor ? 'text-[#0F2341]' : ''
                           }`}
                           style={fontColor ? { color: fontColor } : {}}
@@ -243,7 +243,7 @@ export default function DetailCard({
                           {data.title}
                         </h2>
                         <p
-                          className={`text-xs md:text-sm leading-[1.4] max-w-xl font-['Value_Sans'] font-normal line-clamp-4 md:line-clamp-6 text-ellipsis overflow-hidden ${
+                          className={`text-xs md:text-sm leading-[1.6] max-w-xl font-['Value_Sans'] font-normal line-clamp-4 md:line-clamp-6 text-ellipsis overflow-hidden ${
                             !fontColor ? 'text-[#0F2341]' : ''
                           }`}
                           style={
