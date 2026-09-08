@@ -21,6 +21,12 @@ interface RefractionContextType {
 
 const RefractionContext = createContext<RefractionContextType | null>(null);
 
+// Refraction is intentionally rendered below the main canvas resolution. The
+// result is blurred before display, so native-DPR rendering adds substantial
+// fill-rate and mipmap cost without a visible quality benefit.
+const REFRACTION_RESOLUTION_SCALE = 0.75;
+const MAX_REFRACTION_DPR = 1;
+
 export const BubbleRefractionProvider = ({
   children,
   enabled = false,
@@ -35,15 +41,23 @@ export const BubbleRefractionProvider = ({
 
   // Create FBO with depth texture
   const fbo = useMemo(() => {
-    const pixelRatio = gl.getPixelRatio();
-    const width = Math.floor(size.width * pixelRatio);
-    const height = Math.floor(size.height * pixelRatio);
+    const pixelRatio = Math.min(gl.getPixelRatio(), MAX_REFRACTION_DPR);
+    const width = Math.max(
+      1,
+      Math.floor(size.width * pixelRatio * REFRACTION_RESOLUTION_SCALE),
+    );
+    const height = Math.max(
+      1,
+      Math.floor(size.height * pixelRatio * REFRACTION_RESOLUTION_SCALE),
+    );
 
     const target = new THREE.WebGLRenderTarget(width, height, {
       minFilter: THREE.LinearMipmapLinearFilter, // Use Mipmaps for smoother blur sampling
       magFilter: THREE.LinearFilter,
       format: THREE.RGBAFormat,
-      type: THREE.HalfFloatType, // Use HalfFloat for better precision with dark colors/linear blending
+      // The home refraction pass only captures display-range colors. RGBA8
+      // avoids the slower half-float render/mipmap path on Windows ANGLE.
+      type: THREE.UnsignedByteType,
       depthBuffer: true,
       depthTexture: new THREE.DepthTexture(width, height),
       stencilBuffer: false,
@@ -59,12 +73,20 @@ export const BubbleRefractionProvider = ({
     return target;
   }, [size, gl]);
 
+  useEffect(() => () => fbo.dispose(), [fbo]);
+
   // Handle resize
   useEffect(() => {
-    const pixelRatio = gl.getPixelRatio();
+    const pixelRatio = Math.min(gl.getPixelRatio(), MAX_REFRACTION_DPR);
     fbo.setSize(
-      Math.floor(size.width * pixelRatio),
-      Math.floor(size.height * pixelRatio),
+      Math.max(
+        1,
+        Math.floor(size.width * pixelRatio * REFRACTION_RESOLUTION_SCALE),
+      ),
+      Math.max(
+        1,
+        Math.floor(size.height * pixelRatio * REFRACTION_RESOLUTION_SCALE),
+      ),
     );
   }, [size, gl, fbo]);
 
@@ -79,7 +101,6 @@ export const BubbleRefractionProvider = ({
   useFrame((state) => {
     if (!enabled) return;
 
-    // 1. Hide refractive bubbles
     const hiddenBubbles: THREE.Object3D[] = [];
     bubblesRef.current.forEach((b) => {
       if (b.visible) {
@@ -88,22 +109,15 @@ export const BubbleRefractionProvider = ({
       }
     });
 
-    // 2. Render scene to FBO
     const currentRenderTarget = state.gl.getRenderTarget();
-
-    // Save clear settings
     const oldClearColor = new THREE.Color();
     state.gl.getClearColor(oldClearColor);
     const oldClearAlpha = state.gl.getClearAlpha();
 
-    // Set clear color to match scene background to avoid black artifacts
     state.gl.setClearColor('#F0F2F5', 1);
-
     state.gl.setRenderTarget(fbo);
     state.gl.clear();
     state.gl.render(state.scene, state.camera);
-
-    // 3. Restore clear color
     state.gl.setClearColor(oldClearColor, oldClearAlpha);
     state.gl.setRenderTarget(currentRenderTarget);
 
@@ -111,15 +125,29 @@ export const BubbleRefractionProvider = ({
       b.visible = true;
     });
 
-    // 4. Manual Render to Screen (since we took over the loop with priority 1)
+    // Refraction and bubble movement render at the same rate to avoid flicker.
     state.gl.render(state.scene, state.camera);
   }, 1); // Priority 1: Run after animations, take over render loop to ensure sync
 
   const resolution = useMemo(
     () =>
       new THREE.Vector2(
-        size.width * gl.getPixelRatio(),
-        size.height * gl.getPixelRatio(),
+        Math.max(
+          1,
+          Math.floor(
+            size.width *
+              Math.min(gl.getPixelRatio(), MAX_REFRACTION_DPR) *
+              REFRACTION_RESOLUTION_SCALE,
+          ),
+        ),
+        Math.max(
+          1,
+          Math.floor(
+            size.height *
+              Math.min(gl.getPixelRatio(), MAX_REFRACTION_DPR) *
+              REFRACTION_RESOLUTION_SCALE,
+          ),
+        ),
       ),
     [size, gl],
   );
@@ -292,23 +320,25 @@ const RefractionShaderMaterialImpl = shaderMaterial(
             vec3 blurCol = vec3(0.0);
             float totalWeight = 0.0;
             
-            // Reduced radius, relying more on Mipmap Blur (LOD) for smoothness
-            float currentBlurRadius = 0.01 * uBlurScale;
+            // Keep the taps close enough that they overlap instead of showing
+            // distinct offset copies of high-contrast details such as text.
+            float currentBlurRadius = 0.005 * uBlurScale;
             
             // Very high LOD bias to force using low-resolution mipmaps
             // This creates a perfectly smooth "creamy" blur without banding or ringing
             // Eliminates the need for noise/dithering which causes grain
-            float lodBias = 1.4 + (uBlurScale * 0.5);
+            float lodBias = 2.0 + (uBlurScale * 0.5);
 
-            // 64 samples for smooth quality
-            for(int i = 0; i < 64; i++) {
+            // Mipmap filtering supplies the broad creamy spread; these taps
+            // smooth its shape while remaining cheaper than the old 64 taps.
+            for(int i = 0; i < 16; i++) {
                 float fi = float(i);
                 
                 // Stable Golden Angle spiral (no noise)
                 float angle = fi * 2.39996;
                 
                 // Square root distribution
-                float r = sqrt(fi / 64.0);
+                float r = sqrt(fi / 16.0);
                 
                 // Sample offset
                 vec2 offset = vec2(cos(angle), sin(angle)) * currentBlurRadius * r;
@@ -319,18 +349,6 @@ const RefractionShaderMaterialImpl = shaderMaterial(
                 
                 // Gaussian weight
                 float w = exp(-2.0 * r * r);
-                
-                // Soft depth rejection
-                float sampleDepthRaw = texture2D(tDepth, sampleUV).x;
-                float sampleDepth = -perspectiveDepthToViewZ(sampleDepthRaw, cameraNear, cameraFar);
-                float centerDepthRaw = texture2D(tDepth, refractedUV).x;
-                float centerDepth = -perspectiveDepthToViewZ(centerDepthRaw, cameraNear, cameraFar);
-                
-                // DISABLED DEPTH REJECTION to ensure full blur across edges
-                // This allows the blur to "cross over" object boundaries, creating a soft feathered look
-                // instead of keeping edges sharp.
-                float depthWeight = 1.0; 
-                w *= (0.2 + 0.8 * depthWeight);
                 
                 blurCol += texSample * w;
                 totalWeight += w;
