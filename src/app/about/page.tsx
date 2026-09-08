@@ -17,17 +17,17 @@ export default async function About() {
 
   return (
     <div className="relative w-full min-h-[100dvh] bg-[#fcfcfc] overflow-hidden">
-      <div className="fixed inset-0 w-full h-[100dvh] overflow-y-auto z-30 bg-[#fcfcfc]">
+      <div className="fixed inset-0 w-full h-[100dvh] overflow-y-auto md:overflow-hidden z-30 bg-[#fcfcfc]">
         <main
-          className="mx-auto max-w-7xl min-h-full px-8 md:px-16 pl-[calc(2rem+env(safe-area-inset-left))] pr-[calc(2rem+env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)] pt-[calc(6rem+env(safe-area-inset-top,0px))]"
+          className="relative mx-auto max-w-7xl min-h-full md:h-full px-8 md:px-16 pl-[calc(2rem+env(safe-area-inset-left))] pr-[calc(2rem+env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)] pt-[calc(6rem+env(safe-area-inset-top,0px))]"
         >
         {/* Header Label */}
-        <div className="mb-[calc(3rem+100px)] md:mb-[calc(3rem+200px)] text-sm font-['Value_Sans'] font-normal tracking-widest text-[#B6B6B6] uppercase">
+        <div className="mb-[calc(3rem+100px)] md:mb-0 md:absolute md:top-[calc(6rem+env(safe-area-inset-top,0px))] text-sm font-['Value_Sans'] font-normal tracking-widest text-[#B6B6B6] uppercase">
           Who We Are /{' '}
           <span className="font-['Value_Serif'] font-medium">About Us</span>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-12 md:gap-8">
+        <div className="grid gap-6 md:h-full md:content-center md:grid-cols-12 md:gap-8">
           {/* Main Title Section */}
           <div className="md:col-span-9">
             <SloganHover
@@ -66,7 +66,7 @@ export default async function About() {
             </div>
 
             {/* Footer Links */}
-            <div className="flex flex-row justify-between items-center w-full max-w-[300px] md:max-w-lg md:mb-[150px]">
+            <div className="flex flex-row justify-between items-center w-full max-w-[300px] md:max-w-lg md:mb-0">
               {contact?.instagram && (
                 <Link
                   href={contact.instagram}
