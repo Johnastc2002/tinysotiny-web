@@ -1000,10 +1000,6 @@ function GalleryPageContent({
               paddingTop: 'calc(6rem + env(safe-area-inset-top, 0px))',
             }}
           >
-            {/* grid-cols-1 for phones (<768px, incl. iPhone); md:grid-cols-3 for
-                iPad+ (iPad portrait starts at 768px). useIsMobile() can't be
-                used here because it also returns true for iPad (touch + `ipad`
-                UA), which would wrongly force iPad to 1 column. */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
               {displayedProjects.map((project) => (
                 <ProjectCard key={project.id} project={project} />
@@ -1161,11 +1157,11 @@ function ProjectCard({ project }: { project: Project }) {
               image. */}
           {project.clientName && (
             <div
-              className={`absolute top-2 left-3 right-3 md:top-4 md:left-4 md:right-4 z-10 pointer-events-none transition-opacity duration-300 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 ${
+              className={`absolute top-4 left-5 right-5 md:top-4 md:left-4 md:right-4 z-10 pointer-events-none transition-opacity duration-300 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 ${
                 imgLoaded ? '' : 'invisible'
               }`}
             >
-              <span className="inline-block text-[10px] md:text-xs uppercase tracking-wider text-white whitespace-normal wrap-break-word">
+              <span className="inline-block text-sm md:text-xs uppercase tracking-wider text-white whitespace-normal wrap-break-word">
                 <span className="font-['Value_Sans'] font-normal">
                   CLIENT /{' '}
                 </span>
@@ -1186,14 +1182,14 @@ function ProjectCard({ project }: { project: Project }) {
               no recomputation at the end. On touch devices (no hover media)
               the pills are simply always in their final state. */}
           <div
-            className={`absolute bottom-3 left-3 md:bottom-4 md:left-4 z-10 flex flex-col gap-1 md:gap-2 items-start ${
+            className={`absolute bottom-5 left-5 md:bottom-4 md:left-4 z-10 flex flex-col gap-3 md:gap-2 items-start ${
               imgLoaded ? '' : 'invisible'
             }`}
           >
             {project.tags.slice(0, 2).map((tag, i) => (
               <span
                 key={i}
-                className="inline-flex items-center justify-center leading-none pt-[3px] pb-[1px] px-2 md:px-3 md:pt-[5px] md:pb-[3px] rounded-full bg-white/20 backdrop-blur-sm text-[9px] md:text-[10px] uppercase tracking-wide font-['Value_Sans'] font-normal text-white transition-[background-color,color,backdrop-filter] duration-300 [@media(hover:hover)]:bg-transparent [@media(hover:hover)]:text-transparent [@media(hover:hover)]:backdrop-blur-[0px] [@media(hover:hover)]:group-hover:bg-white/20 [@media(hover:hover)]:group-hover:text-white [@media(hover:hover)]:group-hover:backdrop-blur-sm"
+                className="inline-flex items-center justify-center leading-none pt-[6px] pb-[4px] px-4 md:px-3 md:pt-[5px] md:pb-[3px] rounded-full bg-white/20 backdrop-blur-sm text-xs md:text-[10px] uppercase tracking-wide font-['Value_Sans'] font-normal text-white transition-[background-color,color,backdrop-filter] duration-300 [@media(hover:hover)]:bg-transparent [@media(hover:hover)]:text-transparent [@media(hover:hover)]:backdrop-blur-[0px] [@media(hover:hover)]:group-hover:bg-white/20 [@media(hover:hover)]:group-hover:text-white [@media(hover:hover)]:group-hover:backdrop-blur-sm"
               >
                 {tag.display_name}
               </span>
