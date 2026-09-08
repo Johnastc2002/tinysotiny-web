@@ -523,7 +523,7 @@ export default function ProjectPageClient({
             </div>
 
             {/* Client & Services Section (Mobile) */}
-            <div className="px-8 pt-12 bg-white relative">
+            <div className="px-8 pt-12 pb-10 bg-white relative">
               <div className="absolute inset-0 z-0 pointer-events-none">
                 {project.detail_category && (
                   <CategorySVG category={project.detail_category} />
