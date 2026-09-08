@@ -299,7 +299,7 @@ export default function ProjectPageClient({
                         className={`bg-white ${
                           showSecondThumbnail
                             ? 'relative p-0'
-                            : 'p-10 flex flex-col justify-center'
+                            : 'p-10 flex flex-col justify-center [@media(hover:hover)]:justify-end'
                         } min-h-[30%] overflow-hidden shrink-0`}
                       >
                         {showSecondThumbnail ? (
