@@ -417,7 +417,7 @@ export default function Navigation({ contact }: NavigationProps) {
           <div className="absolute bottom-0 left-0 w-full flex justify-between landscape:justify-end lg:[@media(min-height:720px)]:justify-between px-12 pb-12 md:px-24 landscape:px-16 landscape:pb-8 lg:[@media(min-height:720px)]:px-24! lg:[@media(min-height:720px)]:pb-16!">
             <Link
               href={contact?.instagram || 'https://instagram.com'}
-              className={`text-xs font-semibold tracking-widest text-[#B6B6B6] ${
+              className={`text-sm font-semibold tracking-widest text-[#B6B6B6] ${
                 !isMobile ? 'hover:text-[#0F2341]' : ''
               } transition-colors uppercase landscape:absolute landscape:left-[40%] lg:[@media(min-height:720px)]:static lg:[@media(min-height:720px)]:ml-0 lg:[@media(min-height:720px)]:text-sm!`}
               target="_blank"
@@ -432,7 +432,7 @@ export default function Navigation({ contact }: NavigationProps) {
             <div className="flex gap-6 lg:gap-8 mr-15">
               <Link
                 href={`mailto:${contact?.email || 'hello@tinysotiny.com'}`}
-                className={`text-xs font-semibold tracking-widest text-[#B6B6B6] ${
+                className={`text-sm font-semibold tracking-widest text-[#B6B6B6] ${
                   !isMobile ? 'hover:text-[#0F2341]' : ''
                 } transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!`}
                 style={{
@@ -445,7 +445,7 @@ export default function Navigation({ contact }: NavigationProps) {
               {whatsappHref && (
                 <Link
                   href={whatsappHref}
-                  className={`text-xs font-semibold tracking-widest text-[#B6B6B6] ${
+                  className={`text-sm font-semibold tracking-widest text-[#B6B6B6] ${
                     !isMobile ? 'hover:text-[#0F2341]' : ''
                   } transition-colors uppercase lg:[@media(min-height:720px)]:text-sm!`}
                   target="_blank"
