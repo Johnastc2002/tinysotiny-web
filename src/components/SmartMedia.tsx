@@ -49,7 +49,7 @@ const VisitWebsiteButton = ({
     href={url}
     target="_blank"
     rel="noopener noreferrer"
-    className={`flex-none text-[#b6b6b6] hover:text-white focus:outline-none transition-transform border border-[#b6b6b6] hover:border-white rounded-full flex items-center justify-center group/visit bg-black/30 backdrop-blur-sm box-border ${className}`}
+    className={`flex-none text-white focus:outline-none transition-transform border border-white rounded-full flex items-center justify-center group/visit bg-black/30 backdrop-blur-sm box-border ${className}`}
     style={
       config
         ? {
@@ -864,7 +864,7 @@ export default function SmartMedia({
                   {externalUrl && (
                     <VisitWebsiteButton
                       url={externalUrl}
-                      className="bg-transparent! backdrop-blur-none! hover:text-white! hover:border-white! text-white/60! border-white/60! h-[26px]! px-3! box-border"
+                      className="bg-transparent! backdrop-blur-none! text-white! border-white! h-[26px]! px-3! box-border"
                     />
                   )}
                   {hasCaptions && (
