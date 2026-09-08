@@ -188,7 +188,6 @@ const generateBubbles = (
     const spatialSpread = 25;
     const scaleSpread = 5.5;
 
-    console.log('targetCount', targetCount);
     while (i < targetCount && attempts < 500) {
       const x = (rng() - 0.5) * spatialSpread; // Increased range
       const y = (rng() - 0.5) * spatialSpread;
@@ -892,7 +891,6 @@ const ColorBubble = ({
       const mat = meshRef.current.material as THREE.Material;
       if (mat) {
         mat.opacity = fs.currentOpacity;
-        mat.needsUpdate = true;
       }
     }
   });
@@ -1152,44 +1150,6 @@ const Bubbles = ({
 }) => {
   // Track the single hovered bubble ID
   const [hoveredId, setHoveredId] = useState<number | null>(null);
-
-  const { camera, raycaster, pointer, scene } = useThree();
-
-  // Raycaster logic to find the closest bubble
-  useFrame(() => {
-    // Only run if we have bubbles
-    if (bubbles.length === 0) return;
-
-    // Update raycaster with current pointer position
-    raycaster.setFromCamera(pointer, camera);
-
-    // Get all intersections with our bubble meshes
-    // We need to filter for the interaction meshes (the first mesh in each bubble group)
-    // Actually, we can just intersect with everything and filter by distance
-    const intersects = raycaster.intersectObjects(scene.children, true);
-
-    // Filter intersects to find bubble interaction meshes
-    // We rely on the fact that our interaction mesh is the one with onClick handler attached in React
-    // But in Three.js raycaster, we get objects.
-    // The closest intersection is intersects[0].
-
-    if (intersects.length > 0) {
-      // Find the first object that is part of a Bubble
-      // We can identify them by checking if they belong to a Bubble group or have userData
-      // Simpler approach: We know our structure.
-      // Let's iterate and find the first one that corresponds to a bubble ID we know.
-      // But passing ref back is hard.
-      // Alternative: Just use the distance from camera to center of bubble?
-      // No, raycasting is better for overlap.
-      // Logic:
-      // 1. Find all intersections.
-      // 2. Sort by distance (done by default).
-      // 3. The first valid bubble hit is the "closest" one visually under the cursor.
-      // 4. Set that as hovered.
-      // We need to map mesh -> bubble ID.
-      // We can use userData on the interaction mesh.
-    }
-  });
 
   const content = bubbles.map((bubble) => (
     <Bubble
@@ -1505,6 +1465,7 @@ export default function BubbleScene({
       antialias: true,
       toneMapping: THREE.NoToneMapping,
       alpha: true,
+      powerPreference: 'high-performance' as const,
     }),
     [],
   );
@@ -1545,7 +1506,7 @@ export default function BubbleScene({
         frameloop={paused ? 'never' : 'always'}
         camera={{ position: [0, 0, 20], fov: 50 }}
         gl={glConfig}
-        dpr={isMobile ? [1, 1.5] : [1, 2]}
+        dpr={[1, 1.5]}
         onCreated={handleCanvasCreated}
       >
         <ambientLight intensity={3} />
