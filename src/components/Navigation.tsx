@@ -313,8 +313,8 @@ export default function Navigation({ contact }: NavigationProps) {
             ? 'translate-x-0'
             : 'translate-x-full landscape:translate-x-[calc(100%+2rem)] lg:[@media(min-height:720px)]:translate-x-[calc(100%+2rem)]'
         } inset-y-0 right-0 h-full w-full 
-        landscape:top-4 landscape:bottom-4 landscape:right-4 landscape:left-4 landscape:w-auto landscape:h-auto landscape:rounded-3xl
-        lg:[@media(min-height:720px)]:top-6! lg:[@media(min-height:720px)]:bottom-6! lg:[@media(min-height:720px)]:right-6! lg:[@media(min-height:720px)]:left-auto! lg:[@media(min-height:720px)]:w-[60%]! lg:[@media(min-height:720px)]:rounded-3xl! 
+        landscape:top-4 landscape:bottom-4 landscape:right-4 landscape:left-4 landscape:w-auto landscape:h-auto landscape:rounded-3xl landscape:shadow-2xl
+        lg:[@media(min-height:720px)]:top-6! lg:[@media(min-height:720px)]:bottom-6! lg:[@media(min-height:720px)]:right-6! lg:[@media(min-height:720px)]:left-auto! lg:[@media(min-height:720px)]:w-[60%]! lg:[@media(min-height:720px)]:rounded-3xl! lg:[@media(min-height:720px)]:shadow-2xl! 
         overflow-hidden`}
       >
         {/* Close Button - Fixed relative to card.
