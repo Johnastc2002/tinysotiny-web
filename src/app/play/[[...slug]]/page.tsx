@@ -40,7 +40,7 @@ export async function generateMetadata(
   }
 
   if (project) {
-    let thumbnail = project.thumbnails?.[0] || project.bubble_thumbnail;
+    let thumbnail = project.bubble_thumbnail || project.thumbnails?.[0];
 
     // Fallback to banners if no thumbnail
     if (!thumbnail && project.banners?.length > 0) {
