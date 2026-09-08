@@ -54,7 +54,7 @@ export default async function About() {
             </p>
 
             {/* Services List */}
-            <div className="mb-20 grid grid-cols-[repeat(2,max-content)] gap-y-2 md:gap-y-3 gap-x-16">
+            <div className="mb-20 grid grid-cols-[repeat(2,max-content)] gap-y-2 md:gap-y-3 gap-x-4 md:gap-x-8">
               {aboutUs?.categories?.map((category, index) => (
                 <div key={index} className="flex items-center gap-3">
                   <span className="h-2 w-2 min-w-2 shrink-0 rounded-full bg-[#0F2341]"></span>
