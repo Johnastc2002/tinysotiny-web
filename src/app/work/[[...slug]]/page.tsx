@@ -80,20 +80,22 @@ export async function generateMetadata(
           },
         ]
       : [defaultImage];
+    const socialDescription =
+      project.card_description || project.description;
 
     return {
       title: `${project.title} | tinysotiny.co`,
-      description: project.description,
+      description: socialDescription,
       openGraph: {
         title: project.title,
-        description: project.description,
+        description: socialDescription,
         images: images,
         type: 'website',
       },
       twitter: {
         card: 'summary_large_image',
         title: project.title,
-        description: project.description,
+        description: socialDescription,
         images: images,
       },
     };

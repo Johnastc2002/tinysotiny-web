@@ -12,16 +12,18 @@ interface CategorySVGProps {
 
 const CategorySVG: React.FC<CategorySVGProps> = ({ category, className }) => {
   const normalizedName = category.name.toUpperCase();
+  const wrapperClassName =
+    `${className || ''} lottie-overflow-visible w-full h-full overflow-visible`;
 
   switch (normalizedName) {
     case 'PHOTOGRAPHY':
-      return <div className={className}><PhotographyAnimation /></div>;
+      return <div className={wrapperClassName}><PhotographyAnimation /></div>;
     case 'MOTION GRAPHICS':
-      return <div className={className}><MotionGraphicsAnimation /></div>;
+      return <div className={wrapperClassName}><MotionGraphicsAnimation /></div>;
     case 'VIDEOGRAPHY':
-      return <div className={className}><VideographyAnimation /></div>;
+      return <div className={wrapperClassName}><VideographyAnimation /></div>;
     case 'BRANDING':
-      return <div className={className}><BrandingAnimation /></div>;
+      return <div className={wrapperClassName}><BrandingAnimation /></div>;
     default:
       return null;
   }

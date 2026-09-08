@@ -82,6 +82,12 @@
   font-display: swap;
 }
 
+.lottie-overflow-visible,
+.lottie-overflow-visible > div,
+.lottie-overflow-visible svg {
+  overflow: visible !important;
+}
+
 :root {
   --background: #fcfcfc;
   --foreground: #171717;

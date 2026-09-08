@@ -604,7 +604,7 @@ export default function ProjectPageClient({
             </div>
 
             {/* Right Column: Client & Services Section (Desktop) - Outside the white box */}
-            <div className="w-full md:w-[40%] pt-16 pl-12 pb-0 pointer-events-auto flex flex-col justify-end relative overflow-hidden">
+            <div className="w-full md:w-[40%] pt-16 pl-12 pb-0 pointer-events-auto flex flex-col justify-end relative overflow-visible">
               <div className="absolute inset-0 z-0 pointer-events-none">
                 {project.detail_category && (
                   <CategorySVG category={project.detail_category} />
