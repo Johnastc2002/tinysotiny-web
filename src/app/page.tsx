@@ -14,6 +14,7 @@ export default async function Home() {
         mode="home"
         enableBlur={false}
         enableRefraction={true}
+        rotationSpeed={0.02}
         showPlayGrid={appConfig?.show_play_grid}
       />
     </main>
