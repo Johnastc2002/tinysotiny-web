@@ -1000,7 +1000,11 @@ function GalleryPageContent({
               paddingTop: 'calc(6rem + env(safe-area-inset-top, 0px))',
             }}
           >
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
+            {/* grid-cols-1 for phones (<768px, incl. iPhone); md:grid-cols-3 for
+                iPad+ (iPad portrait starts at 768px). useIsMobile() can't be
+                used here because it also returns true for iPad (touch + `ipad`
+                UA), which would wrongly force iPad to 1 column. */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
               {displayedProjects.map((project) => (
                 <ProjectCard key={project.id} project={project} />
               ))}
