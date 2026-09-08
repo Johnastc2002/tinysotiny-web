@@ -659,7 +659,7 @@ export default function ProjectPageClient({
           >
             <div className="">
               {/* Image Gallery */}
-              <div className="flex flex-col gap-8">
+              <div className="flex flex-col gap-4">
                 {project.media_rows?.map((row, rowIndex) => {
                   const parts = row.row_layout.split('-');
                   const orientation = parts[0];
