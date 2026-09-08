@@ -12,8 +12,6 @@ import { shaderMaterial } from '@react-three/drei';
 
 interface RefractionContextType {
   texture: THREE.Texture | null;
-  depthTexture: THREE.DepthTexture | null;
-  resolution: THREE.Vector2;
   registerBubble: (obj: THREE.Object3D) => void;
   unregisterBubble: (obj: THREE.Object3D) => void;
   isEnabled: boolean;
@@ -26,6 +24,7 @@ const RefractionContext = createContext<RefractionContextType | null>(null);
 // fill-rate and mipmap cost without a visible quality benefit.
 const REFRACTION_RESOLUTION_SCALE = 0.75;
 const MAX_REFRACTION_DPR = 1;
+const BLUR_SCALE = 4;
 
 export const BubbleRefractionProvider = ({
   children,
@@ -39,56 +38,122 @@ export const BubbleRefractionProvider = ({
   // Use a ref for the bubbles set to avoid re-renders on mutation
   const bubblesRef = useRef<Set<THREE.Object3D>>(new Set());
 
-  // Create FBO with depth texture
-  const fbo = useMemo(() => {
+  const dimensions = useMemo(() => {
     const pixelRatio = Math.min(gl.getPixelRatio(), MAX_REFRACTION_DPR);
-    const width = Math.max(
-      1,
-      Math.floor(size.width * pixelRatio * REFRACTION_RESOLUTION_SCALE),
-    );
-    const height = Math.max(
-      1,
-      Math.floor(size.height * pixelRatio * REFRACTION_RESOLUTION_SCALE),
-    );
-
-    const target = new THREE.WebGLRenderTarget(width, height, {
-      minFilter: THREE.LinearMipmapLinearFilter, // Use Mipmaps for smoother blur sampling
-      magFilter: THREE.LinearFilter,
-      format: THREE.RGBAFormat,
-      // The home refraction pass only captures display-range colors. RGBA8
-      // avoids the slower half-float render/mipmap path on Windows ANGLE.
-      type: THREE.UnsignedByteType,
-      depthBuffer: true,
-      depthTexture: new THREE.DepthTexture(width, height),
-      stencilBuffer: false,
-      generateMipmaps: true, // Auto-generate mipmaps every frame
-    });
-    // Ensure depth texture uses NearestFilter to avoid WebGL errors (Linear depth is often not supported)
-    if (target.depthTexture) {
-      target.depthTexture.type = THREE.UnsignedIntType;
-      target.depthTexture.minFilter = THREE.NearestFilter;
-      target.depthTexture.magFilter = THREE.NearestFilter;
-    }
-
-    return target;
-  }, [size, gl]);
-
-  useEffect(() => () => fbo.dispose(), [fbo]);
-
-  // Handle resize
-  useEffect(() => {
-    const pixelRatio = Math.min(gl.getPixelRatio(), MAX_REFRACTION_DPR);
-    fbo.setSize(
-      Math.max(
+    return {
+      width: Math.max(
         1,
         Math.floor(size.width * pixelRatio * REFRACTION_RESOLUTION_SCALE),
       ),
-      Math.max(
+      height: Math.max(
         1,
         Math.floor(size.height * pixelRatio * REFRACTION_RESOLUTION_SCALE),
       ),
+    };
+  }, [size, gl]);
+
+  const targets = useMemo(() => {
+    const sceneTarget = new THREE.WebGLRenderTarget(
+      dimensions.width,
+      dimensions.height,
+      {
+        minFilter: THREE.LinearFilter,
+        magFilter: THREE.LinearFilter,
+        format: THREE.RGBAFormat,
+        type: THREE.UnsignedByteType,
+        depthBuffer: true,
+        stencilBuffer: false,
+        generateMipmaps: false,
+      },
     );
-  }, [size, gl, fbo]);
+    const blurTargetA = new THREE.WebGLRenderTarget(
+      dimensions.width,
+      dimensions.height,
+      {
+        minFilter: THREE.LinearFilter,
+        magFilter: THREE.LinearFilter,
+        format: THREE.RGBAFormat,
+        type: THREE.UnsignedByteType,
+        depthBuffer: false,
+        stencilBuffer: false,
+        generateMipmaps: false,
+      },
+    );
+    const blurTargetB = blurTargetA.clone();
+
+    return { sceneTarget, blurTargetA, blurTargetB };
+  }, [dimensions]);
+
+  const blurPipeline = useMemo(() => {
+    const blurScene = new THREE.Scene();
+    const blurCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    const geometry = new THREE.PlaneGeometry(2, 2);
+    const material = new THREE.ShaderMaterial({
+      depthTest: false,
+      depthWrite: false,
+      uniforms: {
+        tDiffuse: { value: null },
+        uDirection: { value: new THREE.Vector2(1, 0) },
+        uTexelSize: {
+          value: new THREE.Vector2(
+            1 / dimensions.width,
+            1 / dimensions.height,
+          ),
+        },
+        uBlurScale: { value: BLUR_SCALE },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+
+        void main() {
+          vUv = uv;
+          gl_Position = vec4(position.xy, 0.0, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D tDiffuse;
+        uniform vec2 uDirection;
+        uniform vec2 uTexelSize;
+        uniform float uBlurScale;
+        varying vec2 vUv;
+
+        void main() {
+          vec2 offset1 =
+            uDirection * uTexelSize * 1.3846153846 * uBlurScale;
+          vec2 offset2 =
+            uDirection * uTexelSize * 3.2307692308 * uBlurScale;
+
+          vec4 color = texture2D(tDiffuse, vUv) * 0.2270270270;
+          color += texture2D(tDiffuse, vUv + offset1) * 0.3162162162;
+          color += texture2D(tDiffuse, vUv - offset1) * 0.3162162162;
+          color += texture2D(tDiffuse, vUv + offset2) * 0.0702702703;
+          color += texture2D(tDiffuse, vUv - offset2) * 0.0702702703;
+          gl_FragColor = color;
+        }
+      `,
+    });
+    const quad = new THREE.Mesh(geometry, material);
+    quad.frustumCulled = false;
+    blurScene.add(quad);
+
+    return { blurScene, blurCamera, geometry, material };
+  }, [dimensions]);
+  const blurMaterialRef = useRef(blurPipeline.material);
+
+  useEffect(() => {
+    blurMaterialRef.current = blurPipeline.material;
+  }, [blurPipeline]);
+
+  useEffect(
+    () => () => {
+      targets.sceneTarget.dispose();
+      targets.blurTargetA.dispose();
+      targets.blurTargetB.dispose();
+      blurPipeline.geometry.dispose();
+      blurPipeline.material.dispose();
+    },
+    [targets, blurPipeline],
+  );
 
   const registerBubble = (obj: THREE.Object3D) => {
     bubblesRef.current.add(obj);
@@ -114,10 +179,27 @@ export const BubbleRefractionProvider = ({
     state.gl.getClearColor(oldClearColor);
     const oldClearAlpha = state.gl.getClearAlpha();
 
+    // Capture the scene without refractive bubbles.
     state.gl.setClearColor('#F0F2F5', 1);
-    state.gl.setRenderTarget(fbo);
+    state.gl.setRenderTarget(targets.sceneTarget);
     state.gl.clear();
     state.gl.render(state.scene, state.camera);
+
+    // Blur once horizontally and once vertically. The bubble shader can now
+    // use a single smooth texture sample instead of a large per-bubble kernel.
+    const blurMaterial = blurMaterialRef.current;
+    blurMaterial.uniforms.tDiffuse.value = targets.sceneTarget.texture;
+    blurMaterial.uniforms.uDirection.value.set(1, 0);
+    state.gl.setRenderTarget(targets.blurTargetA);
+    state.gl.clear();
+    state.gl.render(blurPipeline.blurScene, blurPipeline.blurCamera);
+
+    blurMaterial.uniforms.tDiffuse.value = targets.blurTargetA.texture;
+    blurMaterial.uniforms.uDirection.value.set(0, 1);
+    state.gl.setRenderTarget(targets.blurTargetB);
+    state.gl.clear();
+    state.gl.render(blurPipeline.blurScene, blurPipeline.blurCamera);
+
     state.gl.setClearColor(oldClearColor, oldClearAlpha);
     state.gl.setRenderTarget(currentRenderTarget);
 
@@ -125,39 +207,13 @@ export const BubbleRefractionProvider = ({
       b.visible = true;
     });
 
-    // Refraction and bubble movement render at the same rate to avoid flicker.
     state.gl.render(state.scene, state.camera);
-  }, 1); // Priority 1: Run after animations, take over render loop to ensure sync
-
-  const resolution = useMemo(
-    () =>
-      new THREE.Vector2(
-        Math.max(
-          1,
-          Math.floor(
-            size.width *
-              Math.min(gl.getPixelRatio(), MAX_REFRACTION_DPR) *
-              REFRACTION_RESOLUTION_SCALE,
-          ),
-        ),
-        Math.max(
-          1,
-          Math.floor(
-            size.height *
-              Math.min(gl.getPixelRatio(), MAX_REFRACTION_DPR) *
-              REFRACTION_RESOLUTION_SCALE,
-          ),
-        ),
-      ),
-    [size, gl],
-  );
+  }, 1);
 
   return (
     <RefractionContext.Provider
       value={{
-        texture: fbo.texture,
-        depthTexture: fbo.depthTexture,
-        resolution,
+        texture: targets.blurTargetB.texture,
         registerBubble,
         unregisterBubble,
         isEnabled: enabled,
@@ -199,80 +255,34 @@ export const useBubbleRefraction = (
 const RefractionShaderMaterialImpl = shaderMaterial(
   {
     tDiffuse: null,
-    tDepth: null,
-    uResolution: new THREE.Vector2(),
     uRefractionStrength: 0.02,
     uBlurScale: 2.0,
     uOpacity: 1.0,
     uRadius: 1.0,
     uColor: new THREE.Color('white'),
-    cameraNear: 0.1,
-    cameraFar: 1000.0,
   },
   // Vertex Shader
   `
     varying vec2 vUv;
     varying vec4 vScreenPos;
-    varying vec3 vViewPosition;
-    varying vec4 vProjZ;
 
     void main() {
       vUv = uv;
       vec4 worldPosition = modelMatrix * vec4(position, 1.0);
       vec4 viewPos = viewMatrix * worldPosition;
-      vViewPosition = viewPos.xyz;
       gl_Position = projectionMatrix * viewPos;
       vScreenPos = gl_Position;
-      
-      // Store Projection Matrix elements for correct depth calculation in Fragment Shader
-      // Row 2 (Clip Z) and Row 3 (Clip W) coefficients for View Z and W(1.0)
-      // m[col][row]
-      vProjZ = vec4(projectionMatrix[2][2], projectionMatrix[3][2], projectionMatrix[2][3], projectionMatrix[3][3]);
     }
   `,
   // Fragment Shader
   `
     uniform sampler2D tDiffuse;
-    uniform sampler2D tDepth;
-    uniform vec2 uResolution;
     uniform float uRefractionStrength;
-    uniform float uBlurScale;
     uniform float uOpacity;
-    uniform float uRadius;
     uniform vec3 uColor;
-    uniform float cameraNear;
-    uniform float cameraFar;
 
     varying vec2 vUv;
     varying vec4 vScreenPos;
-    varying vec3 vViewPosition;
-    varying vec4 vProjZ;
-
-    // Manual implementation since we might not have the include
-    float perspectiveDepthToViewZ( const in float invClipZ, const in float near, const in float far ) {
-      return ( near * far ) / ( ( far - near ) * invClipZ - far );
-    }
-
-    // Manual Bilinear Filtering for Depth to smooth out intersection aliasing
-    float getSmoothDepth(sampler2D depthSampler, vec2 uv, vec2 resolution) {
-        vec2 texelSize = 1.0 / resolution;
-        vec2 pixel = uv * resolution - 0.5;
-        vec2 f = fract(pixel);
-        
-        // Snap to center of nearest texel
-        vec2 uv00 = (floor(pixel) + 0.5) * texelSize;
-        
-        float d00 = texture2D(depthSampler, uv00).x;
-        float d10 = texture2D(depthSampler, uv00 + vec2(texelSize.x, 0.0)).x;
-        float d01 = texture2D(depthSampler, uv00 + vec2(0.0, texelSize.y)).x;
-        float d11 = texture2D(depthSampler, uv00 + texelSize).x;
-        
-        // Bilinear mix of raw depth values
-        float d0 = mix(d00, d10, f.x);
-        float d1 = mix(d01, d11, f.x);
-        
-        return mix(d0, d1, f.y);
-    }
     
     void main() {
         // Screen UV (0 to 1)
@@ -292,70 +302,13 @@ const RefractionShaderMaterialImpl = shaderMaterial(
     float zHeight = sqrt(0.25 - safeDist * safeDist);
     vec3 normal = normalize(vec3(localDiff.x, localDiff.y, zHeight));
         vec2 n = normal.xy;
-        
-        // Calculate depths
-        float currentDepthRaw = gl_FragCoord.z;
-        float currentLinearDist = -perspectiveDepthToViewZ(currentDepthRaw, cameraNear, cameraFar);
-
-        // --- SOFT PARTICLE FADE ---
-        // Get scene depth at current fragment position
-        float closestSceneDepthRaw = getSmoothDepth(tDepth, screenUV, uResolution);
-        float closestSceneLinearDist = -perspectiveDepthToViewZ(closestSceneDepthRaw, cameraNear, cameraFar);
-        
-        // Compare depths
-        float depthDiff = closestSceneLinearDist - currentLinearDist;
-        
-        // Using constant alpha instead of depth fade to avoid grey borders
-        float alphaFade = 1.0;
 
         // --- REFRACTION ---
         vec2 offset = n * uRefractionStrength * uOpacity;
         vec2 refractedUV = screenUV + offset;
         
-        // --- SOFT FROSTED GLASS DIFFUSION ---
-        
+        // The shared texture is already smoothly blurred in two passes.
         vec3 col = texture2D(tDiffuse, refractedUV).rgb;
-        
-        if (uOpacity > 0.01) {
-            vec3 blurCol = vec3(0.0);
-            float totalWeight = 0.0;
-            
-            // Keep the taps close enough that they overlap instead of showing
-            // distinct offset copies of high-contrast details such as text.
-            float currentBlurRadius = 0.005 * uBlurScale;
-            
-            // Very high LOD bias to force using low-resolution mipmaps
-            // This creates a perfectly smooth "creamy" blur without banding or ringing
-            // Eliminates the need for noise/dithering which causes grain
-            float lodBias = 2.0 + (uBlurScale * 0.5);
-
-            // Mipmap filtering supplies the broad creamy spread; these taps
-            // smooth its shape while remaining cheaper than the old 64 taps.
-            for(int i = 0; i < 16; i++) {
-                float fi = float(i);
-                
-                // Stable Golden Angle spiral (no noise)
-                float angle = fi * 2.39996;
-                
-                // Square root distribution
-                float r = sqrt(fi / 16.0);
-                
-                // Sample offset
-                vec2 offset = vec2(cos(angle), sin(angle)) * currentBlurRadius * r;
-                vec2 sampleUV = refractedUV + offset;
-                
-                // Sample color with high LOD bias
-                vec3 texSample = texture2D(tDiffuse, sampleUV, lodBias).rgb;
-                
-                // Gaussian weight
-                float w = exp(-2.0 * r * r);
-                
-                blurCol += texSample * w;
-                totalWeight += w;
-            }
-            
-            col = blurCol / totalWeight;
-        }
 
         // --- BALANCED BRIGHTNESS CORRECTION ---
         // Calculate luminance to determine how bright the pixel is
@@ -386,7 +339,7 @@ const RefractionShaderMaterialImpl = shaderMaterial(
         col *= tintFactor;
         
     // Final Alpha - sharp edge
-    float finalAlpha = uOpacity * alphaFade * alphaEdge;
+    float finalAlpha = uOpacity * alphaEdge;
     
     gl_FragColor = vec4(col, finalAlpha);
     }
@@ -409,7 +362,6 @@ export const RefractiveBubbleMaterial = ({
   ...props
 }: RefractiveBubbleMaterialProps) => {
   const context = useContext(RefractionContext);
-  const { camera } = useThree();
 
   const colorUniform = useMemo(() => {
     return new THREE.Color(uColor || 'white');
@@ -425,10 +377,6 @@ export const RefractiveBubbleMaterial = ({
     <refractionShaderMaterialImpl
       key={RefractionShaderMaterialImpl.key}
       tDiffuse={context.texture}
-      tDepth={context.depthTexture}
-      uResolution={context.resolution}
-      cameraNear={camera.near}
-      cameraFar={camera.far}
       transparent
       depthWrite={false} // Ensure transparent object doesn't write to depth
       depthTest={true} // Ensure transparent object tests against depth
